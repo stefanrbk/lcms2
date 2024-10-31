@@ -42,5 +42,6 @@ public partial struct Signature
         public static readonly Signature Tag = new("tagH"u8);
         public static readonly Signature TagType = new("typH"u8);
         public static readonly Signature Transform = new("xfmH"u8);
+        public static readonly Signature Parallelization = new("prlH"u8);
     }
 }
