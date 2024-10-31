@@ -377,7 +377,7 @@ public static partial class Lcms2
     private static void EmitWhiteBlackD50(IOHandler m, CIEXYZ BlackPoint)
     {
         m.PrintF("/BlackPoint [{0} {1} {2}]\n", BlackPoint.X, BlackPoint.Y, BlackPoint.Z);
-        m.PrintF("/WhitePoint [{0} {1} {2}]\n", D50XYZ.X, D50XYZ.Y, D50XYZ.Z);
+        m.PrintF("/WhitePoint [{0} {1} {2}]\n", CIEXYZ.D50.X, CIEXYZ.D50.Y, CIEXYZ.D50.Z);
     }
 
     private static void EmitRangeCheck(IOHandler m) =>

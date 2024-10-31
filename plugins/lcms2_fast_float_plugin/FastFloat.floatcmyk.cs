@@ -59,7 +59,7 @@ public static partial class FastFloat
     {
         fixed (byte* OutputPtr = Output)
         {
-            if (_cmsGetTransformUserData(CMMcargo) is not FloatCMYKData pcmyk)
+            if (CMMcargo.UserData is not FloatCMYKData pcmyk)
                 return;
             var p = pcmyk.p;
             var TotalOut = p.nOutputs;
@@ -80,7 +80,7 @@ public static partial class FastFloat
             _cmsComputeComponentIncrements(InputFormat, Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
             _cmsComputeComponentIncrements(OutputFormat, Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
 
-            if ((_cmsGetTransformFlags(CMMcargo) & cmsFLAGS_COPY_ALPHA) is 0)
+            if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
                 nalpha = 0;
 
             nuint strideIn = 0;

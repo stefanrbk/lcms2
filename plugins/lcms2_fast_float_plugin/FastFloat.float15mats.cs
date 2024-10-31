@@ -34,7 +34,7 @@ public static partial class FastFloat
                                        uint LineCount,
                                        Stride Stride)
     {
-        if (_cmsGetTransformUserData(CMMcargo) is not XMatShaperData p)
+        if (CMMcargo.UserData is not XMatShaperData p)
             return;
 
         Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
@@ -45,7 +45,7 @@ public static partial class FastFloat
         _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
         _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
 
-        if ((_cmsGetTransformFlags(CMMcargo) & cmsFLAGS_COPY_ALPHA) is 0)
+        if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
 
         nuint strideIn = 0;

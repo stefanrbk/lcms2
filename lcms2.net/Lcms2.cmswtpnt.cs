@@ -30,23 +30,6 @@ namespace lcms2;
 
 public static partial class Lcms2
 {
-    public static readonly CIEXYZ D50XYZ = new() { X = cmsD50X, Y = cmsD50Y, Z = cmsD50Z };
-    public static readonly CIExyY D50xyY = cmsXYZ2xyY(D50XYZ);
-
-    //[DebuggerStepThrough]
-    //public static CIEXYZ* D50XYZ
-    //{
-    //    fixed (CIEXYZ* xyz = &D50XYZ)
-    //        return xyz;
-    //}
-
-    //[DebuggerStepThrough]
-    //public static CIExyY* D50xyY
-    //{
-    //    fixed (CIExyY* xyy = &D50xyY)
-    //        return xyy;
-    //}
-
     public static CIExyY cmsWhitePointFromTemp(double TempK) =>
         // See WhitePoint.FromTemp()
         WhitePoint.FromTemp(TempK).IfNone(CIExyY.NaN);
@@ -59,7 +42,7 @@ public static partial class Lcms2
     {
         var Dn = cmsxyY2XYZ(SourceWhitePt);
 
-        var Bradford = CHAD.AdaptationMatrix(null, Dn, D50XYZ);
+        var Bradford = CHAD.AdaptationMatrix(null, Dn, CIEXYZ.D50);
         if (Bradford.IsNaN)
             return false;
 

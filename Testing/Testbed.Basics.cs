@@ -136,17 +136,17 @@ internal static partial class Testbed
         const double d50y2 = 1.0;
         const double d50z2 = 0.82490540;
 
-        var xe = DoubleToS15Fixed16(cmsD50X);
-        var ye = DoubleToS15Fixed16(cmsD50Y);
-        var ze = DoubleToS15Fixed16(cmsD50Z);
+        var xe = DoubleToS15Fixed16(CIEXYZ.D50.X);
+        var ye = DoubleToS15Fixed16(CIEXYZ.D50.Y);
+        var ze = DoubleToS15Fixed16(CIEXYZ.D50.Z);
 
         var x = S15Fixed16ToDouble(xe);
         var y = S15Fixed16ToDouble(ye);
         var z = S15Fixed16ToDouble(ze);
 
-        var dx = Math.Abs(cmsD50X - x);
-        var dy = Math.Abs(cmsD50Y - y);
-        var dz = Math.Abs(cmsD50Z - z);
+        var dx = Math.Abs(CIEXYZ.D50.X - x);
+        var dy = Math.Abs(CIEXYZ.D50.Y - y);
+        var dz = Math.Abs(CIEXYZ.D50.Z - z);
 
         var euc = Math.Sqrt((dx * dx) + (dy * dy) + (dz * dz));
 

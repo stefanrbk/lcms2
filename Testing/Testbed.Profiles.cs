@@ -73,7 +73,7 @@ internal static partial class Testbed
         var Curve = cmsBuildGamma(DbgThread(), 2.2);
         if (Curve is null) return null;
 
-        var Profile = cmsCreateGrayProfileTHR(DbgThread(), D50xyY, Curve);
+        var Profile = cmsCreateGrayProfileTHR(DbgThread(), CIExyY.D50, Curve);
         cmsFreeToneCurve(Curve);
 
         return Profile;
@@ -84,7 +84,7 @@ internal static partial class Testbed
         var Curve = cmsBuildGamma(DbgThread(), 3.0);
         if (Curve is null) return null;
 
-        var Profile = cmsCreateGrayProfileTHR(DbgThread(), D50xyY, Curve);
+        var Profile = cmsCreateGrayProfileTHR(DbgThread(), CIExyY.D50, Curve);
         cmsFreeToneCurve(Curve);
 
         return Profile;
@@ -95,7 +95,7 @@ internal static partial class Testbed
         var Curve = cmsBuildGamma(DbgThread(), 1.0);
         if (Curve is null) return null;
 
-        var Profile = cmsCreateGrayProfileTHR(DbgThread(), D50xyY, Curve);
+        var Profile = cmsCreateGrayProfileTHR(DbgThread(), CIExyY.D50, Curve);
         cmsFreeToneCurve(Curve);
 
         cmsSetPCS(Profile, cmsSigLabData);

@@ -56,6 +56,8 @@ public class Context : ICloneable
     public static Context Default => new();
     public static readonly Context Shared = new();
 
+    public const ushort LibraryVersion = 2160;
+
     private Context(object? userdata = null) =>
         userData = userdata;
 
@@ -95,9 +97,9 @@ public class Context : ICloneable
             LogError(this, ErrorCodes.UnknownExtension, "Unrecognized plugin");
         }
 
-        if (plugin.ExpectedVersion > Lcms2.Version)
+        if (plugin.ExpectedVersion > LibraryVersion)
         {
-            LogError(this, ErrorCodes.UnknownExtension, $"plugin needs Little CMS {plugin.ExpectedVersion}, current version is {Lcms2.Version}");
+            LogError(this, ErrorCodes.UnknownExtension, $"plugin needs Little CMS {plugin.ExpectedVersion}, current version is {LibraryVersion}");
         }
 
         switch ((uint)plugin.Type)

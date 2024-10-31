@@ -34,7 +34,7 @@ public unsafe static partial class FastFloat
                                        uint LineCount,
                                        Stride Stride)
     {
-        if (_cmsGetTransformUserData(CMMcargo) is not nuint pPtr)
+        if (CMMcargo.UserData is not nuint pPtr)
             return;
 
         var p = (VXMatShaperFloatData*)pPtr;
@@ -47,7 +47,7 @@ public unsafe static partial class FastFloat
         _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, new(SourceStartingOrder, cmsMAXCHANNELS), new(SourceIncrements, cmsMAXCHANNELS));
         _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, new(DestStartingOrder, cmsMAXCHANNELS), new(DestIncrements, cmsMAXCHANNELS));
 
-        if ((_cmsGetTransformFlags(CMMcargo) & cmsFLAGS_COPY_ALPHA) is 0)
+        if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
 
         fixed (byte* Input = In, Output = Out)

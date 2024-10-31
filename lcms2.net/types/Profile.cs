@@ -54,6 +54,8 @@ public class Profile : ICloneable
 
     public ProfileID ProfileID;
 
+    public static CIEXYZ PerceptualBlack => new(0.00336, 0.0034731, 0.00287);
+
     //public uint TagCount;
     //public readonly Signature[] TagNames = new Signature[MAX_TABLE_TAG];
     //public readonly Signature[] TagLinked = new Signature[MAX_TABLE_TAG];

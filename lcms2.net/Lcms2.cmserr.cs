@@ -51,7 +51,7 @@ public static partial class Lcms2
     //};
 
     public static int cmsGetEncodedCMMversion() =>
-        Version;
+        Context.LibraryVersion;
 
     public static int cmsstrcasecmp(ReadOnlySpan<char> s1, ReadOnlySpan<char> s2)
     {

@@ -1023,7 +1023,7 @@ internal static partial class Testbed
         }
 
         dwFlags |= cmsFLAGS_NOCACHE;
-        _cmsPipelineSetOptimizationParameters(Lut, FastEvaluateCurves, null, null, null);
+        Lut.SetOptimizationParameters(FastEvaluateCurves, null, null, null);
 
         return true;
     }

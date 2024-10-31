@@ -82,11 +82,10 @@ public class Transform : IDisposable
 
     internal Context? ContextID;
 
-    public object? UserData
-    {
-        get;    // _cmsGetTransformUserData
-        internal set;
-    }
+    internal object? userData;
+    public object? UserData =>
+        userData;
+
     internal FreeUserDataFn? FreeUserData;
 
     internal TransformFn? OldXform;
@@ -110,7 +109,7 @@ public class Transform : IDisposable
 
     public void SetUserData(object? ptr, FreeUserDataFn? FreePrivateDataFn) // _cmsSetTransformUserData
     {
-        UserData = ptr;
+        userData = ptr;
         FreeUserData = FreePrivateDataFn;
     }
 

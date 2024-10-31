@@ -49,7 +49,7 @@ public static partial class FastFloat
     {
         fixed (byte* OutputPtr = Output)
         {
-            if (_cmsGetTransformUserData(CMMcargo) is not Performance8Data p8)
+            if (CMMcargo.UserData is not Performance8Data p8)
                 return;
             var p = p8.p;
             var TotalOut = p.nOutputs;
@@ -65,7 +65,7 @@ public static partial class FastFloat
             _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
             _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
 
-            if ((_cmsGetTransformFlags(CMMcargo) & cmsFLAGS_COPY_ALPHA) is 0)
+            if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
                 nalpha = 0;
 
             nuint strideIn = 0;

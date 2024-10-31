@@ -851,7 +851,7 @@ internal static partial class Testbed
 
         cmsSetHeaderRenderingIntent(identityProfile, INTENT_RELATIVE_COLORIMETRIC);
 
-        cmsWriteTag(identityProfile, cmsSigMediaWhitePointTag, new Box<CIEXYZ>(D50XYZ));
+        cmsWriteTag(identityProfile, cmsSigMediaWhitePointTag, new Box<CIEXYZ>(CIEXYZ.D50));
 
         var identity = MAT3.Identity.AsArray(/*Context.GetPool<double>(null)*/);
 

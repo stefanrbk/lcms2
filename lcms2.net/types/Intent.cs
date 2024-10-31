@@ -638,17 +638,17 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         // a = (bpout - D50) / (bpin - D50)
         // b = - D50* (bpout - bpin) / (bpin - D50)
 
-        var tx = BlackPointIn.X - D50XYZ.X;
-        var ty = BlackPointIn.Y - D50XYZ.Y;
-        var tz = BlackPointIn.Z - D50XYZ.Z;
+        var tx = BlackPointIn.X - CIEXYZ.D50.X;
+        var ty = BlackPointIn.Y - CIEXYZ.D50.Y;
+        var tz = BlackPointIn.Z - CIEXYZ.D50.Z;
 
-        var ax = (BlackPointOut.X - D50XYZ.X) / tx;
-        var ay = (BlackPointOut.Y - D50XYZ.Y) / ty;
-        var az = (BlackPointOut.Z - D50XYZ.Z) / tz;
+        var ax = (BlackPointOut.X - CIEXYZ.D50.X) / tx;
+        var ay = (BlackPointOut.Y - CIEXYZ.D50.Y) / ty;
+        var az = (BlackPointOut.Z - CIEXYZ.D50.Z) / tz;
 
-        var bx = -D50XYZ.X * (BlackPointOut.X - BlackPointIn.X) / tx;
-        var by = -D50XYZ.Y * (BlackPointOut.Y - BlackPointIn.Y) / ty;
-        var bz = -D50XYZ.Z * (BlackPointOut.Z - BlackPointIn.Z) / tz;
+        var bx = -CIEXYZ.D50.X * (BlackPointOut.X - BlackPointIn.X) / tx;
+        var by = -CIEXYZ.D50.Y * (BlackPointOut.Y - BlackPointIn.Y) / ty;
+        var bz = -CIEXYZ.D50.Z * (BlackPointOut.Z - BlackPointIn.Z) / tz;
 
         m = new(
             x: new(ax, 0, 0),
@@ -809,7 +809,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         if (m2.IsNaN)
             return -1.0;
 
-        var s = D50XYZ.AsVec;
+        var s = CIEXYZ.D50.AsVec;
 
         var d = m2.Eval(s);
 
@@ -828,7 +828,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
     {
         var ChromaticityOfWhite = cmsWhitePointFromTemp(Temp);
         var White = cmsxyY2XYZ(ChromaticityOfWhite);
-        return CHAD.AdaptationMatrix(null, White, D50XYZ);
+        return CHAD.AdaptationMatrix(null, White, CIEXYZ.D50);
     }
 
     private class PreserveKPlaneParams

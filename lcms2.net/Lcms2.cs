@@ -44,17 +44,7 @@ public static partial class Lcms2
 
     #region lcms2.h
 
-    public const ushort Version = 2160;   // cmsGetEncodedCMMversion
-
     public const ushort MaxPath = 256;
-
-    public const double cmsD50X = 0.9642;
-    public const double cmsD50Y = 1.0;
-    public const double cmsD50Z = 0.8249;
-
-    public const double cmsPERCEPTUAL_BLACK_X = 0.00336;
-    public const double cmsPERCEPTUAL_BLACK_Y = 0.0034731;
-    public const double cmsPERCEPTUAL_BLACK_Z = 0.00287;
 
     public const uint cmsMagicNumber = 0x61637370;
     public const uint lcmsSignature = 0x6c636d73;

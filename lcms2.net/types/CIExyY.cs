@@ -38,7 +38,7 @@ public struct CIExyY(double x, double y, double Y)
         double.IsNaN(x) || double.IsNaN(y) || double.IsNaN(Y);
 
     public static CIExyY D50 =>
-        cmsXYZ2xyY(CIEXYZ.D50);
+        CIEXYZ.D50.As_xyY;
 
     public readonly CIEXYZ AsXYZ
     {

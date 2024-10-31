@@ -64,12 +64,12 @@ public static partial class Lcms2
 
     internal static readonly double[] GrayInputMatrix = new double[3]
     {
-        InpAdj * cmsD50X,
-        InpAdj * cmsD50Y,
-        InpAdj * cmsD50Z,
+        InpAdj * CIEXYZ.D50.X,
+        InpAdj * CIEXYZ.D50.Y,
+        InpAdj * CIEXYZ.D50.Z,
     };
     internal static readonly double[] OneToThreeInputMatrix = new double[3] { 1, 1, 1 };
-    internal static readonly double[] PickYMatrix = new double[3] { 0, OutpAdj * cmsD50Y, 0, };
+    internal static readonly double[] PickYMatrix = new double[3] { 0, OutpAdj * CIEXYZ.D50.Y, 0, };
     internal static readonly double[] PickLstarMatrix = new double[3] { 1, 0, 0 };
 
     internal const double InpAdj = 1 / MAX_ENCODEABLE_XYZ;
@@ -82,7 +82,7 @@ public static partial class Lcms2
         // If no wp, take D50
         if (cmsReadTag(Profile, cmsSigMediaWhitePointTag) is not Box<CIEXYZ> Tag)
         {
-            Dest.Value = D50XYZ;
+            Dest.Value = CIEXYZ.D50;
             return true;
         }
 
@@ -91,7 +91,7 @@ public static partial class Lcms2
         {
             if (cmsGetDeviceClass(Profile) == cmsSigDisplayClass)
             {
-                Dest.Value = D50XYZ;
+                Dest.Value = CIEXYZ.D50;
                 return true;
             }
         }
@@ -127,7 +127,7 @@ public static partial class Lcms2
                     Dest.Value = MAT3.Identity;
                     return true;
                 }
-                return !CHAD.AdaptationMatrix(null, White.Value, D50XYZ).IsNaN;
+                return !CHAD.AdaptationMatrix(null, White.Value, CIEXYZ.D50).IsNaN;
             }
         }
 

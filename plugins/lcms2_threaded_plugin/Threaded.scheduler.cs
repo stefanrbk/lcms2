@@ -33,8 +33,8 @@ public static partial class Threaded
                                           Stride Stride)
     {
         var ContextID = cmsGetTransformContextID(CMMcargo);
-        var worker = _cmsGetTransformWorker(CMMcargo);
-        var MaxWorkers = _cmsGetTransformMaxWorkers(CMMcargo);
+        var worker = CMMcargo.Worker;
+        var MaxWorkers = CMMcargo.MaxWorkers;
 
         // flags are not actually being used
         // uint flags = _cmsGetTransformWorkerFlags(CMMcargo);

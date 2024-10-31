@@ -498,7 +498,7 @@ public static partial class Lcms2
             return null;
 
         // Create a mutex if the user provided proper plugin. NULL otherwise
-        Icc.UserMutex = _cmsCreateMutex(ContextID);
+        Icc.UserMutex = Context.CreateMutex(ContextID);
 
         // Return the handle
         return Icc;
@@ -857,9 +857,9 @@ public static partial class Lcms2
         Header.renderingIntent = AdjustEndianess(Icc.RenderingIntent);
 
         // Illuminant is always D50
-        Header.illuminant.X = (int)AdjustEndianess((uint)DoubleToS15Fixed16(D50XYZ.X));
-        Header.illuminant.Y = (int)AdjustEndianess((uint)DoubleToS15Fixed16(D50XYZ.Y));
-        Header.illuminant.Z = (int)AdjustEndianess((uint)DoubleToS15Fixed16(D50XYZ.Z));
+        Header.illuminant.X = (int)AdjustEndianess((uint)DoubleToS15Fixed16(CIEXYZ.D50.X));
+        Header.illuminant.Y = (int)AdjustEndianess((uint)DoubleToS15Fixed16(CIEXYZ.D50.Y));
+        Header.illuminant.Z = (int)AdjustEndianess((uint)DoubleToS15Fixed16(CIEXYZ.D50.Z));
 
         Header.creator = new(AdjustEndianess(Icc.creator));
 
@@ -1300,7 +1300,7 @@ public static partial class Lcms2
 
         Keep = Profile;
 
-        if (!_cmsLockMutex(Keep.ContextID, Keep.UserMutex)) return 0;
+        if (!Context.LockMutex(Keep.ContextID, Keep.UserMutex)) return 0;
         var Icc = (Profile)Keep.Clone();
         //memmove(&Keep, Icc, _sizeof<Profile>());
 
@@ -1308,7 +1308,7 @@ public static partial class Lcms2
         var PrevIO = Icc.IOHandler = cmsOpenIOhandlerFromNULL(ContextID);
         if (PrevIO is null)
         {
-            _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+            Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
             return 0;
         }
 
@@ -1332,14 +1332,14 @@ public static partial class Lcms2
         if (!cmsCloseIOhandler(PrevIO))
             UsedSpace = 0; // As an error marker
 
-        _cmsUnlockMutex(Keep.ContextID, Keep.UserMutex);
+        Context.UnlockMutex(Keep.ContextID, Keep.UserMutex);
 
         return UsedSpace;
 
     Error:
         cmsCloseIOhandler(PrevIO);
         //memmove(Icc, &Keep, _sizeof<Profile>());
-        _cmsUnlockMutex(Keep.ContextID, Keep.UserMutex);
+        Context.UnlockMutex(Keep.ContextID, Keep.UserMutex);
 
         return 0;
     }
@@ -1450,7 +1450,7 @@ public static partial class Lcms2
         if (Icc.IOHandler is not null)
             rc &= cmsCloseIOhandler(Icc.IOHandler);
 
-        _cmsDestroyMutex(Icc.ContextID, Icc.UserMutex);
+        Context.DestroyMutex(Icc.ContextID, Icc.UserMutex);
 
         //_cmsFree(Icc.ContextID, Icc);  // Free placeholder memory
 
@@ -1477,13 +1477,13 @@ public static partial class Lcms2
 
         var Icc = Profile;
 
-        if (!_cmsLockMutex(Icc.ContextID, Icc.UserMutex)) return null;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return null;
 
         var n = _cmsSearchTag(Icc, sig, true);
         if (n < 0)
         {
             // Not found, return null
-            _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+            Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
             return null;
         }
 
@@ -1504,7 +1504,7 @@ public static partial class Lcms2
 
             if (tag.SaveAsRaw) goto Error;   // We don't support read raw tags as cooked
 
-            _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+            Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
             return tag.TagObject;
         }
 
@@ -1572,7 +1572,7 @@ public static partial class Lcms2
 
         // Return the data
         Icc.Tags[n] = tag;
-        _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+        Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
         return tag.TagObject;
     Error2:
         if (tag.TagObject is not null)
@@ -1580,7 +1580,7 @@ public static partial class Lcms2
         tag.TagObject = null;
     Error:
 
-        _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+        Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
         return null;
     }
 
@@ -1606,7 +1606,7 @@ public static partial class Lcms2
         int i;
         Profile.TagEntry tag;
 
-        if (!_cmsLockMutex(Icc.ContextID, Icc.UserMutex)) return false;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return false;
 
         // To delete tags
         if (data is null)
@@ -1620,7 +1620,7 @@ public static partial class Lcms2
                 _cmsDeleteTagByPos(Icc, i);
                 tag.Name = 0;
                 Icc.Tags[i] = tag;
-                _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+                Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
                 return true;
             }
             // Didn't find the tag
@@ -1694,10 +1694,10 @@ public static partial class Lcms2
         }
 
         Icc.Tags[i] = tag;
-        _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+        Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
         return true;
     Error:
-        _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+        Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
         return false;
     }
 
@@ -1709,7 +1709,7 @@ public static partial class Lcms2
         if (!data.IsEmpty && BufferSize is 0)
             return 0;
 
-        if (!_cmsLockMutex(Icc.ContextID, Icc.UserMutex)) return 0;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return 0;
 
         // Search for given tag in ICC profile directory
         var i = _cmsSearchTag(Icc, sig, true);
@@ -1732,11 +1732,11 @@ public static partial class Lcms2
                 if (Icc.IOHandler?.SeekFunc(Icc.IOHandler, Offset) != true) goto Error;
                 if (Icc.IOHandler.ReadFunc(Icc.IOHandler, data.Span, 1, TagSize) is 0) goto Error;
 
-                _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+                Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
                 return TagSize;
             }
 
-            _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+            Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
             return tag.Size;
         }
 
@@ -1753,20 +1753,20 @@ public static partial class Lcms2
                 ((byte[])tag.TagObject).AsSpan(..(int)TagSize).CopyTo(data.Span);
                 //memmove(data, (BoxPtrVoid)Icc.TagPtrs[i], TagSize);
 
-                _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+                Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
                 return TagSize;
             }
 
-            _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+            Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
             return tag.Size;
         }
 
         // Already read, or previously set by cmsWriteTag(). We need to serialize that
         // data to raw to get something that makes sense.
 
-        _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+        Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
         var Object = cmsReadTag(Icc, sig);
-        if (!_cmsLockMutex(Icc.ContextID, Icc.UserMutex)) return 0;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return 0;
 
         if (Object is null) goto Error;
 
@@ -1809,11 +1809,11 @@ public static partial class Lcms2
         var rc = MemIO.TellFunc(MemIO);
         cmsCloseIOhandler(MemIO);       // Ignore return code this time
 
-        _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+        Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
         return rc;
 
     Error:
-        _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+        Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
         return 0;
     }
 
@@ -1821,11 +1821,11 @@ public static partial class Lcms2
     {
         var Icc = Profile;
 
-        if (!_cmsLockMutex(Icc.ContextID, Icc.UserMutex)) return false;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return false;
 
         if (!_cmsNewTag(Icc, sig, out var i))
         {
-            _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+            Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
             return false;
         }
 
@@ -1840,7 +1840,7 @@ public static partial class Lcms2
         tag.TagObject = _cmsDupMem(Icc.ContextID, data, Size);
         tag.Size = Size;
 
-        _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+        Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
 
         if (tag.TagObject is null)
         {
@@ -1856,11 +1856,11 @@ public static partial class Lcms2
     {
         var Icc = Profile;
 
-        if (!_cmsLockMutex(Icc.ContextID, Icc.UserMutex)) return false;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return false;
 
         if (!_cmsNewTag(Icc, sig, out var i))
         {
-            _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+            Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
             return false;
         }
 
@@ -1876,7 +1876,7 @@ public static partial class Lcms2
         tag.Offset = 0;
 
         Icc.Tags[i] = tag;
-        _cmsUnlockMutex(Icc.ContextID, Icc.UserMutex);
+        Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
         return true;
     }
 

@@ -921,8 +921,7 @@ public static partial class Lcms2
 
         if (DataSetIn is null && DataSetOut is null)
         {
-            _cmsPipelineSetOptimizationParameters(
-                Dest,
+            Dest.SetOptimizationParameters(
                 (ReadOnlySpan<ushort> i, Span<ushort> o, object? p) =>
                 {
                     if (p is not InterpParams<ushort> ptr) return;
@@ -936,7 +935,7 @@ public static partial class Lcms2
         {
             var p16 = PrelinOpt16alloc(Dest.ContextID, DataCLUT.Params, Dest.InputChannels, DataSetIn, Dest.OutputChannels, DataSetOut);
 
-            _cmsPipelineSetOptimizationParameters(Dest, PrelinEval16, p16, PrelinOpt16free, Prelin16dup);
+            Dest.SetOptimizationParameters(PrelinEval16, p16, PrelinOpt16free, Prelin16dup);
         }
 
         // Don't fix white on absolute colorimentric
@@ -1299,14 +1298,14 @@ public static partial class Lcms2
             var p8 = PrelinOpt8alloc(OptimizedLUT.ContextID, OptimizedPrelinCLUT.Params, OptimizedPrelinCurves);
             if (p8 is null) goto Error;
 
-            _cmsPipelineSetOptimizationParameters(OptimizedLUT, PrelinEval8, p8, Prelin8free, Prelin8dup);
+            OptimizedLUT.SetOptimizationParameters(PrelinEval8, p8, Prelin8free, Prelin8dup);
         }
         else
         {
             var p16 = PrelinOpt16alloc(OptimizedLUT.ContextID, OptimizedPrelinCLUT.Params, 3, OptimizedPrelinCurves, 3, null);
             if (p16 is null) goto Error;
 
-            _cmsPipelineSetOptimizationParameters(OptimizedLUT, PrelinEval16, p16, PrelinOpt16free, Prelin16dup);
+            OptimizedLUT.SetOptimizationParameters(PrelinEval16, p16, PrelinOpt16free, Prelin16dup);
         }
 
         // Don't fix white on absolute colorimetric
@@ -1533,14 +1532,14 @@ public static partial class Lcms2
 
                 if (c16 is null) goto Error;
                 dwFlags |= cmsFLAGS_NOCACHE;
-                _cmsPipelineSetOptimizationParameters(Dest, FastEvaluateCurves8, c16, CurvesFree, CurvesDup);
+                Dest.SetOptimizationParameters(FastEvaluateCurves8, c16, CurvesFree, CurvesDup);
             }
             else
             {
                 var c16 = CurvesAlloc(Dest.ContextID, Data.nCurves, 65536, Data.TheCurves);
                 if (c16 is null) goto Error;
                 dwFlags |= cmsFLAGS_NOCACHE;
-                _cmsPipelineSetOptimizationParameters(Dest, FastEvaluateCurves16, c16, CurvesFree, CurvesDup);
+                Dest.SetOptimizationParameters(FastEvaluateCurves16, c16, CurvesFree, CurvesDup);
             }
         }
         else
@@ -1553,7 +1552,7 @@ public static partial class Lcms2
                 goto Error;
 
             dwFlags |= cmsFLAGS_NOCACHE;
-            _cmsPipelineSetOptimizationParameters(Dest, FastIdentify16, Dest, null, null);
+            Dest.SetOptimizationParameters(FastIdentify16, Dest, null, null);
         }
 
         // We are done.
@@ -1695,7 +1694,7 @@ public static partial class Lcms2
             OutputFormat |= OPTIMIZED_SH(1);
 
         // Fill function pointers
-        _cmsPipelineSetOptimizationParameters(Dest, MatShaperEval16, p, FreeMatShaper, DupMatShaper);
+        Dest.SetOptimizationParameters(MatShaperEval16, p, FreeMatShaper, DupMatShaper);
         return true;
     }
 
@@ -1899,7 +1898,7 @@ public static partial class Lcms2
         // Anything to optimize?
         if (PtrLut.Elements is null)
         {
-            _cmsPipelineSetOptimizationParameters(PtrLut, FastIdentify16, PtrLut, null, null);
+            PtrLut.SetOptimizationParameters(FastIdentify16, PtrLut, null, null);
             return true;
         }
 
@@ -1917,7 +1916,7 @@ public static partial class Lcms2
         // After removal do we end with an identity?
         if (PtrLut.Elements is null)
         {
-            _cmsPipelineSetOptimizationParameters(PtrLut, FastIdentify16, PtrLut, null, null);
+            PtrLut.SetOptimizationParameters(FastIdentify16, PtrLut, null, null);
             return true;
         }
 

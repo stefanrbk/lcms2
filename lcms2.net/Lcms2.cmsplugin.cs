@@ -130,7 +130,7 @@ public static partial class Lcms2
         // See Context new()
         if (Plugin is not null)
             return new([Plugin], UserData);
-        return new(UserData);
+        return new([], UserData);
     }
 
     /// <summary>

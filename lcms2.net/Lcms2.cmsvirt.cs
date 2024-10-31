@@ -130,11 +130,11 @@ public static partial class Lcms2
 
         if (WhitePoint is not null)
         {
-            if (!cmsWriteTag(hICC, cmsSigMediaWhitePointTag, new Box<CIEXYZ>(D50XYZ)))
+            if (!cmsWriteTag(hICC, cmsSigMediaWhitePointTag, new Box<CIEXYZ>(CIEXYZ.D50)))
                 goto Error;
 
             WhitePointXYZ = cmsxyY2XYZ(WhitePoint.Value);
-            CHAD = lcms2.CHAD.AdaptationMatrix(null, WhitePointXYZ, D50XYZ);
+            CHAD = lcms2.CHAD.AdaptationMatrix(null, WhitePointXYZ, CIEXYZ.D50);
 
             // This is a V4 tag, but many CMM does read and understand it no matter which version
             chad = CHAD.AsArray(/*pool*/);
@@ -415,7 +415,7 @@ public static partial class Lcms2
     {
         Pipeline? LUT = null;
 
-        var Profile = cmsCreateRGBProfileTHR(ContextID, WhitePoint is null ? D50xyY : WhitePoint, null, null);
+        var Profile = cmsCreateRGBProfileTHR(ContextID, WhitePoint is null ? CIExyY.D50 : WhitePoint, null, null);
         if (Profile is null) return null;
 
         cmsSetProfileVersion(Profile, 2.1);
@@ -454,7 +454,7 @@ public static partial class Lcms2
     {
         Pipeline? LUT = null;
 
-        var Profile = cmsCreateRGBProfileTHR(ContextID, WhitePoint is null ? D50xyY : WhitePoint, null, null);
+        var Profile = cmsCreateRGBProfileTHR(ContextID, WhitePoint is null ? CIExyY.D50 : WhitePoint, null, null);
         if (Profile is null) return null;
 
         cmsSetProfileVersion(Profile, 4.4);
@@ -493,7 +493,7 @@ public static partial class Lcms2
     {
         Pipeline? LUT = null;
 
-        var Profile = cmsCreateRGBProfileTHR(ContextID, D50xyY, null, null);
+        var Profile = cmsCreateRGBProfileTHR(ContextID, CIExyY.D50, null, null);
         if (Profile is null) return null;
 
         cmsSetProfileVersion(Profile, 4.4);
@@ -784,7 +784,7 @@ public static partial class Lcms2
         // Create tags
         if (!SetTextTags(hICC, "BCHS build-in")) goto Error;
 
-        if (!cmsWriteTag(hICC, cmsSigMediaWhitePointTag, new Box<CIEXYZ>(D50XYZ))) goto Error;
+        if (!cmsWriteTag(hICC, cmsSigMediaWhitePointTag, new Box<CIEXYZ>(CIEXYZ.D50))) goto Error;
         if (!cmsWriteTag(hICC, cmsSigAToB0Tag, Pipeline)) goto Error;
 
         // Pipeline is already on virtual profile
@@ -851,7 +851,7 @@ public static partial class Lcms2
             goto Error;
 
         if (!cmsWriteTag(Profile, cmsSigBToA0Tag, LUT)) goto Error;
-        if (!cmsWriteTag(Profile, cmsSigMediaWhitePointTag, new Box<CIEXYZ>(D50XYZ))) goto Error;
+        if (!cmsWriteTag(Profile, cmsSigMediaWhitePointTag, new Box<CIEXYZ>(CIEXYZ.D50))) goto Error;
 
         //ReturnArray(pool, EmptyTab);
         cmsPipelineFree(LUT);

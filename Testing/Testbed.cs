@@ -100,7 +100,7 @@ internal static partial class Testbed
     [DebuggerStepThrough]
     public static Context DbgThread()
     {
-        return new() { UserData = thread++ % 0xff0 };
+        return new(null, thread++ % 0xff0);
     }
 
 //    public static void* DebugMalloc(Context? ContextID, uint size, Type type)

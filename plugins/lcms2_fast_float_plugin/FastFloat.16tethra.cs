@@ -37,7 +37,7 @@ public static partial class FastFloat
     {
         fixed (byte* OutputPtr = Output)
         {
-            if (_cmsGetTransformUserData(CMMcargo) is not Performance16Data p16)
+            if (CMMcargo.UserData is not Performance16Data p16)
                 return;
             var p = p16.p;
             var TotalOut = p.nOutputs;
@@ -59,7 +59,7 @@ public static partial class FastFloat
             var in16 = T_BYTES(inFormat) is 2;
             var out16 = T_BYTES(outFormat) is 2;
 
-            if ((_cmsGetTransformFlags(CMMcargo) & cmsFLAGS_COPY_ALPHA) is 0)
+            if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
                 nalpha = 0;
 
             nuint strideIn = 0;

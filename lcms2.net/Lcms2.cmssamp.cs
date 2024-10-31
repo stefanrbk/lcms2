@@ -166,10 +166,7 @@ public static partial class Lcms2
                 return BlackPointAsDarkerColorant(Profile, INTENT_RELATIVE_COLORIMETRIC);
 
             // Get Perceptual black out of v4 profiles. That is fixed for perceptual & saturation intents
-            return new(
-                x: cmsPERCEPTUAL_BLACK_X,
-                y: cmsPERCEPTUAL_BLACK_Y,
-                z: cmsPERCEPTUAL_BLACK_Z);
+            return Profile.PerceptualBlack;
         }
 
         // If output profile, discount ink-limiting and that's all
@@ -273,10 +270,7 @@ public static partial class Lcms2
                 return BlackPointAsDarkerColorant(Profile, INTENT_RELATIVE_COLORIMETRIC);
 
             // Get Perceptual black out of v4 profiles. That is fixed for perceptual & saturation intents
-            return new(
-                x: cmsPERCEPTUAL_BLACK_X,
-                y: cmsPERCEPTUAL_BLACK_Y,
-                z: cmsPERCEPTUAL_BLACK_Z);
+            return Profile.PerceptualBlack;
         }
 
         // Check if the profile is lut based and gray, rgb, or cmyk (7.2 in Adobe's document)

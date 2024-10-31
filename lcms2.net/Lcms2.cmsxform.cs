@@ -880,46 +880,49 @@ public static partial class Lcms2
 
                     if (Plugin.OldXform)
                     {
-                        if (Plugin.OldFactory(out p.OldXform, out p.UserData, out p.FreeUserData, ref p.Lut, ref p.InputFormat, ref p.OutputFormat, ref p.dwOriginalFlags))
+                        if (!Plugin.OldFactory(out p.OldXform, out p.userData, out p.FreeUserData, ref p.Lut,
+                                ref p.InputFormat, ref p.OutputFormat, ref p.dwOriginalFlags))
                         {
-                            p.xform = _cmsTransform2toTransformAdaptor;
-                            return p;
+                            continue;
                         }
+
+                        p.xform = _cmsTransform2toTransformAdaptor;
+                        return p;
                     }
-                    else
+
+                    if (!Plugin.Factory(out p.xform, out p.userData, out p.FreeUserData, ref p.Lut,
+                            ref p.InputFormat, ref p.OutputFormat, ref p.dwOriginalFlags))
                     {
-                        if (Plugin.Factory(out p.xform, out p.UserData, out p.FreeUserData, ref p.Lut, ref p.InputFormat, ref p.OutputFormat, ref p.dwOriginalFlags))
-                        {
-                            // Last plugin in the declaration order takes control. We just keep
-                            // the original parameters as a logging.
-                            // Note that cmsFLAGS_CAN_CHANGE_FORMATTER is not set, so by default
-                            // an optimized transform is not reusable. The plug-in can, however, change
-                            // the flags and make it suitable.
-
-                            //p.ContextID = ContextID;
-                            //p.InputFormat = *InputFormat;
-                            //p.OutputFormat = *OutputFormat;
-                            //p.dwOriginalFlags = *dwFlags;
-
-                            // Fill the formatters just in case the optimized routine is interested.
-                            // No error is thrown if the formatter doesn't exist. It is up to the optimization
-                            // factory to decide what to do in those cases.
-                            //p.FromInput = _cmsGetFormatter(ContextID, *InputFormat, FormatterDirection.Input, PackFlags.Ushort).Fmt16;
-                            //p.ToOutput = _cmsGetFormatter(ContextID, *OutputFormat, FormatterDirection.Output, PackFlags.Ushort).Fmt16;
-                            //p.FromInputFloat = _cmsGetFormatter(ContextID, *InputFormat, FormatterDirection.Input, PackFlags.Float).FmtFloat;
-                            //p.ToOutputFloat = _cmsGetFormatter(ContextID, *OutputFormat, FormatterDirection.Output, PackFlags.Float).FmtFloat;
-
-                            // Save the day? (Ignore the warning)
-                            //if (Plugin->OldXform)
-                            //{
-                            //    p.OldXform = *(TransformFn*)&p->xform;
-                            //    p.xform = _cmsTransform2toTransformAdaptor;
-                            //}
-
-                            ParalellizeIfSuitable(p);
-                            return p;
-                        }
+                        continue;
                     }
+                    // Last plugin in the declaration order takes control. We just keep
+                    // the original parameters as a logging.
+                    // Note that cmsFLAGS_CAN_CHANGE_FORMATTER is not set, so by default
+                    // an optimized transform is not reusable. The plug-in can, however, change
+                    // the flags and make it suitable.
+
+                    //p.ContextID = ContextID;
+                    //p.InputFormat = *InputFormat;
+                    //p.OutputFormat = *OutputFormat;
+                    //p.dwOriginalFlags = *dwFlags;
+
+                    // Fill the formatters just in case the optimized routine is interested.
+                    // No error is thrown if the formatter doesn't exist. It is up to the optimization
+                    // factory to decide what to do in those cases.
+                    //p.FromInput = _cmsGetFormatter(ContextID, *InputFormat, FormatterDirection.Input, PackFlags.Ushort).Fmt16;
+                    //p.ToOutput = _cmsGetFormatter(ContextID, *OutputFormat, FormatterDirection.Output, PackFlags.Ushort).Fmt16;
+                    //p.FromInputFloat = _cmsGetFormatter(ContextID, *InputFormat, FormatterDirection.Input, PackFlags.Float).FmtFloat;
+                    //p.ToOutputFloat = _cmsGetFormatter(ContextID, *OutputFormat, FormatterDirection.Output, PackFlags.Float).FmtFloat;
+
+                    // Save the day? (Ignore the warning)
+                    //if (Plugin->OldXform)
+                    //{
+                    //    p.OldXform = *(TransformFn*)&p->xform;
+                    //    p.xform = _cmsTransform2toTransformAdaptor;
+                    //}
+
+                    ParalellizeIfSuitable(p);
+                    return p;
                 }
             }
 
@@ -999,7 +1002,7 @@ public static partial class Lcms2
         p.OutputFormat = OutputFormat;
         p.dwOriginalFlags = dwFlags;
         p.ContextID = ContextID;
-        p.UserData = null;
+        p.userData = null;
         ParalellizeIfSuitable(p);
         return p;
     }
@@ -1069,9 +1072,9 @@ public static partial class Lcms2
     {
         if (src is null)
         {
-            wtPt.X = cmsD50X;
-            wtPt.Y = cmsD50Y;
-            wtPt.Z = cmsD50Z;
+            wtPt.X = CIEXYZ.D50.X;
+            wtPt.Y = CIEXYZ.D50.Y;
+            wtPt.Z = CIEXYZ.D50.Z;
         }
         else
         {
