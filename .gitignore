@@ -351,3 +351,6 @@ MigrationBackup/
 
 # Windows crap
 **/desktop.ini
+
+# Ryder files
+.idea/
