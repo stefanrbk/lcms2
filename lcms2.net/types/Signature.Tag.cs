@@ -104,5 +104,7 @@ public partial struct Signature
         public static readonly Signature Vcgt = new("vcgt"u8);
         public static readonly Signature ViewingCondDesc = new("vued"u8);
         public static readonly Signature ViewingConditions = new("view"u8);
+        public static readonly Signature MHC2 = new("MHC2"u8);
+        public static readonly Signature cicp = new("cicp"u8);
     }
 }
