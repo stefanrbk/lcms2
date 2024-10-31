@@ -28,18 +28,10 @@ namespace lcms2.types;
 
 public partial struct Signature
 {
-    #region Classes
-
     public static class CurveSegment
     {
-        #region Fields
-
-        //public static readonly Signature Formula = new("parf"u8);
-        //public static readonly Signature Sampled = new("samf"u8);
-        //public static readonly Signature Segmented = new("curf"u8);
-
-        #endregion Fields
+        public static readonly Signature Formula = new("parf"u8);
+        public static readonly Signature Sampled = new("samf"u8);
+        public static readonly Signature Segmented = new("curf"u8);
     }
-
-    #endregion Classes
 }

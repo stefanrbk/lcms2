@@ -28,27 +28,19 @@ namespace lcms2.types;
 
 public partial struct Signature
 {
-    #region Classes
-
     public static class Plugin
     {
-        #region Fields
-
-        //public static readonly Signature Formatters = new("frmH"u8);
-        //public static readonly Signature Interpolation = new("inpH"u8);
-        //public static readonly Signature MagicNumber = new("acpp"u8);
-        //public static readonly Signature MemHandler = new("memH"u8);
-        //public static readonly Signature MultiProcessElement = new("mpeH"u8);
-        //public static readonly Signature Mutex = new("mtxH"u8);
-        //public static readonly Signature Optimization = new("optH"u8);
-        //public static readonly Signature ParametricCurve = new("parH"u8);
-        //public static readonly Signature RenderingIntent = new("intH"u8);
-        //public static readonly Signature Tag = new("tagH"u8);
-        //public static readonly Signature TagType = new("typH"u8);
-        //public static readonly Signature Transform = new("xfmH"u8);
-
-        #endregion Fields
+        public static readonly Signature Formatters = new("frmH"u8);
+        public static readonly Signature Interpolation = new("inpH"u8);
+        public static readonly Signature MagicNumber = new("acpp"u8);
+        public static readonly Signature MemHandler = new("memH"u8);
+        public static readonly Signature MultiProcessElement = new("mpeH"u8);
+        public static readonly Signature Mutex = new("mtxH"u8);
+        public static readonly Signature Optimization = new("optH"u8);
+        public static readonly Signature ParametricCurve = new("parH"u8);
+        public static readonly Signature RenderingIntent = new("intH"u8);
+        public static readonly Signature Tag = new("tagH"u8);
+        public static readonly Signature TagType = new("typH"u8);
+        public static readonly Signature Transform = new("xfmH"u8);
     }
-
-    #endregion Classes
 }

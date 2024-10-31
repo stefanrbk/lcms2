@@ -28,19 +28,13 @@ using System.Diagnostics;
 
 namespace lcms2.types;
 
-public readonly partial struct Signature : ICloneable
+public readonly partial struct Signature : ICloneable, IEquatable<Signature>
 {
-    #region Fields
-
-    //public static readonly Signature LcmsSignature = new("lcms"u8);
-    //public static readonly Signature MagicNumber = new("ascp"u8);
+    public static readonly Signature LcmsSignature = new("lcms"u8);
+    public static readonly Signature MagicNumber = new("ascp"u8);
 
     private readonly uint _value;
 
-    #endregion Fields
-
-    #region Public Constructors
-    
     [DebuggerStepThrough]
     public Signature(uint value) =>
         _value = value;
@@ -54,14 +48,10 @@ public readonly partial struct Signature : ICloneable
         _value = BitConverter.ToUInt32(bytes);
     }
 
-    #endregion Public Constructors
-
-    #region Public Methods
-
-    public static implicit operator uint(Signature v) =>
+    public static explicit operator uint(Signature v) =>
         v._value;
 
-    public static implicit operator Signature(uint v) =>
+    public static explicit operator Signature(uint v) =>
         new(v);
 
     object ICloneable.Clone() =>
@@ -72,9 +62,31 @@ public readonly partial struct Signature : ICloneable
 
     public override string ToString()
     {
-        _cmsTagSignature2String(this);
         return _cmsTagSignature2String(this);
     }
 
-    #endregion Public Methods
+    public bool Equals(Signature other)
+    {
+        return _value == other._value;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Signature other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return (int)_value;
+    }
+
+    public static bool operator ==(Signature left, Signature right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Signature left, Signature right)
+    {
+        return !left.Equals(right);
+    }
 }

@@ -28,39 +28,31 @@ namespace lcms2.types;
 
 public partial struct Signature
 {
-    #region Classes
-
     public static class Stage
     {
-        //#region Fields
+        public static readonly Signature BAcsElem = new("bACS"u8);
+        public static readonly Signature ClipNegativesElem = new("clp"u8);
+        public static readonly Signature CLutElem = new("clut"u8);
+        public static readonly Signature CurveSetElem = new("cvst"u8);
+        public static readonly Signature EAcsElem = new("eACS"u8);
+        public static readonly Signature FloatPCS2Lab = new("l2d"u8);
+        public static readonly Signature FloatPCS2XYZ = new("x2d"u8);
 
-        //public static readonly Signature BAcsElem = new("bACS"u8);
-        //public static readonly Signature ClipNegativesElem = new("clp"u8);
-        //public static readonly Signature CLutElem = new("clut"u8);
-        //public static readonly Signature CurveSetElem = new("cvst"u8);
-        //public static readonly Signature EAcsElem = new("eACS"u8);
-        //public static readonly Signature FloatPCS2Lab = new("l2d"u8);
-        //public static readonly Signature FloatPCS2XYZ = new("x2d"u8);
+        // Identities
+        public static readonly Signature IdentityElem = new("idn"u8);
 
-        //// Identities
-        //public static readonly Signature IdentityElem = new("idn"u8);
+        // Float to floatPCS
+        public static readonly Signature Lab2FloatPCS = new("d2l"u8);
 
-        //// Float to floatPCS
-        //public static readonly Signature Lab2FloatPCS = new("d2l"u8);
+        public static readonly Signature Lab2XYZElem = new("x2l"u8);
+        public static readonly Signature LabV2toV4Elem = new("2 4"u8);
+        public static readonly Signature LabV4toV2Elem = new("4 2"u8);
+        public static readonly Signature MatrixElem = new("matf"u8);
+        public static readonly Signature NamedColorElem = new("ncl"u8);
 
-        //public static readonly Signature Lab2XYZElem = new("x2l"u8);
-        //public static readonly Signature LabV2toV4Elem = new("2 4"u8);
-        //public static readonly Signature LabV4toV2Elem = new("4 2"u8);
-        //public static readonly Signature MatrixElem = new("matf"u8);
-        //public static readonly Signature NamedColorElem = new("ncl"u8);
+        public static readonly Signature XYZ2FloatPCS = new("d2x"u8);
 
-        //public static readonly Signature XYZ2FloatPCS = new("d2x"u8);
-
-        //// Custom from here, not in the ICC Spec
-        //public static readonly Signature XYZ2LabElem = new("l2x"u8);
-
-        //#endregion Fields
+        // Custom from here, not in the ICC Spec
+        public static readonly Signature XYZ2LabElem = new("l2x"u8);
     }
-
-    #endregion Classes
 }

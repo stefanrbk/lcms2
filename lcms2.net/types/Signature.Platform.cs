@@ -28,21 +28,13 @@ namespace lcms2.types;
 
 public partial struct Signature
 {
-    #region Classes
-
     public static class Platform
     {
-        #region Fields
-
-        //public static readonly Signature Macintosh = new("APPL"u8);
-        //public static readonly Signature Microsoft = new("MSFT"u8);
-        //public static readonly Signature Solaris = new("SUNW"u8);
-        //public static readonly Signature SGI = new("SGI"u8);
-        //public static readonly Signature Taligent = new("TGNT"u8);
-        //public static readonly Signature Unices = new("*nix"u8); // From argyll -- Not official
-
-        #endregion Fields
+        public static readonly Signature Macintosh = new("APPL"u8);
+        public static readonly Signature Microsoft = new("MSFT"u8);
+        public static readonly Signature Solaris = new("SUNW"u8);
+        public static readonly Signature SGI = new("SGI"u8);
+        public static readonly Signature Taligent = new("TGNT"u8);
+        public static readonly Signature Unices = new("*nix"u8); // From argyll -- Not official
     }
-
-    #endregion Classes
 }

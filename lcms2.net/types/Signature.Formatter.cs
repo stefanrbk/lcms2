@@ -30,12 +30,8 @@ namespace lcms2.types;
 
 public partial struct Signature
 {
-    #region Classes
-
     public class Formatter : IFormatProvider, ICustomFormatter
     {
-        #region Public Methods
-
         public string Format(string? format, object? obj, IFormatProvider? provider)
         {
             if (obj is null)
@@ -44,11 +40,11 @@ public partial struct Signature
             if (obj is Signature value)
             {
                 // Text output
-                if (format?.ToUpper().StartsWith("T") ?? false)
+                if (format?.StartsWith("T", StringComparison.CurrentCultureIgnoreCase) ?? false)
                     return value.ToString();
 
                 // Hex output
-                if (format?.ToUpper().StartsWith("X") ?? false)
+                if (format?.StartsWith("X", StringComparison.CurrentCultureIgnoreCase) ?? false)
                     return String.Format(provider, "{" + format + "}", (uint)obj);
             }
 
@@ -60,9 +56,5 @@ public partial struct Signature
 
         public object? GetFormat(Type? formatType) =>
             formatType == typeof(ICustomFormatter) ? this : (object?)null;
-
-        #endregion Public Methods
     }
-
-    #endregion Classes
 }
