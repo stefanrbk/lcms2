@@ -66,7 +66,7 @@ public class Context : ICloneable
     {
         foreach (var plugin in plugins)
         {
-            cmsPluginTHR(this, plugin);
+            RegisterPlugin(plugin);
         }
     }
 

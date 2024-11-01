@@ -33,7 +33,7 @@ public class _15BitTests
 
     [OneTimeSetUp]
     public void Setup() =>
-        cmsPluginTHR(_ctx, cmsFastFloatExtensions());
+        _ctx.RegisterPlugin(cmsFastFloatExtensions());
 
 
     [TestCaseSource(nameof(Test15BitFormattersReturnInputsAfterRoundTripCases))]

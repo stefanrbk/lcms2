@@ -28,7 +28,7 @@ public class ChangeFormatTests
 
     [OneTimeSetUp]
     public void Setup() =>
-        cmsPluginTHR(_ctx, cmsFastFloatExtensions());
+        _ctx.RegisterPlugin(cmsFastFloatExtensions());
 
     [Test]
     public void TestChangeFormatFunctionWorksWithKnownValues()

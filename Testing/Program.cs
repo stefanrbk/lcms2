@@ -332,7 +332,7 @@ if (doZooTests)
 
 //DebugMemPrintTotals();
 
-cmsUnregisterPlugins();
+Context.Shared.ClearAllPlugins();
 
 // Cleanup
 if (!noCheckTests || doSpeedTests)

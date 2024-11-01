@@ -34,7 +34,7 @@ public class _16BitTests
 
     [OneTimeSetUp]
     public void Setup() =>
-        cmsPluginTHR(_pluginCtx, cmsFastFloatExtensions());
+        _pluginCtx.RegisterPlugin(cmsFastFloatExtensions());
 
     [OneTimeTearDown]
     public void Cleanup()

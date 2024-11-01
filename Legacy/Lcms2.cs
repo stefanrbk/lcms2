@@ -334,13 +334,38 @@ public class Lcms2
     // Context handling
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Context? cmsCreateContext(IEnumerable<PluginBase> Plugins, object? UserData = null) =>
+    public static Context cmsCreateContext(IEnumerable<PluginBase> Plugins, object? UserData = null) =>
         new(Plugins, UserData);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Context? cmsDupContext(Context? context, object? NewUserData) =>
+    public static Context cmsDupContext(Context? context, object? NewUserData) =>
         context?.Clone(NewUserData) ?? Context.Shared.Clone(NewUserData);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref object? cmsGetContextUserData(Context? context) =>
         ref context is null ? ref Context.Shared.UserData : ref context.UserData;
+
+    // Plugin registering
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool cmsPlugin(IEnumerable<PluginBase> Plugins)
+    {
+        Context.Shared.RegisterPlugin(Plugins);
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool cmsPluginTHR(Context? id, IEnumerable<PluginBase> Plugins)
+    {
+        (id ?? Context.Shared).RegisterPlugin(Plugins);
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsUnregisterPlugins() =>
+        Context.Shared.ClearAllPlugins();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsUnregisterPluginsTHR(Context? context) =>
+        (context ?? Context.Shared).ClearAllPlugins();
 }

@@ -19,6 +19,8 @@
 //
 //---------------------------------------------------------------------------------
 
+using lcms2.state;
+
 var now = DateTime.Now;
 
 var cliResult = CommandLine.Parser.Default.ParseArguments<lcms2.ThreadedPlugin.testbed.CliOptions>(args);
@@ -38,7 +40,7 @@ using (logger.BeginScope("Installing error logger"))
 
 using (logger.BeginScope("Installing plugin"))
 {
-    cmsPlugin(cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0));
+    Context.Shared.RegisterPlugin(cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0));
     trace("Done");
 }
 
@@ -60,7 +62,7 @@ if (doSpeedTests)
     ComparativeLineStride8bits();
 }
 
-cmsUnregisterPlugins();
+Context.Shared.ClearAllPlugins();
 
 Console.WriteLine();
 trace("All tests passed OK");

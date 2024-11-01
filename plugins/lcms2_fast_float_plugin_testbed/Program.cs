@@ -19,6 +19,7 @@
 //
 //---------------------------------------------------------------------------------
 
+using lcms2.state;
 using Microsoft.Extensions.Logging;
 
 var now = DateTime.Now;
@@ -52,7 +53,7 @@ using (logger.BeginScope("Installing error logger"))
 
 using (logger.BeginScope("Installing plugin"))
 {
-    cmsPlugin(cmsFastFloatExtensions());
+    Context.Shared.RegisterPlugin(cmsFastFloatExtensions());
     trace("Done");
 }
 

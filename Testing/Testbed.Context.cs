@@ -27,7 +27,6 @@
 using lcms2.io;
 using lcms2.state;
 using lcms2.types;
-
 using Microsoft.Extensions.Logging;
 
 namespace lcms2.testbed;
@@ -159,8 +158,6 @@ internal static partial class Testbed
         // memory manager that checks allocation
         var c1 = WatchDogContext(a);
 
-        c1 = WatchDogContext(a);
-
         // Let's check duplication
         var c2 = DupContext(c1, null);
         var c3 = DupContext(c2, null);
@@ -225,7 +222,6 @@ internal static partial class Testbed
 
     public static bool CheckAdaptationStateContext()
     {
-        var rc = false;
         var old1 = cmsSetAdaptationStateTHR(null, -1);
 
         var c1 = WatchDogContext(null);
@@ -235,11 +231,11 @@ internal static partial class Testbed
         var c2 = DupContext(c1, null);
         var c3 = DupContext(c2, null);
 
-        rc = IsGoodVal("Adaption state", cmsSetAdaptationStateTHR(c3, -1), 0.7, 0.001);
+        var rc = IsGoodVal("Adaption state", cmsSetAdaptationStateTHR(c3, -1), 0.7, 0.001);
 
         var old2 = cmsSetAdaptationStateTHR(null, -1);
 
-        if (old1 != old2)
+        if (Math.Abs(old1 - old2) > 1e-15)
         {
             logger.LogWarning("Adaptation state has changed");
             return false;
@@ -251,28 +247,16 @@ internal static partial class Testbed
     // This is the check code for 1D interpolation plug-in
     public static bool CheckInterp1DPlugin()
     {
-        ToneCurve? Sampled1D = null;
-        Context? cpy = null;
-        var tab = new float[] { 0.0f, 0.10f, 0.20f, 0.30f, 0.40f, 0.50f, 0.60f, 0.70f, 0.80f, 0.90f, 1.00f };  // A straight line
+        var tab = new[] { 0.0f, 0.10f, 0.20f, 0.30f, 0.40f, 0.50f, 0.60f, 0.70f, 0.80f, 0.90f, 1.00f };  // A straight line
 
         // 1st level context
-        Context? ctx = WatchDogContext(null);
-        if (ctx == null)
-        {
-            logger.LogWarning("Cannot create context");
-            goto Error;
-        }
+        var ctx = WatchDogContext(null);
 
-        cmsPluginTHR(ctx, InterpPluginSample);
+        ctx.RegisterPlugin(InterpPluginSample);
 
-        cpy = DupContext(ctx, null);
-        if (cpy == null)
-        {
-            logger.LogWarning("Cannot create context (2)");
-            goto Error;
-        }
+        var cpy = DupContext(ctx, null);
 
-        Sampled1D = cmsBuildTabulatedToneCurveFloat(cpy, 11, tab);
+        var Sampled1D = cmsBuildTabulatedToneCurveFloat(cpy, 11, tab);
         if (Sampled1D == null)
         {
             logger.LogWarning("Cannot create tone curve (1)");
@@ -305,14 +289,6 @@ internal static partial class Testbed
         return true;
 
     Error:
-        if (ctx != null)
-        {
-        }
-
-        if (cpy != null)
-        {
-        }
-
         if (Sampled1D != null) cmsFreeToneCurve(Sampled1D);
         return false;
 
@@ -340,13 +316,8 @@ internal static partial class Testbed
 
 
         ctx = WatchDogContext(null);
-        if (ctx == null)
-        {
-            logger.LogWarning("Cannot create context");
-            return false;
-        }
 
-        cmsPluginTHR(ctx, InterpPluginSample);
+        ctx.RegisterPlugin(InterpPluginSample);
 
 
         p = cmsPipelineAlloc(ctx, 3, 3);
@@ -459,15 +430,15 @@ internal static partial class Testbed
         Span<double> scale = stackalloc double[] { 1.0 };
 
 
-        Context? ctx = WatchDogContext(null);
+        var ctx = WatchDogContext(null);
 
-        cmsPluginTHR(ctx, CurvePluginSample);
-        Context? cpy = DupContext(ctx, null);
+        ctx.RegisterPlugin(CurvePluginSample);
+        var cpy = DupContext(ctx, null);
 
-        cmsPluginTHR(cpy, CurvePluginSample2);
-        Context? cpy2 = DupContext(cpy, null);
+        cpy.RegisterPlugin(CurvePluginSample2);
+        var cpy2 = DupContext(cpy, null);
 
-        cmsPluginTHR(cpy2, Rec709Plugin);
+        cpy2.RegisterPlugin(Rec709Plugin);
 
 
         sinus = cmsBuildParametricToneCurve(cpy, TYPE_SIN, scale);
@@ -512,18 +483,6 @@ internal static partial class Testbed
         cmsFreeToneCurve(reverse_sinus);
         cmsFreeToneCurve(cosinus);
         cmsFreeToneCurve(reverse_cosinus);
-
-        if (ctx != null)
-        {
-        }
-
-        if (cpy != null)
-        {
-        }
-
-        if (cpy2 != null)
-        {
-        }
 
         return false;
     }
@@ -610,22 +569,22 @@ internal static partial class Testbed
 
     public static bool CheckFormattersPlugin()
     {
-        Context? ctx = WatchDogContext(null);
+        var ctx = WatchDogContext(null);
         Span<ushort> stream = stackalloc ushort[] { (ushort)0xffffU, (ushort)0x1234U, (ushort)0x0000U, (ushort)0x33ddU };
         Span<ushort> result = stackalloc ushort[4];
         int i;
 
-        cmsPluginTHR(ctx, FormattersPluginSample);
+        ctx.RegisterPlugin(FormattersPluginSample);
 
         var cpy = DupContext(ctx, null);
 
-        cmsPluginTHR(cpy, FormattersPluginSample2);
+        cpy.RegisterPlugin(FormattersPluginSample2);
 
         var cpy2 = DupContext(cpy, null);
 
         var xform = cmsCreateTransformTHR(cpy2, null, TYPE_RGB_565, null, TYPE_RGB_565, INTENT_PERCEPTUAL, cmsFLAGS_NULLTRANSFORM);
 
-        cmsDoTransform<ushort, ushort>(xform, stream, result, 4);
+        cmsDoTransform(xform, stream, result, 4);
 
         cmsDeleteTransform(xform);
 
@@ -649,7 +608,7 @@ internal static partial class Testbed
     private static bool Type_int_Write(TagTypeHandler _1, IOHandler io, object Ptr, uint _2) =>
         io.Write(((Box<uint>)Ptr).Value);
 
-    private static object? Type_int_Dup(TagTypeHandler self, object Ptr, uint n) =>
+    private static object Type_int_Dup(TagTypeHandler self, object Ptr, uint n) =>
         new Box<uint>(((Box<uint>)Ptr).Value);
 
     private static void Type_int_Free(TagTypeHandler self, object? Ptr)
@@ -663,7 +622,7 @@ internal static partial class Testbed
         SigInt,
         new(
             1,
-            new Signature[] { SigIntType },
+            new[] { SigIntType },
             null));
 
     private readonly static PluginTagType FirstTagTypePluginSample = new(
@@ -684,23 +643,16 @@ internal static partial class Testbed
 
     public static bool CheckTagTypePlugin()
     {
-        Context? ctx = null;
-        Context? cpy = null;
-        Context? cpy2 = null;
-        Profile? h = null;
         const uint myTag = 1234;
-        bool rc = false;
-        byte[]? data = null;
-        Box<uint>? ptr = null;
 
 
-        ctx = WatchDogContext(null);
-        cmsPluginTHR(ctx, TagTypePluginSample);
+        var ctx = WatchDogContext(null);
+        ctx.RegisterPlugin(TagTypePluginSample);
 
-        cpy = DupContext(ctx, null);
-        cpy2 = DupContext(cpy, null);
+        var cpy = DupContext(ctx, null);
+        var cpy2 = DupContext(cpy, null);
 
-        h = cmsCreateProfilePlaceholder(cpy2);
+        var h = cmsCreateProfilePlaceholder(cpy2);
         if (h == null)
         {
             logger.LogWarning("Create placeholder failed");
@@ -714,7 +666,7 @@ internal static partial class Testbed
             goto Error;
         }
 
-        rc = cmsSaveProfileToMem(h, null, out var clen);
+        var rc = cmsSaveProfileToMem(h, null, out var clen);
         if (!rc)
         {
             logger.LogWarning("Fetch mem size failed");
@@ -722,14 +674,14 @@ internal static partial class Testbed
         }
 
 
-        data = new byte[(int)clen];
+        var data = new byte[(int)clen];
+
+
         //if (data == null)
         //{
         //    Fail("malloc failed ?!?");
         //    goto Error;
         //}
-
-
         rc = cmsSaveProfileToMem(h, data, out clen);
         if (!rc)
         {
@@ -747,7 +699,7 @@ internal static partial class Testbed
             goto Error;
         }
 
-        ptr = cmsReadTag(h, SigInt) as Box<uint>;
+        var ptr = cmsReadTag(h, SigInt) as Box<uint>;
         if (ptr != null)
         {
 
@@ -765,9 +717,6 @@ internal static partial class Testbed
             goto Error;
         }
 
-        // Get rid of data
-        /*free(data);*/ data = null;
-
         ptr = cmsReadTag(h, SigInt) as Box<uint>;
         if (ptr == null)
         {
@@ -784,18 +733,6 @@ internal static partial class Testbed
     Error:
 
         if (h != null) cmsCloseProfile(h);
-        if (ctx != null)
-        {
-        }
-
-        if (cpy != null)
-        {
-        }
-
-        if (cpy2 != null)
-        {
-        }
-        //if (data is not null) free(data);
 
         return false;
     }
@@ -809,7 +746,7 @@ internal static partial class Testbed
         Out[2] = 1.0f - In[2];
     }
 
-    private static Stage? StageAllocNegate(Context? ContextID)
+    private static Stage StageAllocNegate(Context? ContextID)
     {
         return new(ContextID,
                      SigNegateType, 3, 3, EvaluateNegate,
@@ -847,39 +784,32 @@ internal static partial class Testbed
 
     public static bool CheckMPEPlugin()
     {
-        Context? ctx = null;
-        Context? cpy = null;
-        Context? cpy2 = null;
-        Profile? h = null;
-        bool rc = false;
-        byte[]? data = null;
         Span<float> In = stackalloc float[3];
         Span<float> Out = stackalloc float[3];
-        Pipeline? pipe;
 
-        ctx = WatchDogContext(null);
-        cmsPluginTHR(ctx, MPEPluginSample);
+        var ctx = WatchDogContext(null);
+        ctx.RegisterPlugin(MPEPluginSample);
 
-        cpy = DupContext(ctx, null);
-        cpy2 = DupContext(cpy, null);
+        var cpy = DupContext(ctx, null);
+        var cpy2 = DupContext(cpy, null);
 
-        h = cmsCreateProfilePlaceholder(cpy2);
+        var h = cmsCreateProfilePlaceholder(cpy2);
         if (h == null)
         {
             logger.LogWarning("Create placeholder failed");
             goto Error;
         }
 
-        pipe = cmsPipelineAlloc(cpy2, 3, 3);
+        var pipe = cmsPipelineAlloc(cpy2, 3, 3);
         cmsPipelineInsertStage(pipe, StageLoc.AtBegin, StageAllocNegate(cpy2));
 
 
         In[0] = 0.3f; In[1] = 0.2f; In[2] = 0.9f;
         cmsPipelineEvalFloat(In, Out, pipe);
 
-        rc = IsGoodVal("0", Out[0], 1.0 - In[0], 0.001) &&
-             IsGoodVal("1", Out[1], 1.0 - In[1], 0.001) &&
-             IsGoodVal("2", Out[2], 1.0 - In[2], 0.001);
+        var rc = IsGoodVal("0", Out[0], 1.0 - In[0], 0.001) &&
+                 IsGoodVal("1", Out[1], 1.0 - In[1], 0.001) &&
+                 IsGoodVal("2", Out[2], 1.0 - In[2], 0.001);
 
         if (!rc)
         {
@@ -903,14 +833,7 @@ internal static partial class Testbed
             goto Error;
         }
 
-
-        data = new byte[(int)clen];
-        if (data == null)
-        {
-            logger.LogWarning("malloc failed ?!?");
-            goto Error;
-        }
-
+        var data = new byte[(int)clen];
 
         rc = cmsSaveProfileToMem(h, data, out clen);
         if (!rc)
@@ -949,9 +872,6 @@ internal static partial class Testbed
             goto Error;
         }
 
-        // Get rid of data
-        /*free(data);*/ data = null;
-
         pipe = cmsReadTag(h, Signature.Tag.DToB3) as Pipeline;
         if (pipe == null)
         {
@@ -974,18 +894,6 @@ internal static partial class Testbed
     Error:
 
         if (h != null) cmsCloseProfile(h);
-        if (ctx != null)
-        {
-        }
-
-        if (cpy != null)
-        {
-        }
-
-        if (cpy2 != null)
-        {
-        }
-        //if (data != null) free(data);
 
         return false;
     }
@@ -1026,14 +934,14 @@ internal static partial class Testbed
 
     public static bool CheckOptimizationPlugin()
     {
-        Context? ctx = WatchDogContext(null);
+        var ctx = WatchDogContext(null);
         Span<byte> In = stackalloc byte[] { 10, 20, 30, 40 };
         Span<byte> Out = stackalloc byte[4];
         var Linear = new ToneCurve[1];
         Profile? h;
         int i;
 
-        cmsPluginTHR(ctx, OptimizationPluginSample);
+        ctx.RegisterPlugin(OptimizationPluginSample);
 
         var cpy = DupContext(ctx, null);
         var cpy2 = DupContext(cpy, null);
@@ -1086,7 +994,7 @@ internal static partial class Testbed
 
     public static bool CheckIntentPlugin()
     {
-        Context? ctx = WatchDogContext(null);
+        var ctx = WatchDogContext(null);
         Profile? h1, h2;
         ToneCurve Linear1;
         ToneCurve Linear2;
@@ -1094,15 +1002,15 @@ internal static partial class Testbed
         Span<byte> Out = stackalloc byte[4];
         int i;
 
-        cmsPluginTHR(ctx, IntentPluginSample);
+        ctx.RegisterPlugin(IntentPluginSample);
 
         var cpy = DupContext(ctx, null);
         var cpy2 = DupContext(cpy, null);
 
         Linear1 = cmsBuildGamma(cpy2, 3.0)!;
         Linear2 = cmsBuildGamma(cpy2, 0.1)!;
-        h1 = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new ToneCurve[] { Linear1 });
-        h2 = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new ToneCurve[] { Linear2 });
+        h1 = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new[] { Linear1 });
+        h2 = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new[] { Linear2 });
 
         cmsFreeToneCurve(Linear1);
         cmsFreeToneCurve(Linear2);
@@ -1154,20 +1062,20 @@ internal static partial class Testbed
 
     public static bool CheckTransformPlugin()
     {
-        Context? ctx = WatchDogContext(null);
+        var ctx = WatchDogContext(null);
         Span<byte> In = stackalloc byte[] { 10, 20, 30, 40 };
         Span<byte> Out = stackalloc byte[4];
         ToneCurve Linear;
         Profile? h;
         int i;
 
-        cmsPluginTHR(ctx, FullTransformPluginSample);
+        ctx.RegisterPlugin(FullTransformPluginSample);
 
         var cpy = DupContext(ctx, null);
         var cpy2 = DupContext(cpy, null);
 
         Linear = cmsBuildGamma(cpy2, 1.0)!;
-        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new ToneCurve[] { Linear });
+        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new[] { Linear });
         cmsFreeToneCurve(Linear);
 
         var xform = cmsCreateTransformTHR(cpy2, h, TYPE_GRAY_8, h, TYPE_GRAY_8, INTENT_PERCEPTUAL, 0);
@@ -1191,7 +1099,7 @@ internal static partial class Testbed
 
     private static Box<MyMtx> MyMtxCreate(Context id)
     {
-        var mtx = new MyMtx()
+        var mtx = new MyMtx
         {
             nlocks = 0
         };
@@ -1234,20 +1142,20 @@ internal static partial class Testbed
 
     public static bool CheckMutexPlugin()
     {
-        Context? ctx = WatchDogContext(null);
+        var ctx = WatchDogContext(null);
         Span<byte> In = stackalloc byte[] { 10, 20, 30, 40 };
         Span<byte> Out = stackalloc byte[4];
         ToneCurve Linear;
         Profile? h;
         int i;
 
-        cmsPluginTHR(ctx, MutexPluginSample);
+        ctx.RegisterPlugin(MutexPluginSample);
 
         var cpy = DupContext(ctx, null);
         var cpy2 = DupContext(cpy, null);
 
         Linear = cmsBuildGamma(cpy2, 1.0)!;
-        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new ToneCurve[] { Linear });
+        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new[] { Linear });
         cmsFreeToneCurve(Linear);
 
         var xform = cmsCreateTransformTHR(cpy2, h, TYPE_GRAY_8, h, TYPE_GRAY_8, INTENT_PERCEPTUAL, 0);

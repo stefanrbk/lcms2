@@ -50,65 +50,6 @@ public static partial class Lcms2
         return new string(str);
     }
 
-    public static bool cmsPlugin(PluginBase plugin)
-    {
-        // See Context.RegisterPlugin()
-        Context.Shared.RegisterPlugin(plugin);
-        return true;
-    }
-
-    public static bool cmsPlugin(List<PluginBase> Plugins)
-    {
-        // See Context.RegisterPlugin()
-        Context.Shared.RegisterPlugin(Plugins);
-        return true;
-    }
-
-    public static bool cmsPluginTHR(Context? id, List<PluginBase> Plugins)
-    {
-        // See Context.RegisterPlugin()
-        (id ?? Context.Shared).RegisterPlugin(Plugins);
-        return true;
-}
-
-    public static bool cmsPluginTHR(Context? id, PluginBase? Plugin)
-    {
-        // See Context.RegisterPlugin()
-        if (Plugin is not null)
-        {
-            (id ?? Context.Shared).RegisterPlugin(Plugin);
-        }
-
-        // Keep a reference to the plug-in
-        return true;
-    }
-
-    /// <summary>
-    ///     This function returns the given context its default, pristene state, as if no
-    ///     plug-ins were declared.
-    /// </summary>
-    /// <remarks>
-    ///     There is no way to unregister a single plug-in, as a single call to
-    ///     <see cref="cmsPluginTHR"/> may register many different plug-ins
-    ///     simultaneously, then there is no way to identify which plug-in to unregister.
-    /// </remarks>
-    public static void cmsUnregisterPlugins() =>
-        // See Context.ClearAllPlugins()
-        Context.Shared.ClearAllPlugins();
-
-    /// <summary>
-    ///     This function returns the given context its default, pristene state, as if no
-    ///     plug-ins were declared.
-    /// </summary>
-    /// <remarks>
-    ///     There is no way to unregister a single plug-in, as a single call to
-    ///     <see cref="cmsPluginTHR"/> may register many different plug-ins
-    ///     simultaneously, then there is no way to identify which plug-in to unregister.
-    /// </remarks>
-    public static void cmsUnregisterPluginsTHR(Context? context) =>
-        // See Context.ClearAllPlugins()
-        (context ?? Context.Shared).ClearAllPlugins();
-
 
     /// <summary>
     ///     Provides thread-safe time
