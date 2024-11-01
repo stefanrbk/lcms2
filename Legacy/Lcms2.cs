@@ -10,26 +10,38 @@ namespace lcms2.legacy;
 [DebuggerStepThrough]
 public class Lcms2
 {
+    #region Constants
+
     // Version/release
     public const ushort LCMS_VERSION = Context.LibraryVersion;
 
     public const ushort cmsMAX_PATH = lcms2.Lcms2.MaxPath;
 
-    // D50 XYZ normalized to Y=1.0
+    #region D50 XYZ normalized to Y=1.0
+
     public static readonly double cmsD50X = CIEXYZ.D50.X;
     public static readonly double cmsD50Y = CIEXYZ.D50.Y;
     public static readonly double cmsD50Z = CIEXYZ.D50.Z;
 
-    // V4 perceptual black
+    #endregion D50 XYZ normalized to Y=1.0
+
+    #region V4 perceptual black
+
     public static readonly double cmsPERCEPTUAL_BLACK_X = Profile.PerceptualBlack.X;
     public static readonly double cmsPERCEPTUAL_BLACK_Y = Profile.PerceptualBlack.Y;
     public static readonly double cmsPERCEPTUAL_BLACK_Z = Profile.PerceptualBlack.Z;
 
-    // Definitions in ICC spec
+    #endregion V4 perceptual black
+
+    #region Definitions in ICC spec
+
     public const uint cmsMagicNumber = 0x61637370;
     public const uint lcmsSignature = 0x6c636d73;
 
-    // Base ICC type definitions
+    #endregion Definitions in ICC spec
+
+    #region Base ICC type definitions
+
     public const uint cmsSigChromaticityType = 0x6368726D;
     public const uint cmsSigcicpType = 0x63696370;
     public const uint cmsSigColorantOrderType = 0x636C726F;
@@ -72,7 +84,10 @@ public class Lcms2
     public const uint cmsSigXYZType = 0x58595A20;
     public const uint cmsSigMHC2Type = 0x4D484332;
 
-    // Base ICC tag definitions
+    #endregion Base ICC type definitions
+
+    #region Base ICC tag definitions
+
     public const uint cmsSigAToB0Tag = 0x41324230;
     public const uint cmsSigAToB1Tag = 0x41324231;
     public const uint cmsSigAToB2Tag = 0x41324232;
@@ -147,7 +162,10 @@ public class Lcms2
     public const uint cmsSigArgyllArtsTag = 0x61727473;
     public const uint cmsSigMHC2Tag = 0x4D484332;
 
-    // ICC Technology tag
+    #endregion Base ICC tag definitions
+
+    #region ICC Technology tags
+
     public const uint cmsSigDigitalCamera = 0x6463616D;
     public const uint cmsSigFilmScanner = 0x6673636E;
     public const uint cmsSigReflectiveScanner = 0x7273636E;
@@ -175,7 +193,10 @@ public class Lcms2
     public const uint cmsSigDigitalMotionPictureCamera = 0x646D7063;
     public const uint cmsSigDigitalCinemaProjector = 0x64636A70;
 
-    // ICC Color spaces
+    #endregion ICC Technology tags
+
+    #region ICC Color spaces
+
     public const uint cmsSigXYZData = 0x58595A20;
     public const uint cmsSigLabData = 0x4C616220;
     public const uint cmsSigLuvData = 0x4C757620;
@@ -220,7 +241,10 @@ public class Lcms2
     public const uint cmsSig15colorData = 0x46434C52;
     public const uint cmsSigLuvKData = 0x4C75764B;
 
-    // ICC Profile Class
+    #endregion ICC Color spaces
+
+    #region ICC Profile Classes
+
     public const uint cmsSigInputClass = 0x73636E72;
     public const uint cmsSigDisplayClass = 0x6D6E7472;
     public const uint cmsSigOutputClass = 0x70727472;
@@ -229,7 +253,10 @@ public class Lcms2
     public const uint cmsSigColorSpaceClass = 0x73706163;
     public const uint cmsSigNamedColorClass = 0x6e6d636c;
 
-    // ICC Platforms
+    #endregion ICC Profile Classes
+
+    #region ICC Platforms
+
     public const uint cmsSigMacintosh = 0x4150504C;
     public const uint cmsSigMicrosoft = 0x4D534654;
     public const uint cmsSigSolaris = 0x53554E57;
@@ -237,17 +264,26 @@ public class Lcms2
     public const uint cmsSigTaligent = 0x54474E54;
     public const uint cmsSigUnices = 0x2A6E6978;
 
-    // Reference gamut
+    #endregion ICC Platforms
+
+    #region Reference gamut
+
     public const uint cmsSigPerceptualReferenceMediumGamut = 0x70726d67;
 
-    // For cmsSigColorimetricIntentImageStateTag
+    #endregion Reference gamut
+
+    #region For cmsSigColorimetricIntentImageStateTag
+
     public const uint cmsSigSceneColorimetryEstimates = 0x73636F65;
     public const uint cmsSigSceneAppearanceEstimates = 0x73617065;
     public const uint cmsSigFocalPlaneColorimetryEstimates = 0x66706365;
     public const uint cmsSigReflectionHardcopyOriginalColorimetry = 0x72686F63;
     public const uint cmsSigReflectionPrintOutputColorimetry = 0x72706F63;
 
-    // Multi process elements types
+    #endregion For cmsSigColorimetricIntentImageStateTag
+
+    #region Multi process elements types
+
     public const uint cmsSigCurveSetElemType = 0x63767374;
     public const uint cmsSigMatrixElemType = 0x6D617466;
     public const uint cmsSigCLutElemType = 0x636C7574;
@@ -255,30 +291,44 @@ public class Lcms2
     public const uint cmsSigBAcsElemType = 0x62414353;
     public const uint cmsSigEAcsElemType = 0x65414353;
 
-    // Custom from here, not in the ICC Spec
+    #region Custom
+
     public const uint cmsSigXYZ2LabElemType = 0x6C327820;
     public const uint cmsSigLab2XYZElemType = 0x78326C20;
     public const uint cmsSigNamedColorElemType = 0x6E636C20;
     public const uint cmsSigLabV2toV4 = 0x32203420;
     public const uint cmsSigLabV4toV2 = 0x34203220;
 
-    // Identities
+    #region Identities
+
     public const uint cmsSigIdentityElemType = 0x69646E20;
 
-    // Float to floatPCS
-    public const uint cmsSigLab2FloatPCS = 0x64326C20;
+    #endregion Identities
 
+    #region Float to floatPCS
+
+    public const uint cmsSigLab2FloatPCS = 0x64326C20;
     public const uint cmsSigFloatPCS2Lab = 0x6C326420;
     public const uint cmsSigXYZ2FloatPCS = 0x64327820;
     public const uint cmsSigFloatPCS2XYZ = 0x78326420;
     public const uint cmsSigClipNegativesElemType = 0x636c7020;
 
-    // Types of CurveElements
+    #endregion Float to floatPCS
+
+    #endregion Custom
+
+    #endregion Multi process elements types
+
+    #region Types of CurveElements
+
     public const uint cmsSigFormulaCurveSeg = 0x70617266;
     public const uint cmsSigSampledCurveSeg = 0x73616D66;
     public const uint cmsSigSegmentedCurve = 0x63757266;
 
-    // Used in ResponseCurveType
+    #endregion Types of CurveElements
+
+    #region Used in ResponseCurveType
+
     public const uint cmsSigStatusA = 0x53746141;
     public const uint cmsSigStatusE = 0x53746145;
     public const uint cmsSigStatusI = 0x53746149;
@@ -289,12 +339,22 @@ public class Lcms2
     public const uint cmsSigDNN = 0x444E4E20;
     public const uint cmsSigDNNP = 0x444E4E50;
 
-    // Get version
+    #endregion Used in ResponseCurveType
+
+    #endregion Constants
+
+    #region cms* Functions
+
+    #region Get Version
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int cmsGetEncodedCMMversion() =>
         Context.LibraryVersion;
 
-    // Support of non-standard functions
+    #endregion Get Version
+
+    #region Support of non-standard functions
+
     public static int cmsstrcasecmp(ReadOnlySpan<byte> s1, ReadOnlySpan<byte> s2)
     {
         var us1 = Char.ToUpper((char)s1[0]);
@@ -332,7 +392,9 @@ public class Lcms2
     public static long cmsfilelength(FILE f) =>
         f.Length();
 
-    // Context handling
+    #endregion Support of non-standard functions
+
+    #region Context handling
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Context cmsCreateContext(IEnumerable<PluginBase> Plugins, object? UserData = null) =>
@@ -346,7 +408,9 @@ public class Lcms2
     public static ref object? cmsGetContextUserData(Context? context) =>
         ref context is null ? ref Context.Shared.UserData : ref context.UserData;
 
-    // Plugin registering
+    #endregion Context handling
+
+    #region Plugin registering
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool cmsPlugin(IEnumerable<PluginBase> Plugins)
@@ -370,7 +434,9 @@ public class Lcms2
     public static void cmsUnregisterPluginsTHR(Context? context) =>
         (context ?? Context.Shared).ClearAllPlugins();
 
-    // Error logger
+    #endregion Plugin registering
+
+    #region Error logger
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void cmsSetLogErrorHandlerTHR(Context? context, ILoggerFactory? factory) =>
@@ -380,7 +446,9 @@ public class Lcms2
     public static void cmsSetLogErrorHandler(ILoggerFactory? factory) =>
         Context.Shared.SetLoggerFactory(factory ?? lcms2.Lcms2.DefaultLogErrorHandlerFunction());
 
-    // "Constant" structs
+    #endregion Error logger
+
+    #region "Constant" structs
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CIEXYZ cmsD50_XYZ() =>
@@ -390,7 +458,9 @@ public class Lcms2
     public static CIExyY cmsD50_xyY() =>
         CIExyY.D50;
 
-    // Colorimetric space conversions
+    #endregion "Constant" structs
+
+    #region Colorimetric space conversions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void cmsXYZ2xyY(out CIExyY Dest, CIEXYZ Source) =>
@@ -416,7 +486,9 @@ public class Lcms2
     public static void cmsLCh2Lab(out CIELab Lab, CIELCh LCh) =>
         Lab = LCh.AsLab;
 
-    // PCS Encoding/Decoding
+    #endregion Colorimetric space conversions
+
+    #region PCS Encoding/Decoding
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void cmsLabEncoded2Float(out CIELab Lab, ReadOnlySpan<ushort> wLab) =>
@@ -441,4 +513,8 @@ public class Lcms2
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void cmsFloat2XYZEncoded(Span<ushort> XYZ, CIEXYZ fxyz) =>
         fxyz.FloatToEncoded(XYZ);
+
+    #endregion PCS Encoding/Decoding
+
+    #endregion cms* Functions
 }
