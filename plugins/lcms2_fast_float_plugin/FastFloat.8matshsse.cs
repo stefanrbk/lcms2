@@ -174,10 +174,10 @@ public unsafe static partial class FastFloat
         var Src = Lut;
 
         // Check for shaper-matrix-matrix-shaper structure, that is what this optimizer stands for
-        if (!cmsPipelineCheckAndRetrieveStages(Src, cmsSigCurveSetElemType, out var Curve1,
-                                                    cmsSigMatrixElemType, out var Matrix1,
-                                                    cmsSigMatrixElemType, out var Matrix2,
-                                                    cmsSigCurveSetElemType, out var Curve2))
+        if (!cmsPipelineCheckAndRetrieveStages(Src, Signature.Stage.CurveSetElem, out var Curve1,
+                                                    Signature.Stage.MatrixElem, out var Matrix1,
+                                                    Signature.Stage.MatrixElem, out var Matrix2,
+                                                    Signature.Stage.CurveSetElem, out var Curve2))
         {
             return false;
         }

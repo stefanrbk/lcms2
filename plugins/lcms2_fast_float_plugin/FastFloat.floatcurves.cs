@@ -309,7 +309,7 @@ public static partial class FastFloat
         // Only curves in this LUT?
         for (var mpe = cmsPipelineGetPtrToFirstStage(Src); mpe is not null; mpe = cmsStageNext(mpe))
         {
-            if ((uint)cmsStageType(mpe) is not cmsSigCurveSetElemType)
+            if (cmsStageType(mpe) != Signature.Stage.CurveSetElem)
                 return false;
         }
 

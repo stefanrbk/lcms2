@@ -355,8 +355,8 @@ public static partial class Lcms2
 
         var timer = DateTime.UtcNow;
 
-        var Description = (Mlu?)cmsReadTag(Profile, cmsSigProfileDescriptionTag);
-        var Copyright = (Mlu?)cmsReadTag(Profile, cmsSigCopyrightTag);
+        var Description = (Mlu?)cmsReadTag(Profile, Signature.Tag.ProfileDescription);
+        var Copyright = (Mlu?)cmsReadTag(Profile, Signature.Tag.Copyright);
 
         DescASCII[0] = DescASCII[255] = 0;
         CopyrightASCII[0] = CopyrightASCII[255] = 0;
@@ -690,7 +690,7 @@ public static partial class Lcms2
 
         m.PrintF("<<\n");
 
-        if ((uint)cmsStageType(mpe) is cmsSigCurveSetElemType)
+        if (cmsStageType(mpe) == Signature.Stage.CurveSetElem)
         {
             m.PrintF("/DecodeDEF [ ");
             EmitNGamma(m, cmsStageOutputChannels(mpe), _cmsStageGetPtrToCurveSet(mpe));
@@ -699,7 +699,7 @@ public static partial class Lcms2
             mpe = mpe.Next;
         }
 
-        if ((uint)cmsStageType(mpe) is cmsSigCLutElemType)
+        if (cmsStageType(mpe) == Signature.Stage.CLutElem)
         {
             m.PrintF("/Table ");
             WriteCLUT(m, mpe, PreMaj, PostMaj, PreMin, PostMin, false, default);
@@ -833,12 +833,12 @@ public static partial class Lcms2
 
         BlackPointAdaptedToD50 = cmsDetectBlackPoint(Profile, INTENT_RELATIVE_COLORIMETRIC);
 
-        if ((uint)ColorSpace is cmsSigGrayData)
+        if (ColorSpace == Signature.Colorspace.Gray)
         {
             var ShaperCurve = _cmsStageGetPtrToCurveSet(Shaper);
             rc = EmitCIEBasedA(m, ShaperCurve[0], BlackPointAdaptedToD50);
         }
-        else if ((uint)ColorSpace is cmsSigRgbData)
+        else if (ColorSpace == Signature.Colorspace.Rgb)
         {
             var Mat = GetPtrToMatrix(Matrix)!;
 
@@ -911,7 +911,7 @@ public static partial class Lcms2
         Pipeline? lut = null;
 
         // Is a named color profile?
-        if ((uint)cmsGetDeviceClass(Profile) is cmsSigNamedColorClass)
+        if (cmsGetDeviceClass(Profile) == Signature.ProfileClass.NamedColor)
         {
             if (!WriteNamedColorCSA(mem, Profile, Intent)) goto Error;
         }
@@ -921,7 +921,8 @@ public static partial class Lcms2
             // output (PCS) colorspace must be XYZ or LAB
             var ColorSpace = cmsGetPCS(Profile);
 
-            if ((uint)ColorSpace is not cmsSigXYZData and not cmsSigLabData)
+            if (ColorSpace != Signature.Colorspace.XYZ &&
+                ColorSpace != Signature.Colorspace.Lab)
             {
                 LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Invalid output color space");
                 goto Error;
@@ -933,8 +934,8 @@ public static partial class Lcms2
 
             // TOne curves + matrix can be implemented without and LUT
             if (cmsPipelineCheckAndRetrieveStages(
-                lut, cmsSigCurveSetElemType, out var Shaper,
-                     cmsSigMatrixElemType, out var Matrix))
+                lut, Signature.Stage.CurveSetElem, out var Shaper,
+                     Signature.Stage.MatrixElem, out var Matrix))
             {
                 if (!WriteInputMatrixShaper(mem, Profile, Matrix, Shaper)) goto Error;
             }
@@ -1224,7 +1225,7 @@ public static partial class Lcms2
             EmitHeader(mem, "Color Rendering Dictionary (CRD)"u8, Profile);
 
         // Is a named color profile?
-        if ((uint)cmsGetDeviceClass(Profile) is cmsSigNamedColorClass)
+        if (cmsGetDeviceClass(Profile) == Signature.ProfileClass.NamedColor)
         {
             if (!WriteNamedColorCRD(mem, Profile, Intent, dwFlags))
                 return 0;

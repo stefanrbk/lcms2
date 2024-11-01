@@ -1009,7 +1009,7 @@ public static partial class Lcms2
 
     private static bool GetXFormColorSpaces(uint nProfiles, Profile?[] Profiles, out Signature Input, out Signature Output)
     {
-        Input = Output = 0;
+        Input = Output = default;
 
         if (nProfiles is 0) return false;
         if (Profiles[0] is null) return false;
@@ -1020,18 +1020,27 @@ public static partial class Lcms2
         {
             var Profile = Profiles[i];
 
-            var lIsInput = (uint)PostColorSpace is not cmsSigXYZData and not cmsSigLabData;
+            var lIsInput = PostColorSpace != Signature.Colorspace.XYZ && PostColorSpace != Signature.Colorspace.Lab;
 
             if (Profile is null) return false;
 
-            var cls = (uint)cmsGetDeviceClass(Profile);
+            var cls = cmsGetDeviceClass(Profile);
 
-            var (ColorSpaceIn, ColorSpaceOut) = (lIsInput, cls) switch
+            Signature ColorSpaceIn;
+            Signature ColorSpaceOut;
+            if (cls == Signature.ProfileClass.NamedColor)
             {
-                (_, cmsSigNamedColorClass) => ((Signature)cmsSig1colorData, (nProfiles > 1) ? cmsGetPCS(Profile) : cmsGetColorSpace(Profile)),
-                (true, _) or (_, cmsSigLinkClass) => (cmsGetColorSpace(Profile), cmsGetPCS(Profile)),
-                _ => (cmsGetPCS(Profile), cmsGetColorSpace(Profile)),
-            };
+                (ColorSpaceIn, ColorSpaceOut) = (Signature.Colorspace.Color1,
+                    (nProfiles > 1) ? cmsGetPCS(Profile) : cmsGetColorSpace(Profile));
+            }
+            else if (lIsInput || cls == Signature.ProfileClass.Link)
+            {
+                (ColorSpaceIn, ColorSpaceOut) = (cmsGetColorSpace(Profile), cmsGetPCS(Profile));
+            }
+            else
+            {
+                (ColorSpaceIn, ColorSpaceOut) = (cmsGetPCS(Profile), cmsGetColorSpace(Profile));
+            }
 
             if (i is 0)
                 Input = ColorSpaceIn;
@@ -1142,7 +1151,7 @@ public static partial class Lcms2
         }
 
         // Check whether the transform is 16 bits and involves linear RGB in first profile. If so, disable optimizations
-        if ((uint)EntryColorSpace is cmsSigRgbData && T_BYTES(InputFormat) is 2 && (dwFlags & cmsFLAGS_NOOPTIMIZE) is 0)
+        if (EntryColorSpace == Signature.Colorspace.Rgb && T_BYTES(InputFormat) is 2 && (dwFlags & cmsFLAGS_NOOPTIMIZE) is 0)
         {
             var gamma = cmsDetectRGBProfileGamma(Profiles[0], 0.1);
 
@@ -1178,34 +1187,34 @@ public static partial class Lcms2
         xform.RenderingIntent = Intents[(int)nProfiles - 1];
 
         // Take white points
-        SetWhitePoint(out xform.EntryWhitePoint, cmsReadTag(Profiles[0], cmsSigMediaWhitePointTag) as Box<CIEXYZ>);
-        SetWhitePoint(out xform.ExitWhitePoint, cmsReadTag(Profiles[nProfiles - 1], cmsSigMediaWhitePointTag) as Box<CIEXYZ>);
+        SetWhitePoint(out xform.EntryWhitePoint, cmsReadTag(Profiles[0], Signature.Tag.MediaWhitePoint) as Box<CIEXYZ>);
+        SetWhitePoint(out xform.ExitWhitePoint, cmsReadTag(Profiles[nProfiles - 1], Signature.Tag.MediaWhitePoint) as Box<CIEXYZ>);
 
         // Create a gamut check LUT if requested
         if (hGamutProfile is not null && ((dwFlags & cmsFLAGS_GAMUTCHECK) is not 0))
             xform.GamutCheck = _cmsCreateGamutCheckPipeline(ContextID, Profiles, BPC, Intents, AdaptationStates, nGamutPCSposition, hGamutProfile);
 
         // Try to read input and output colorant table
-        if (cmsIsTag(Profiles[0], cmsSigColorantTableTag))
+        if (cmsIsTag(Profiles[0], Signature.Tag.ColorantTable))
         {
             // Input table can only come in this way.
-            xform.InputColorant = cmsDupNamedColorList(cmsReadTag(Profiles[0], cmsSigColorantTableTag) as NamedColorList)!;
+            xform.InputColorant = cmsDupNamedColorList(cmsReadTag(Profiles[0], Signature.Tag.ColorantTable) as NamedColorList)!;
         }
 
         // Output is a little bit more complex.
-        if ((uint)cmsGetDeviceClass(Profiles[nProfiles - 1]) is cmsSigLinkClass)
+        if (cmsGetDeviceClass(Profiles[nProfiles - 1]) == Signature.ProfileClass.Link)
         {
             // This tag may exist only on devicelink profiles.
-            if (cmsIsTag(Profiles[nProfiles - 1], cmsSigColorantTableOutTag))
+            if (cmsIsTag(Profiles[nProfiles - 1], Signature.Tag.ColorantTableOut))
             {
                 // It may be null if error
-                xform.OutputColorant = cmsDupNamedColorList(cmsReadTag(Profiles[nProfiles - 1], cmsSigColorantTableOutTag) as NamedColorList)!;
+                xform.OutputColorant = cmsDupNamedColorList(cmsReadTag(Profiles[nProfiles - 1], Signature.Tag.ColorantTableOut) as NamedColorList)!;
             }
         }
         else
         {
-            if (cmsIsTag(Profiles[nProfiles - 1], cmsSigColorantTableTag))
-                xform.OutputColorant = cmsDupNamedColorList(cmsReadTag(Profiles[nProfiles - 1], cmsSigColorantTableTag) as NamedColorList)!;
+            if (cmsIsTag(Profiles[nProfiles - 1], Signature.Tag.ColorantTable))
+                xform.OutputColorant = cmsDupNamedColorList(cmsReadTag(Profiles[nProfiles - 1], Signature.Tag.ColorantTable) as NamedColorList)!;
         }
 
         // Store the sequence of profiles

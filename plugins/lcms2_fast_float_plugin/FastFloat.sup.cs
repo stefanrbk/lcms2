@@ -99,11 +99,15 @@ public static partial class FastFloat
         return false;
     }
 
-    private static List<PluginBase> PluginList = new(2)
-    {
-        new PluginTransform(cmsPluginMagicNumber, REQUIRED_LCMS_VERSION, cmsPluginTransformSig, new() { xform = Floating_Point_Transforms_Dispatcher }),
-        new PluginFormatters(cmsPluginMagicNumber, REQUIRED_LCMS_VERSION, cmsPluginFormattersSig) { FormattersFactoryIn = Formatter_15Bit_Factory_In, FormattersFactoryOut = Formatter_15Bit_Factory_Out }
-    };
+    private static readonly List<PluginBase> PluginList =
+    [
+        new PluginTransform(Signature.Plugin.MagicNumber, REQUIRED_LCMS_VERSION, Signature.Plugin.Transform,
+            new() { xform = Floating_Point_Transforms_Dispatcher }),
+        new PluginFormatters(Signature.Plugin.MagicNumber, REQUIRED_LCMS_VERSION, Signature.Plugin.Formatters)
+        {
+            FormattersFactoryIn = Formatter_15Bit_Factory_In, FormattersFactoryOut = Formatter_15Bit_Factory_Out
+        }
+    ];
 
     // This is the main plug-in installer.
     // Using a function to retrieve the plug-in entry point allows us to execute initialization data

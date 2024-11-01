@@ -993,7 +993,7 @@ public static partial class Lcms2
     internal static Stage? _cmsStageAllocNamedColor(NamedColorList NamedColorList, bool UsePCS) =>
         new(
             NamedColorList.ContextID,
-            cmsSigNamedColorElemType,
+            Signature.Stage.NamedColorElem,
             1,
             UsePCS ? 3 : NamedColorList.ColorantCount,
             UsePCS ? EvalNamedColorPCS : EvalNamedColor,
@@ -1005,7 +1005,7 @@ public static partial class Lcms2
     {
         var mpe = xform?.Lut?.Elements;
 
-        return (mpe?.Type == cmsSigNamedColorElemType)
+        return (mpe?.Type == Signature.Stage.NamedColorElem)
             ? mpe.Data as NamedColorList
             : null;
     }

@@ -333,17 +333,17 @@ public static partial class FastFloat
         // If this is a matrix-shaper, the default already does a good job
 
         if (cmsPipelineCheckAndRetrieveStages(Lut,
-            cmsSigCurveSetElemType, out _,
-            cmsSigMatrixElemType, out _,
-            cmsSigMatrixElemType, out _,
-            cmsSigCurveSetElemType, out _))
+            Signature.Stage.CurveSetElem, out _,
+            Signature.Stage.MatrixElem, out _,
+            Signature.Stage.MatrixElem, out _,
+            Signature.Stage.CurveSetElem, out _))
         {
             return false;
         }
 
         if (cmsPipelineCheckAndRetrieveStages(Lut,
-            cmsSigCurveSetElemType, out _,
-            cmsSigCurveSetElemType, out _))
+            Signature.Stage.CurveSetElem, out _,
+            Signature.Stage.CurveSetElem, out _))
         {
             return false;
         }

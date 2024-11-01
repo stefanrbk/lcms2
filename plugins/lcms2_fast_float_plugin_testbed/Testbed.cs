@@ -123,7 +123,7 @@ internal static partial class Testbed
         var Gamma = cmsBuildGamma(null, 1.1)!;
         var Transfer = new ToneCurve[3] { Gamma, Gamma, Gamma };
 
-        var h = cmsCreateLinearizationDeviceLink(cmsSigRgbData, Transfer);
+        var h = cmsCreateLinearizationDeviceLink(Signature.Colorspace.Rgb, Transfer);
 
         cmsFreeToneCurve(Gamma);
 

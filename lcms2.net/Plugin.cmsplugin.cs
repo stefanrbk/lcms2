@@ -43,6 +43,10 @@ public static partial class Plugin
     }
 
     [DebuggerStepThrough]
+    public static Signature AdjustEndianess(Signature sig) =>
+        (Signature)AdjustEndianess((uint)sig);
+
+    [DebuggerStepThrough]
     public static uint AdjustEndianess(uint DWord)  // _cmsAdjustEndianess32
     {
         Span<byte> pByte = stackalloc byte[4];
@@ -69,12 +73,12 @@ public static partial class Plugin
     [DebuggerStepThrough]
     public static bool _cmsReadSignature(IOHandler io, out Signature sig)
     {
-        sig = 0;
+        sig = default;
 
         if (!io.ReadUint(out var value))
             return false;
 
-        sig = value;
+        sig = (Signature)value;
         return true;
     }
 }

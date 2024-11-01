@@ -475,21 +475,21 @@ public static partial class Lcms2
         Icc.Version = 0x02100000;
 
         // Set default CMM (that's me!)
-        Icc.CMM = lcmsSignature;
+        Icc.CMM = Signature.LcmsSignature;
 
         // Set default creator
         // Created by LittleCMS (that's me!)
-        Icc.creator = lcmsSignature;
+        Icc.creator = Signature.LcmsSignature;
 
         // Set default platform
         Icc.platform = Environment.OSVersion.Platform switch
         {
-            PlatformID.Win32S => cmsSigMicrosoft,
-            PlatformID.Win32Windows => cmsSigMicrosoft,
-            PlatformID.Win32NT => cmsSigMicrosoft,
-            PlatformID.WinCE => cmsSigMicrosoft,
-            PlatformID.Unix => cmsSigUnices,
-            PlatformID.MacOSX => cmsSigMacintosh,
+            PlatformID.Win32S => Signature.Platform.Microsoft,
+            PlatformID.Win32Windows => Signature.Platform.Microsoft,
+            PlatformID.Win32NT => Signature.Platform.Microsoft,
+            PlatformID.WinCE => Signature.Platform.Microsoft,
+            PlatformID.Unix => Signature.Platform.Unices,
+            PlatformID.MacOSX => Signature.Platform.Macintosh,
             _ => throw new NotImplementedException(),
         };
 
@@ -668,19 +668,17 @@ public static partial class Lcms2
         return BitConverter.ToUInt32(pByte);
     }
 
-    private static bool validDeviceClass(Signature cl) =>
-        (uint)cl switch
-        {
-            0 => true,
-            cmsSigInputClass => true,
-            cmsSigDisplayClass => true,
-            cmsSigOutputClass => true,
-            cmsSigLinkClass => true,
-            cmsSigAbstractClass => true,
-            cmsSigColorSpaceClass => true,
-            cmsSigNamedColorClass => true,
-            _ => false
-        };
+    private static bool validDeviceClass(Signature cl)
+    {
+        return cl == default ||
+               cl == Signature.ProfileClass.Input ||
+               cl == Signature.ProfileClass.Display ||
+               cl == Signature.ProfileClass.Output ||
+               cl == Signature.ProfileClass.Link ||
+               cl == Signature.ProfileClass.Abstract ||
+               cl == Signature.ProfileClass.ColorSpace ||
+               cl == Signature.ProfileClass.NamedColor;
+    }
 
     [DebuggerStepThrough]
     internal static bool _cmsReadHeader(Profile Icc)
@@ -702,17 +700,17 @@ public static partial class Lcms2
         Header = MemoryMarshal.Read<Profile.Header>(buffer);
 
         // Validate file as an ICC profile
-        if (AdjustEndianess(Header.magic) != cmsMagicNumber)
+        if (AdjustEndianess(Header.magic) != Signature.MagicNumber)
         {
             LogError(Icc.ContextID, ErrorCodes.BadSignature, "not an Icc profile, invalid signature");
             return false;
         }
 
         // Adjust endianness of the used parameters
-        Icc.CMM = new(AdjustEndianess(Header.cmmId));
-        Icc.DeviceClass = new(AdjustEndianess(Header.deviceClass));
-        Icc.ColorSpace = new(AdjustEndianess(Header.colorSpace));
-        Icc.PCS = new(AdjustEndianess(Header.pcs));
+        Icc.CMM = AdjustEndianess(Header.cmmId);
+        Icc.DeviceClass = AdjustEndianess(Header.deviceClass);
+        Icc.ColorSpace = AdjustEndianess(Header.colorSpace);
+        Icc.PCS = AdjustEndianess(Header.pcs);
 
         Icc.RenderingIntent = AdjustEndianess(Header.renderingIntent);
         Icc.platform = AdjustEndianess(Header.platform);
@@ -762,7 +760,7 @@ public static partial class Lcms2
         for (var i = 0; i < TagCount; i++)
         {
             if (!io.ReadUint(out var sig)) return false;
-            Tag.sig = sig;
+            Tag.sig = new(sig);
             if (!io.ReadUint(out Tag.offset)) return false;
             if (!io.ReadUint(out Tag.size)) return false;
 
@@ -834,21 +832,21 @@ public static partial class Lcms2
         TagEntry Tag = new();
 
         Header.size = AdjustEndianess(UsedSpace);
-        Header.cmmId = new(AdjustEndianess(Icc.CMM));
+        Header.cmmId = AdjustEndianess(Icc.CMM);
         Header.version = AdjustEndianess(Icc.Version);
 
-        Header.deviceClass = new(AdjustEndianess(Icc.DeviceClass));
-        Header.colorSpace = new(AdjustEndianess(Icc.ColorSpace));
-        Header.pcs = new(AdjustEndianess(Icc.PCS));
+        Header.deviceClass = AdjustEndianess(Icc.DeviceClass);
+        Header.colorSpace = AdjustEndianess(Icc.ColorSpace);
+        Header.pcs = AdjustEndianess(Icc.PCS);
 
         // NOTE: in v4 Timestamp must be in UTC rather than in local time
         DateTimeNumber.Encode(out Header.date, Icc.Created);
 
-        Header.magic = new(AdjustEndianess(cmsMagicNumber));
-        Header.platform = new(AdjustEndianess(Icc.platform));
+        Header.magic = AdjustEndianess(Signature.MagicNumber);
+        Header.platform = AdjustEndianess(Icc.platform);
 
         Header.flags = AdjustEndianess(Icc.flags);
-        Header.manufacturer = new(AdjustEndianess(Icc.manufacturer));
+        Header.manufacturer = AdjustEndianess(Icc.manufacturer);
         Header.model = AdjustEndianess(Icc.model);
 
         Header.attributes = AdjustEndianess(Icc.attributes);
@@ -861,7 +859,7 @@ public static partial class Lcms2
         Header.illuminant.Y = (int)AdjustEndianess((uint)DoubleToS15Fixed16(CIEXYZ.D50.Y));
         Header.illuminant.Z = (int)AdjustEndianess((uint)DoubleToS15Fixed16(CIEXYZ.D50.Z));
 
-        Header.creator = new(AdjustEndianess(Icc.creator));
+        Header.creator = AdjustEndianess(Icc.creator);
 
         //memset(&Header.reserved, 0, 28);
 
@@ -891,7 +889,7 @@ public static partial class Lcms2
             var t = Icc.Tags[i];
             if (t.Name == default) continue;      // It is just a placeholder
 
-            Tag.sig = new(AdjustEndianess(t.Name));
+            Tag.sig = AdjustEndianess(t.Name);
             Tag.offset = AdjustEndianess(t.Offset);
             Tag.size = AdjustEndianess(t.Size);
 
@@ -920,23 +918,23 @@ public static partial class Lcms2
         Icc.flags = Flags;
 
     [DebuggerStepThrough]
-    public static uint cmsGetHeaderManufacturer(Profile Icc) =>
+    public static Signature cmsGetHeaderManufacturer(Profile Icc) =>
         Icc.manufacturer;
 
     [DebuggerStepThrough]
-    public static void cmsSetHeaderManufacturer(Profile Icc, uint manufacturer) =>
+    public static void cmsSetHeaderManufacturer(Profile Icc, Signature manufacturer) =>
         Icc.manufacturer = manufacturer;
 
     [DebuggerStepThrough]
-    public static uint cmsGetHeaderCreator(Profile Icc) =>
+    public static Signature cmsGetHeaderCreator(Profile Icc) =>
         Icc.creator;
 
     [DebuggerStepThrough]
-    public static uint cmsGetHeaderModel(Profile Icc) =>
+    public static Signature cmsGetHeaderModel(Profile Icc) =>
         Icc.model;
 
     [DebuggerStepThrough]
-    public static void cmsSetHeaderModel(Profile Icc, uint model) =>
+    public static void cmsSetHeaderModel(Profile Icc, Signature model) =>
         Icc.model = model;
 
     [DebuggerStepThrough]
@@ -1591,7 +1589,7 @@ public static partial class Lcms2
 
         // Search for given tag in Icc profile directory
         var n = _cmsSearchTag(Icc, sig, true);
-        if (n < 0) return 0;                        // Not found, return null
+        if (n < 0) return default;                        // Not found, return null
 
         // Get the handler. The true type is there
         var TypeHandler = Icc.Tags[n].TypeHandler;
@@ -1618,7 +1616,7 @@ public static partial class Lcms2
             {
                 // Use zero as a mark of deleted
                 _cmsDeleteTagByPos(Icc, i);
-                tag.Name = 0;
+                tag.Name = default;
                 Icc.Tags[i] = tag;
                 Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
                 return true;
@@ -1634,7 +1632,7 @@ public static partial class Lcms2
         tag.SaveAsRaw = false;
 
         // This is not a link
-        tag.Linked = 0;
+        tag.Linked = default;
 
         // Get information about the TAG
         var TagDescriptor = _cmsGetTagDescriptor(Icc.ContextID, sig);
@@ -1834,7 +1832,7 @@ public static partial class Lcms2
         // Mark the tag as being written as RAW
         tag.SaveAsRaw = true;
         tag.Name = sig;
-        tag.Linked = 0;
+        tag.Linked = default;
 
         // Keep a copy of the block
         tag.TagObject = _cmsDupMem(Icc.ContextID, data, Size);
@@ -1887,7 +1885,7 @@ public static partial class Lcms2
 
         // Search for given tag in ICC profile directory
         var i = _cmsSearchTag(Icc, sig, false);
-        if (i < 0) return 0;        // Not found, return 0
+        if (i < 0) return default;        // Not found, return 0
 
         return Icc.Tags[i].Linked;
     }

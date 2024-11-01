@@ -132,14 +132,14 @@ public static partial class Lcms2
         uint dwFlags)
     {
         // Make sure CMYK -> CMYK
-        if ((uint)cmsGetColorSpace(Profiles[0]) is not cmsSigCmykData ||
-            (uint)cmsGetColorSpace(Profiles[nProfiles - 1]) is not cmsSigCmykData)
+        if (cmsGetColorSpace(Profiles[0]) != Signature.Colorspace.Cmyk ||
+            cmsGetColorSpace(Profiles[nProfiles - 1]) != Signature.Colorspace.Cmyk)
         {
             return null;
         }
 
         // Make sure last is an output profile
-        if ((uint)cmsGetDeviceClass(Profiles[nProfiles - 1]) is not cmsSigOutputClass) return null;
+        if (cmsGetDeviceClass(Profiles[nProfiles - 1]) != Signature.ProfileClass.Output) return null;
 
         // Create individual curves. BPC works also as each K to L* is
         // computed as a BPC to zero black point in case of L*
@@ -403,7 +403,7 @@ public static partial class Lcms2
         var ContextID = cmsGetProfileContextID(Profile);
 
         // TAC only works on output profiles
-        if ((uint)cmsGetDeviceClass(Profile) is not cmsSigOutputClass)
+        if (cmsGetDeviceClass(Profile) != Signature.ProfileClass.Output)
             return 0;
 
         // Create a fake formatter for result
@@ -524,12 +524,17 @@ public static partial class Lcms2
         //var Y_normalized = stackalloc float[256];
         //var pool = Context.GetPool<float>(Profile.ContextID);
 
-        if ((uint)cmsGetColorSpace(Profile) is not cmsSigRgbData)
+        if (cmsGetColorSpace(Profile) != Signature.Colorspace.Rgb)
             return -1;
 
         var cl = cmsGetDeviceClass(Profile);
-        if ((uint)cl is not cmsSigInputClass and not cmsSigDisplayClass and not cmsSigOutputClass and not cmsSigColorSpaceClass)
+        if (cl != Signature.ProfileClass.Input &&
+            cl != Signature.ProfileClass.Display &&
+            cl != Signature.ProfileClass.Output &&
+            cl != Signature.ProfileClass.ColorSpace)
+        {
             return -1;
+        }
 
         var ContextID = cmsGetProfileContextID(Profile);
         var hXYZ = cmsCreateXYZProfileTHR(ContextID);

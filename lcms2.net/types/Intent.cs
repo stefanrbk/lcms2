@@ -60,7 +60,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         Profile Profile;
         MAT3 m;
         VEC3 off;
-        Signature ColorSpaceIn, ColorSpaceOut = cmsSigLabData, CurrentColorSpace, ClassSig;
+        Signature ColorSpaceIn, ColorSpaceOut = Signature.Colorspace.Lab, CurrentColorSpace, ClassSig;
         uint Intent;
 
         // For safety
@@ -76,12 +76,12 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         {
             Profile = Profiles[i];
             ClassSig = cmsGetDeviceClass(Profile);
-            var isDeviceLink = (uint)ClassSig is cmsSigLinkClass or cmsSigAbstractClass;
+            var isDeviceLink = ClassSig == Signature.ProfileClass.Link || ClassSig == Signature.ProfileClass.Abstract;
 
             // First profile is used as input unless devicelink or abstract
             var isInput = (i is 0 && !isDeviceLink) ||
                 // Else use profile in the input direction if current space is not PCS
-                (uint)CurrentColorSpace is not cmsSigXYZData and not cmsSigLabData;
+                CurrentColorSpace != Signature.Colorspace.XYZ && CurrentColorSpace != Signature.Colorspace.Lab;
 
             Intent = TheIntents[i];
 
@@ -97,14 +97,14 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
 
             // If devicelink is found, then no custom intent is allowed and we can
             // read the LUT to be applied. Settings don't apply here
-            if (isDeviceLink || ((uint)ClassSig is cmsSigNamedColorClass && nProfiles is 1))
+            if (isDeviceLink || (ClassSig == Signature.ProfileClass.NamedColor && nProfiles is 1))
             {
                 // Get the involved LUT from the profile
                 Lut = _cmsReadDevicelinkLUT(Profile, Intent);
                 if (Lut is null) goto Error;
 
                 // What about abstract profiles?
-                if ((uint)ClassSig is cmsSigAbstractClass && i > 0)
+                if (ClassSig == Signature.ProfileClass.Abstract && i > 0)
                 {
                     if (!ComputeConversion((uint)i, Profiles, Intent, BPC[i], AdaptationStates[i], out m, out off))
                         goto Error;
@@ -149,19 +149,25 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         }
 
         // Check for non-negatives clip
-        if ((dwFlags & cmsFLAGS_NONEGATIVES) is not 0)
+        if ((dwFlags & cmsFLAGS_NONEGATIVES) is 0)
         {
-            if ((uint)ColorSpaceOut is cmsSigGrayData or cmsSigRgbData or cmsSigCmykData)
-            {
-                var clip = _cmsStageClipNegatives(Result.ContextID, (uint)cmsChannelsOfColorSpace(ColorSpaceOut));
-                if (clip is null) goto Error;
+            return Result;
+        }
 
-                if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, clip))
-                {
-                    //cmsStageFree(clip);
-                    goto Error;
-                }
-            }
+        if (ColorSpaceOut != Signature.Colorspace.Gray &&
+            ColorSpaceOut != Signature.Colorspace.Rgb &&
+            ColorSpaceOut != Signature.Colorspace.Cmyk)
+        {
+            return Result;
+        }
+
+        var clip = _cmsStageClipNegatives(Result.ContextID, (uint)cmsChannelsOfColorSpace(ColorSpaceOut));
+        if (clip is null) goto Error;
+
+        if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, clip))
+        {
+            //cmsStageFree(clip);
+            goto Error;
         }
 
         return Result;
@@ -210,9 +216,9 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         preservationProfilesCount = lastProfilePos + 1;
 
         // Check for non-cmyk profiles
-        if ((uint)cmsGetColorSpace(Profiles[0]) is not cmsSigCmykData ||
-            !((uint)cmsGetColorSpace(hLastProfile) is cmsSigCmykData ||
-            (uint)cmsGetDeviceClass(hLastProfile) is cmsSigOutputClass))
+        if (cmsGetColorSpace(Profiles[0]) != Signature.Colorspace.Cmyk ||
+            !(cmsGetColorSpace(hLastProfile) == Signature.Colorspace.Cmyk ||
+            cmsGetDeviceClass(hLastProfile) == Signature.ProfileClass.Output))
         { return ICCDefault(ContextID, nProfiles, ICCIntents, Profiles, BPC, AdaptationStates, dwFlags); }
 
         // Allocate an empty LUT for holding the result
@@ -232,7 +238,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         if (bp.KTone is null) goto Error;
 
         // How many gridpoints are we going to use?
-        nGridPoints = _cmsReasonableGridpointsByColorspace(cmsSigCmykData, dwFlags);
+        nGridPoints = _cmsReasonableGridpointsByColorspace(Signature.Colorspace.Cmyk, dwFlags);
 
         // Create the CLUT. 16 bit
         CLUT = cmsStageAllocCLut16bit(ContextID, nGridPoints, 4, 4, null);
@@ -310,9 +316,9 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         preservationProfilesCount = lastProfilePos + 1;
 
         // Check for non-cmyk profiles
-        if ((uint)cmsGetColorSpace(Profiles[0]) is not cmsSigCmykData ||
-            !((uint)cmsGetColorSpace(hLastProfile) is cmsSigCmykData ||
-            (uint)cmsGetDeviceClass(hLastProfile) is cmsSigOutputClass))
+        if (cmsGetColorSpace(Profiles[0]) != Signature.Colorspace.Cmyk ||
+            !(cmsGetColorSpace(hLastProfile) == Signature.Colorspace.Cmyk ||
+            cmsGetDeviceClass(hLastProfile) == Signature.ProfileClass.Output))
         { return ICCDefault(ContextID, nProfiles, ICCIntents, Profiles, BPC, AdaptationStates, dwFlags); }
 
         // Allocate an empty LUT for holding the result
@@ -367,7 +373,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         bp.MaxError = 0;
 
         // How many gridpoints are we going to use?
-        nGridPoints = _cmsReasonableGridpointsByColorspace(cmsSigCmykData, dwFlags);
+        nGridPoints = _cmsReasonableGridpointsByColorspace(Signature.Colorspace.Cmyk, dwFlags);
 
         CLUT = cmsStageAllocCLut16bit(ContextID, nGridPoints, 4, 4, null);
         if (CLUT is null) goto Cleanup;
@@ -403,19 +409,16 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
 
     private static bool ColorSpaceIsCompatible(Signature a, Signature b)
     {
-        var A = (uint)a;
-        var B = (uint)b;
-
         // If they are the same, they are compatible
-        if (A == B) return true;
+        if (a == b) return true;
 
         // Check for MCH4 substitution of CMYK
-        if (A is cmsSig4colorData && B is cmsSigCmykData) return true;
-        if (A is cmsSigCmykData && B is cmsSig4colorData) return true;
+        if (a == Signature.Colorspace.Color4 && b == Signature.Colorspace.Cmyk) return true;
+        if (a == Signature.Colorspace.Cmyk && b == Signature.Colorspace.Color4) return true;
 
         // Check for XYZ/Lab. Those spaces are interchangeable as they can be computed one from another
-        if (A is cmsSigXYZData && B is cmsSigLabData) return true;
-        if (A is cmsSigLabData && B is cmsSigXYZData) return true;
+        if (a == Signature.Colorspace.XYZ && b == Signature.Colorspace.Lab) return true;
+        if (a == Signature.Colorspace.Lab && b == Signature.Colorspace.XYZ) return true;
 
         return false;
     }
@@ -497,63 +500,52 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         var off_as_dbl = off.AsArray(/*pool*/);
 
         // Handle PCS mismatches. A specialized stage is added to the LUT in such case
-        switch ((uint)InPCS)
+        if (InPCS == Signature.Colorspace.XYZ)
         {
-            case cmsSigXYZData:     // Input profile operates in XYZ
-
-                switch ((uint)OutPCS)
+            if (OutPCS == Signature.Colorspace.XYZ) // XYZ -> XYZ
+            {
+                if (!IsEmptyLayer(m, off) &&
+                    !cmsPipelineInsertStage(Result, StageLoc.AtEnd, cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
+                { goto Error; }
+            } else if (OutPCS == Signature.Colorspace.Lab)  // XYZ -> Lab
+            {
+                if (!IsEmptyLayer(m, off) &&
+                    !cmsPipelineInsertStage(Result, StageLoc.AtEnd, cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
+                { goto Error; }
+                if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocXYZ2Lab(Result.ContextID)))
+                    goto Error;
+            }
+            else    // Colorspace mismatch
+            {
+                goto Error;
+            }
+        } else if (InPCS == Signature.Colorspace.Lab)
+        {
+            if (OutPCS == Signature.Colorspace.XYZ) // Lab -> XYZ
+            {
+                if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocLab2XYZ(Result.ContextID)))
+                    goto Error;
+                if (!IsEmptyLayer(m, off) &&
+                    !cmsPipelineInsertStage(Result, StageLoc.AtEnd, cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
+                { goto Error; }
+            } else if (OutPCS == Signature.Colorspace.Lab)  // Lab -> Lab
+            {
+                if (!IsEmptyLayer(m, off))
                 {
-                    case cmsSigXYZData:     // XYZ -> XYZ
-                        if (!IsEmptyLayer(m, off) &&
-                            !cmsPipelineInsertStage(Result, StageLoc.AtEnd, cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
-                        { goto Error; }
-                        break;
-
-                    case cmsSigLabData:     // XYZ -> Lab
-                        if (!IsEmptyLayer(m, off) &&
-                            !cmsPipelineInsertStage(Result, StageLoc.AtEnd, cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
-                        { goto Error; }
-                        if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocXYZ2Lab(Result.ContextID)))
-                            goto Error;
-                        break;
-
-                    default:
-                        goto Error;   // Colorspace mismatch
+                    if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocLab2XYZ(Result.ContextID)) ||
+                        !cmsPipelineInsertStage(Result, StageLoc.AtEnd, cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)) ||
+                        !cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocXYZ2Lab(Result.ContextID)))
+                    { goto Error; }
                 }
-                break;
-
-            case cmsSigLabData:     // Input profile operates in Lab
-
-                switch ((uint)OutPCS)
-                {
-                    case cmsSigXYZData:     // Lab -> XYZ
-                        if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocLab2XYZ(Result.ContextID)))
-                            goto Error;
-                        if (!IsEmptyLayer(m, off) &&
-                            !cmsPipelineInsertStage(Result, StageLoc.AtEnd, cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
-                        { goto Error; }
-                        break;
-
-                    case cmsSigLabData:     // Lab -> Lab
-                        if (!IsEmptyLayer(m, off))
-                        {
-                            if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocLab2XYZ(Result.ContextID)) ||
-                                !cmsPipelineInsertStage(Result, StageLoc.AtEnd, cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)) ||
-                                !cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocXYZ2Lab(Result.ContextID)))
-                            { goto Error; }
-                        }
-
-                        break;
-
-                    default:
-                        goto Error;   // Colorspace mismatch
-                }
-                break;
-
-            // On colorspaces other than PCS, check for same space
-            default:
-                if (InPCS != OutPCS) goto Error;
-                break;
+            }
+            else    // Colorspace mismatch
+            {
+                goto Error;
+            }
+        }
+        else // On colorspaces other than PCS, check for same space
+        {
+            if (InPCS != OutPCS) goto Error;
         }
 
         return true;
@@ -797,8 +789,8 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         };
 
     private static bool IsCmykDeviceLink(Profile profile) =>
-        cmsGetDeviceClass(profile) == cmsSigLinkClass &&
-        cmsGetColorSpace(profile) == cmsSigCmykData;
+        cmsGetDeviceClass(profile) == Signature.ProfileClass.Link &&
+        cmsGetColorSpace(profile) == Signature.Colorspace.Cmyk;
 
     private static double CHAD2Temp(MAT3 Chad)
     {

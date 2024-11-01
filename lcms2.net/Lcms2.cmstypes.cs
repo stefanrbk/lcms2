@@ -39,122 +39,122 @@ public static partial class Lcms2
     private const uint cmsMonacoBrokenCurveType = 0x9478EE00;
 
     internal static readonly TagTypeLinkedList supportedMPEtypes = new(
-        new(cmsSigBAcsElemType, null, null, null, null, null, 0),
-        new(cmsSigEAcsElemType, null, null, null, null, null, 0),
-        new(cmsSigCurveSetElemType, Type_MPEcurve_Read, Type_MPEcurve_Write, GenericMPEdup, GenericMPEfree, null, 0),
-        new(cmsSigMatrixElemType, Type_MPEmatrix_Read, Type_MPEmatrix_Write, GenericMPEdup, GenericMPEfree, null, 0),
-        new(cmsSigCLutElemType, Type_MPEclut_Read, Type_MPEclut_Write, GenericMPEdup, GenericMPEfree, null, 0));
+        new(Signature.Stage.BAcsElem, null, null, null, null, null, 0),
+        new(Signature.Stage.EAcsElem, null, null, null, null, null, 0),
+        new(Signature.Stage.CurveSetElem, Type_MPEcurve_Read, Type_MPEcurve_Write, GenericMPEdup, GenericMPEfree, null, 0),
+        new(Signature.Stage.MatrixElem, Type_MPEmatrix_Read, Type_MPEmatrix_Write, GenericMPEdup, GenericMPEfree, null, 0),
+        new(Signature.Stage.CLutElem, Type_MPEclut_Read, Type_MPEclut_Write, GenericMPEdup, GenericMPEfree, null, 0));
 
     internal static readonly TagTypePluginChunkType MPETypePluginChunk = new();
 
     internal static readonly TagTypePluginChunkType globalMPETypePluginChunk = new();
 
     internal static readonly TagTypeLinkedList supportedTagTypes = new(
-        new(cmsSigChromaticityType, Type_Chromaticity_Read, Type_Chromaticity_Write, Type_Chromaticity_Dup, null, null, 0),
-        new(cmsSigColorantOrderType, Type_ColorantOrderType_Read, Type_ColorantOrderType_Write, Type_ColorantOrderType_Dup, Type_ColorantOrderType_Free, null, 0),
-        new(cmsSigS15Fixed16ArrayType, Type_S15Fixed16_Read, Type_S15Fixed16_Write, Type_S15Fixed16_Dup, Type_S15Fixed16_Free, null, 0),
-        new(cmsSigU16Fixed16ArrayType, Type_U16Fixed16_Read, Type_U16Fixed16_Write, Type_U16Fixed16_Dup, Type_U16Fixed16_Free, null, 0),
-        new(cmsSigTextType, Type_Text_Read, Type_Text_Write, Type_Text_Dup, Type_Text_Free, null, 0),
-        new(cmsSigTextDescriptionType, Type_Text_Description_Read, Type_Text_Description_Write, Type_Text_Description_Dup, Type_Text_Description_Free, null, 0),
-        new(cmsSigCurveType, Type_Curve_Read, Type_Curve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
-        new(cmsSigParametricCurveType, Type_ParametricCurve_Read, Type_ParametricCurve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
-        new(cmsSigDateTimeType, Type_DateTime_Read, Type_DateTime_Write, Type_DateTime_Dup, null, null, 0),
-        new(cmsSigLut8Type, Type_LUT8_Read, Type_LUT8_Write, Type_LUT8_Dup, Type_LUT8_Free, null, 0),
-        new(cmsSigLut16Type, Type_LUT16_Read, Type_LUT16_Write, Type_LUT16_Dup, Type_LUT16_Free, null, 0),
-        new(cmsSigColorantTableType, Type_ColorantTable_Read, Type_ColorantTable_Write, NamedColor_Dup, NamedColor_Free, null, 0),
-        new(cmsSigNamedColor2Type, Type_NamedColor_Read, Type_NamedColor_Write, NamedColor_Dup, NamedColor_Free, null, 0),
-        new(cmsSigMultiLocalizedUnicodeType, Type_MLU_Read, Type_MLU_Write, Type_MLU_Dup, Type_MLU_Free, null, 0),
-        new(cmsSigProfileSequenceDescType, Type_ProfileSequenceDesc_Read, Type_ProfileSequenceDesc_Write, Sequence_Dup, Sequence_Free, null, 0),
-        new(cmsSigSignatureType, Type_Signature_Read, Type_Signature_Write, Type_Signature_Dup, null, null, 0),
-        new(cmsSigMeasurementType, Type_Measurement_Read, Type_Measurement_Write, Type_Measurement_Dup, null, null, 0),
-        new(cmsSigDataType, Type_Data_Read, Type_Data_Write, Type_Data_Dup, Type_Data_Free, null, 0),
-        new(cmsSigLutAtoBType, Type_LUTA2B_Read, Type_LUTA2B_Write, Type_LUTA2B_Dup, Type_LUTA2B_Free, null, 0),
-        new(cmsSigLutBtoAType, Type_LUTB2A_Read, Type_LUTB2A_Write, Type_LUTB2A_Dup, Type_LUTB2A_Free, null, 0),
-        new(cmsSigUcrBgType, Type_UcrBg_Read, Type_UcrBg_Write, Type_UcrBg_Dup, Type_UcrBg_Free, null, 0),
-        new(cmsSigCrdInfoType, Type_CrdInfo_Read, Type_CrdInfo_Write, Type_CrdInfo_Dup, Type_CrdInfo_Free, null, 0),
-        new(cmsSigMultiProcessElementType, Type_MPE_Read, Type_MPE_Write, Type_MPE_Dup, Type_MPE_Free, null, 0),
-        new(cmsSigScreeningType, Type_Screening_Read, Type_Screening_Write, Type_Screening_Dup, Type_Screening_Free, null, 0),
-        new(cmsSigViewingConditionsType, Type_ViewingConditions_Read, Type_ViewingConditions_Write, Type_ViewingConditions_Dup, null, null, 0),
-        new(cmsSigXYZType, Type_XYZ_Read, Type_XYZ_Write, Type_XYZ_Dup, null, null, 0),
-        new(cmsCorbisBrokenXYZtype, Type_XYZ_Read, Type_XYZ_Write, Type_XYZ_Dup, null, null, 0),
-        new(cmsMonacoBrokenCurveType, Type_Curve_Read, Type_Curve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
-        new(cmsSigProfileSequenceIdType, Type_ProfileSequenceId_Read, Type_ProfileSequenceId_Write, Sequence_Dup, Sequence_Free, null, 0),
-        new(cmsSigDictType, Type_Dictionary_Read, Type_Dictionary_Write, Type_Dictionary_Dup, Type_Dictionary_Free, null, 0),
-        new(cmsSigcicpType, Type_VideoSignal_Read, Type_VideoSignal_Write, Type_VideoSignal_Dup, null, null, 0),
-        new(cmsSigVcgtType, Type_vcgt_Read, Type_vcgt_Write, Type_vcgt_Dup, Type_vcgt_Free, null, 0),
-        new(cmsSigMHC2Type, Type_MHC2_Read, Type_MHC2_Write, Type_MHC2_Dup, Type_MHC2_Free, null, 0));
+        new(Signature.TagType.Chromaticity, Type_Chromaticity_Read, Type_Chromaticity_Write, Type_Chromaticity_Dup, null, null, 0),
+        new(Signature.TagType.ColorantOrder, Type_ColorantOrderType_Read, Type_ColorantOrderType_Write, Type_ColorantOrderType_Dup, Type_ColorantOrderType_Free, null, 0),
+        new(Signature.TagType.S15Fixed16Array, Type_S15Fixed16_Read, Type_S15Fixed16_Write, Type_S15Fixed16_Dup, Type_S15Fixed16_Free, null, 0),
+        new(Signature.TagType.U16Fixed16Array, Type_U16Fixed16_Read, Type_U16Fixed16_Write, Type_U16Fixed16_Dup, Type_U16Fixed16_Free, null, 0),
+        new(Signature.TagType.Text, Type_Text_Read, Type_Text_Write, Type_Text_Dup, Type_Text_Free, null, 0),
+        new(Signature.TagType.TextDescription, Type_Text_Description_Read, Type_Text_Description_Write, Type_Text_Description_Dup, Type_Text_Description_Free, null, 0),
+        new(Signature.TagType.Curve, Type_Curve_Read, Type_Curve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
+        new(Signature.TagType.ParametricCurve, Type_ParametricCurve_Read, Type_ParametricCurve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
+        new(Signature.TagType.DateTime, Type_DateTime_Read, Type_DateTime_Write, Type_DateTime_Dup, null, null, 0),
+        new(Signature.TagType.Lut8, Type_LUT8_Read, Type_LUT8_Write, Type_LUT8_Dup, Type_LUT8_Free, null, 0),
+        new(Signature.TagType.Lut16, Type_LUT16_Read, Type_LUT16_Write, Type_LUT16_Dup, Type_LUT16_Free, null, 0),
+        new(Signature.TagType.ColorantTable, Type_ColorantTable_Read, Type_ColorantTable_Write, NamedColor_Dup, NamedColor_Free, null, 0),
+        new(Signature.TagType.NamedColor2, Type_NamedColor_Read, Type_NamedColor_Write, NamedColor_Dup, NamedColor_Free, null, 0),
+        new(Signature.TagType.MultiLocalizedUnicode, Type_MLU_Read, Type_MLU_Write, Type_MLU_Dup, Type_MLU_Free, null, 0),
+        new(Signature.TagType.ProfileSequenceDesc, Type_ProfileSequenceDesc_Read, Type_ProfileSequenceDesc_Write, Sequence_Dup, Sequence_Free, null, 0),
+        new(Signature.TagType.Signature, Type_Signature_Read, Type_Signature_Write, Type_Signature_Dup, null, null, 0),
+        new(Signature.TagType.Measurement, Type_Measurement_Read, Type_Measurement_Write, Type_Measurement_Dup, null, null, 0),
+        new(Signature.TagType.Data, Type_Data_Read, Type_Data_Write, Type_Data_Dup, Type_Data_Free, null, 0),
+        new(Signature.TagType.LutAtoB, Type_LUTA2B_Read, Type_LUTA2B_Write, Type_LUTA2B_Dup, Type_LUTA2B_Free, null, 0),
+        new(Signature.TagType.LutBtoA, Type_LUTB2A_Read, Type_LUTB2A_Write, Type_LUTB2A_Dup, Type_LUTB2A_Free, null, 0),
+        new(Signature.TagType.UcrBg, Type_UcrBg_Read, Type_UcrBg_Write, Type_UcrBg_Dup, Type_UcrBg_Free, null, 0),
+        new(Signature.TagType.CrdInfo, Type_CrdInfo_Read, Type_CrdInfo_Write, Type_CrdInfo_Dup, Type_CrdInfo_Free, null, 0),
+        new(Signature.TagType.MultiProcessElement, Type_MPE_Read, Type_MPE_Write, Type_MPE_Dup, Type_MPE_Free, null, 0),
+        new(Signature.TagType.Screening, Type_Screening_Read, Type_Screening_Write, Type_Screening_Dup, Type_Screening_Free, null, 0),
+        new(Signature.TagType.ViewingConditions, Type_ViewingConditions_Read, Type_ViewingConditions_Write, Type_ViewingConditions_Dup, null, null, 0),
+        new(Signature.TagType.XYZ, Type_XYZ_Read, Type_XYZ_Write, Type_XYZ_Dup, null, null, 0),
+        new(Signature.TagType.CorbisBrokenXYZ, Type_XYZ_Read, Type_XYZ_Write, Type_XYZ_Dup, null, null, 0),
+        new(Signature.TagType.MonacoBrokenCurve, Type_Curve_Read, Type_Curve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
+        new(Signature.TagType.ProfileSequenceId, Type_ProfileSequenceId_Read, Type_ProfileSequenceId_Write, Sequence_Dup, Sequence_Free, null, 0),
+        new(Signature.TagType.Dict, Type_Dictionary_Read, Type_Dictionary_Write, Type_Dictionary_Dup, Type_Dictionary_Free, null, 0),
+        new(Signature.TagType.cicp, Type_VideoSignal_Read, Type_VideoSignal_Write, Type_VideoSignal_Dup, null, null, 0),
+        new(Signature.TagType.Vcgt, Type_vcgt_Read, Type_vcgt_Write, Type_vcgt_Dup, Type_vcgt_Free, null, 0),
+        new(Signature.TagType.MHC2, Type_MHC2_Read, Type_MHC2_Write, Type_MHC2_Dup, Type_MHC2_Free, null, 0));
 
     internal static readonly TagTypePluginChunkType TagTypePluginChunk = new();
 
     internal static readonly TagTypePluginChunkType globalTagTypePluginChunk = new();
 
     internal static readonly TagLinkedList supportedTags = new(
-        new(cmsSigAToB0Tag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutAtoBType, cmsSigLut8Type, }, DecideLUTtypeA2B),
-        new(cmsSigAToB1Tag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutAtoBType, cmsSigLut8Type, }, DecideLUTtypeA2B),
-        new(cmsSigAToB2Tag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutAtoBType, cmsSigLut8Type, }, DecideLUTtypeA2B),
-        new(cmsSigBToA0Tag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutBtoAType, cmsSigLut8Type, }, DecideLUTtypeB2A),
-        new(cmsSigBToA1Tag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutBtoAType, cmsSigLut8Type, }, DecideLUTtypeB2A),
-        new(cmsSigBToA2Tag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutBtoAType, cmsSigLut8Type, }, DecideLUTtypeB2A),
-        new(cmsSigRedColorantTag, 1, new Signature[] { cmsSigXYZType, cmsCorbisBrokenXYZtype, }, DecideXYZtype),
-        new(cmsSigGreenColorantTag, 1, new Signature[] { cmsSigXYZType, cmsCorbisBrokenXYZtype, }, DecideXYZtype),
-        new(cmsSigBlueColorantTag, 1, new Signature[] { cmsSigXYZType, cmsCorbisBrokenXYZtype, }, DecideXYZtype),
-        new(cmsSigRedTRCTag, 1, new Signature[] { cmsSigCurveType, cmsSigParametricCurveType, cmsMonacoBrokenCurveType, }, DecideCurveType),
-        new(cmsSigGreenTRCTag, 1, new Signature[] { cmsSigCurveType, cmsSigParametricCurveType, cmsMonacoBrokenCurveType, }, DecideCurveType),
-        new(cmsSigBlueTRCTag, 1, new Signature[] { cmsSigCurveType, cmsSigParametricCurveType, cmsMonacoBrokenCurveType, }, DecideCurveType),
-        new(cmsSigCalibrationDateTimeTag, 1, new Signature[] { cmsSigDateTimeType, }, null),
-        new(cmsSigCharTargetTag, 1, new Signature[] { cmsSigTextType, }, null),
-        new(cmsSigChromaticAdaptationTag, 9, new Signature[] { cmsSigS15Fixed16ArrayType, }, null),
-        new(cmsSigChromaticityTag, 1, new Signature[] { cmsSigChromaticityType, }, null),
-        new(cmsSigColorantOrderTag, 1, new Signature[] { cmsSigColorantOrderType, }, null),
-        new(cmsSigColorantTableTag, 1, new Signature[] { cmsSigColorantTableType, }, null),
-        new(cmsSigColorantTableOutTag, 1, new Signature[] { cmsSigColorantTableType, }, null),
-        new(cmsSigCopyrightTag, 1, new Signature[] { cmsSigTextType, cmsSigMultiLocalizedUnicodeType, cmsSigTextDescriptionType, }, DecideTextType),
-        new(cmsSigDateTimeTag, 1, new Signature[] { cmsSigDateTimeType, }, null),
-        new(cmsSigDeviceMfgDescTag, 1, new Signature[] { cmsSigTextDescriptionType, cmsSigMultiLocalizedUnicodeType, cmsSigTextType, }, DecideTextDescType),
-        new(cmsSigDeviceModelDescTag, 1, new Signature[] { cmsSigTextDescriptionType, cmsSigMultiLocalizedUnicodeType, cmsSigTextType, }, DecideTextDescType),
-        new(cmsSigGamutTag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutBtoAType, cmsSigLut8Type, }, DecideLUTtypeB2A),
-        new(cmsSigGrayTRCTag, 1, new Signature[] { cmsSigCurveType, cmsSigParametricCurveType, }, DecideCurveType),
-        new(cmsSigLuminanceTag, 1, new Signature[] { cmsSigXYZType, }, null),
-        new(cmsSigMediaBlackPointTag, 1, new Signature[] { cmsSigXYZType, cmsCorbisBrokenXYZtype, }, null),
-        new(cmsSigMediaWhitePointTag, 1, new Signature[] { cmsSigXYZType, cmsCorbisBrokenXYZtype, }, null),
-        new(cmsSigNamedColor2Tag, 1, new Signature[] { cmsSigNamedColor2Type, }, null),
-        new(cmsSigPreview0Tag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutBtoAType, cmsSigLut8Type, }, DecideLUTtypeB2A),
-        new(cmsSigPreview1Tag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutBtoAType, cmsSigLut8Type, }, DecideLUTtypeB2A),
-        new(cmsSigPreview2Tag, 1, new Signature[] { cmsSigLut16Type, cmsSigLutBtoAType, cmsSigLut8Type, }, DecideLUTtypeB2A),
-        new(cmsSigProfileDescriptionTag, 1, new Signature[] { cmsSigTextDescriptionType, cmsSigMultiLocalizedUnicodeType, cmsSigTextType, }, DecideTextDescType),
-        new(cmsSigProfileSequenceDescTag, 1, new Signature[] { cmsSigProfileSequenceDescType, }, null),
-        new(cmsSigTechnologyTag, 1, new Signature[] { cmsSigSignatureType, }, null),
-        new(cmsSigColorimetricIntentImageStateTag, 1, new Signature[] { cmsSigSignatureType, }, null),
-        new(cmsSigPerceptualRenderingIntentGamutTag, 1, new Signature[] { cmsSigSignatureType, }, null),
-        new(cmsSigSaturationRenderingIntentGamutTag, 1, new Signature[] { cmsSigSignatureType, }, null),
-        new(cmsSigMeasurementTag, 1, new Signature[] { cmsSigMeasurementType, }, null),
-        new(cmsSigPs2CRD0Tag, 1, new Signature[] { cmsSigDataType, }, null),
-        new(cmsSigPs2CRD1Tag, 1, new Signature[] { cmsSigDataType, }, null),
-        new(cmsSigPs2CRD2Tag, 1, new Signature[] { cmsSigDataType, }, null),
-        new(cmsSigPs2CRD3Tag, 1, new Signature[] { cmsSigDataType, }, null),
-        new(cmsSigPs2CSATag, 1, new Signature[] { cmsSigDataType, }, null),
-        new(cmsSigPs2RenderingIntentTag, 1, new Signature[] { cmsSigDataType, }, null),
-        new(cmsSigViewingCondDescTag, 1, new Signature[] { cmsSigTextDescriptionType, cmsSigMultiLocalizedUnicodeType, cmsSigTextType, }, DecideTextDescType),
-        new(cmsSigUcrBgTag, 1, new Signature[] { cmsSigUcrBgType, }, null),
-        new(cmsSigCrdInfoTag, 1, new Signature[] { cmsSigCrdInfoType, }, null),
-        new(cmsSigDToB0Tag, 1, new Signature[] { cmsSigMultiProcessElementType, }, null),
-        new(cmsSigDToB1Tag, 1, new Signature[] { cmsSigMultiProcessElementType, }, null),
-        new(cmsSigDToB2Tag, 1, new Signature[] { cmsSigMultiProcessElementType, }, null),
-        new(cmsSigDToB3Tag, 1, new Signature[] { cmsSigMultiProcessElementType, }, null),
-        new(cmsSigBToD0Tag, 1, new Signature[] { cmsSigMultiProcessElementType, }, null),
-        new(cmsSigBToD1Tag, 1, new Signature[] { cmsSigMultiProcessElementType, }, null),
-        new(cmsSigBToD2Tag, 1, new Signature[] { cmsSigMultiProcessElementType, }, null),
-        new(cmsSigBToD3Tag, 1, new Signature[] { cmsSigMultiProcessElementType, }, null),
-        new(cmsSigScreeningDescTag, 1, new Signature[] { cmsSigTextDescriptionType, }, null),
-        new(cmsSigViewingConditionsTag, 1, new Signature[] { cmsSigViewingConditionsType, }, null),
-        new(cmsSigScreeningTag, 1, new Signature[] { cmsSigScreeningType, }, null),
-        new(cmsSigVcgtTag, 1, new Signature[] { cmsSigVcgtType, }, null),
-        new(cmsSigMetaTag, 1, new Signature[] { cmsSigDictType, }, null),
-        new(cmsSigProfileSequenceIdTag, 1, new Signature[] { cmsSigProfileSequenceIdType, }, null),
-        new(cmsSigProfileDescriptionMLTag, 1, new Signature[] { cmsSigMultiLocalizedUnicodeType, }, null),
-        new(cmsSigcicpTag, 1, new Signature[] { cmsSigcicpType }, null),
-        new(cmsSigArgyllArtsTag, 9, new Signature[] { cmsSigS15Fixed16ArrayType, }, null),
-        new(cmsSigMHC2Tag, 1, new Signature[] { cmsSigMHC2Type }, null));
+        new(Signature.Tag.AToB0, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutAtoB, Signature.TagType.Lut8, }, DecideLUTtypeA2B),
+        new(Signature.Tag.AToB1, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutAtoB, Signature.TagType.Lut8, }, DecideLUTtypeA2B),
+        new(Signature.Tag.AToB2, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutAtoB, Signature.TagType.Lut8, }, DecideLUTtypeA2B),
+        new(Signature.Tag.BToA0, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
+        new(Signature.Tag.BToA1, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
+        new(Signature.Tag.BToA2, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
+        new(Signature.Tag.RedColorant, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, DecideXYZtype),
+        new(Signature.Tag.GreenColorant, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, DecideXYZtype),
+        new(Signature.Tag.BlueColorant, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, DecideXYZtype),
+        new(Signature.Tag.RedTRC, 1, new Signature[] { Signature.TagType.Curve, Signature.TagType.ParametricCurve, Signature.TagType.MonacoBrokenCurve, }, DecideCurveType),
+        new(Signature.Tag.GreenTRC, 1, new Signature[] { Signature.TagType.Curve, Signature.TagType.ParametricCurve, Signature.TagType.MonacoBrokenCurve, }, DecideCurveType),
+        new(Signature.Tag.BlueTRC, 1, new Signature[] { Signature.TagType.Curve, Signature.TagType.ParametricCurve, Signature.TagType.MonacoBrokenCurve, }, DecideCurveType),
+        new(Signature.Tag.CalibrationDateTime, 1, new Signature[] { Signature.TagType.DateTime, }, null),
+        new(Signature.Tag.CharTarget, 1, new Signature[] { Signature.TagType.Text, }, null),
+        new(Signature.Tag.ChromaticAdaptation, 9, new Signature[] { Signature.TagType.S15Fixed16Array, }, null),
+        new(Signature.Tag.Chromaticity, 1, new Signature[] { Signature.TagType.Chromaticity, }, null),
+        new(Signature.Tag.ColorantOrder, 1, new Signature[] { Signature.TagType.ColorantOrder, }, null),
+        new(Signature.Tag.ColorantTable, 1, new Signature[] { Signature.TagType.ColorantTable, }, null),
+        new(Signature.Tag.ColorantTableOut, 1, new Signature[] { Signature.TagType.ColorantTable, }, null),
+        new(Signature.Tag.Copyright, 1, new Signature[] { Signature.TagType.Text, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.TextDescription, }, DecideTextType),
+        new(Signature.Tag.DateTime, 1, new Signature[] { Signature.TagType.DateTime, }, null),
+        new(Signature.Tag.DeviceMfgDesc, 1, new Signature[] { Signature.TagType.TextDescription, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.Text, }, DecideTextDescType),
+        new(Signature.Tag.DeviceModelDesc, 1, new Signature[] { Signature.TagType.TextDescription, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.Text, }, DecideTextDescType),
+        new(Signature.Tag.Gamut, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
+        new(Signature.Tag.GrayTRC, 1, new Signature[] { Signature.TagType.Curve, Signature.TagType.ParametricCurve, }, DecideCurveType),
+        new(Signature.Tag.Luminance, 1, new Signature[] { Signature.TagType.XYZ, }, null),
+        new(Signature.Tag.MediaBlackPoint, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, null),
+        new(Signature.Tag.MediaWhitePoint, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, null),
+        new(Signature.Tag.NamedColor2, 1, new Signature[] { Signature.TagType.NamedColor2, }, null),
+        new(Signature.Tag.Preview0, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
+        new(Signature.Tag.Preview1, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
+        new(Signature.Tag.Preview2, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
+        new(Signature.Tag.ProfileDescription, 1, new Signature[] { Signature.TagType.TextDescription, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.Text, }, DecideTextDescType),
+        new(Signature.Tag.ProfileSequenceDesc, 1, new Signature[] { Signature.TagType.ProfileSequenceDesc, }, null),
+        new(Signature.Tag.Technology, 1, new Signature[] { Signature.TagType.Signature, }, null),
+        new(Signature.Tag.ColorimetricIntentImageState, 1, new Signature[] { Signature.TagType.Signature, }, null),
+        new(Signature.Tag.PerceptualRenderingIntentGamut, 1, new Signature[] { Signature.TagType.Signature, }, null),
+        new(Signature.Tag.SaturationRenderingIntentGamut, 1, new Signature[] { Signature.TagType.Signature, }, null),
+        new(Signature.Tag.Measurement, 1, new Signature[] { Signature.TagType.Measurement, }, null),
+        new(Signature.Tag.Ps2CRD0, 1, new Signature[] { Signature.TagType.Data, }, null),
+        new(Signature.Tag.Ps2CRD1, 1, new Signature[] { Signature.TagType.Data, }, null),
+        new(Signature.Tag.Ps2CRD2, 1, new Signature[] { Signature.TagType.Data, }, null),
+        new(Signature.Tag.Ps2CRD3, 1, new Signature[] { Signature.TagType.Data, }, null),
+        new(Signature.Tag.Ps2CSA, 1, new Signature[] { Signature.TagType.Data, }, null),
+        new(Signature.Tag.Ps2RenderingIntent, 1, new Signature[] { Signature.TagType.Data, }, null),
+        new(Signature.Tag.ViewingCondDesc, 1, new Signature[] { Signature.TagType.TextDescription, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.Text, }, DecideTextDescType),
+        new(Signature.Tag.UcrBg, 1, new Signature[] { Signature.TagType.UcrBg, }, null),
+        new(Signature.Tag.CrdInfo, 1, new Signature[] { Signature.TagType.CrdInfo, }, null),
+        new(Signature.Tag.DToB0, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
+        new(Signature.Tag.DToB1, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
+        new(Signature.Tag.DToB2, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
+        new(Signature.Tag.DToB3, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
+        new(Signature.Tag.BToD0, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
+        new(Signature.Tag.BToD1, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
+        new(Signature.Tag.BToD2, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
+        new(Signature.Tag.BToD3, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
+        new(Signature.Tag.ScreeningDesc, 1, new Signature[] { Signature.TagType.TextDescription, }, null),
+        new(Signature.Tag.ViewingConditions, 1, new Signature[] { Signature.TagType.ViewingConditions, }, null),
+        new(Signature.Tag.Screening, 1, new Signature[] { Signature.TagType.Screening, }, null),
+        new(Signature.Tag.Vcgt, 1, new Signature[] { Signature.TagType.Vcgt, }, null),
+        new(Signature.Tag.Meta, 1, new Signature[] { Signature.TagType.Dict, }, null),
+        new(Signature.Tag.ProfileSequenceId, 1, new Signature[] { Signature.TagType.ProfileSequenceId, }, null),
+        new(Signature.Tag.ProfileDescriptionML, 1, new Signature[] { Signature.TagType.MultiLocalizedUnicode, }, null),
+        new(Signature.Tag.cicp, 1, new Signature[] { Signature.TagType.cicp }, null),
+        new(Signature.Tag.ArgyllArts, 9, new Signature[] { Signature.TagType.S15Fixed16Array, }, null),
+        new(Signature.Tag.MHC2, 1, new Signature[] { Signature.TagType.MHC2 }, null));
 
     internal static readonly TagPluginChunkType TagPluginChunk = new();
 
@@ -465,7 +465,7 @@ public static partial class Lcms2
     //}
 
     private static Signature DecideXYZtype(double _1, object? _2) =>
-        cmsSigXYZType;
+        Signature.TagType.XYZ;
 
     #endregion XYZ
 
@@ -729,11 +729,11 @@ public static partial class Lcms2
         }
 
         nItems = 1;
-        return new Box<Signature>(SigPtr);
+        return new Box<Signature>(new(SigPtr));
     }
 
     private static bool Type_Signature_Write(TagTypeHandler _1, IOHandler io, object? Ptr, uint _2) =>
-        Ptr is Box<Signature> sig && io.Write(sig.Value);
+        Ptr is Box<Signature> sig && io.Write((uint)sig.Value);
 
     private static Box<Signature>? Type_Signature_Dup(TagTypeHandler self, object? Ptr, uint _) =>
         Ptr is Box<Signature> sig
@@ -825,8 +825,8 @@ public static partial class Lcms2
 
     private static Signature DecideTextType(double ICCVersion, object? _) =>
         ICCVersion >= 4.0
-            ? cmsSigMultiLocalizedUnicodeType
-            : cmsSigTextType;
+            ? Signature.TagType.MultiLocalizedUnicode
+            : Signature.TagType.Text;
 
     #endregion Text
 
@@ -1111,8 +1111,8 @@ public static partial class Lcms2
 
     private static Signature DecideTextDescType(double ICCVersion, object? _1) =>
         ICCVersion >= 4.0
-            ? cmsSigMultiLocalizedUnicodeType
-            : cmsSigTextDescriptionType;
+            ? Signature.TagType.MultiLocalizedUnicode
+            : Signature.TagType.TextDescription;
 
     #endregion Text Description
 
@@ -1191,15 +1191,15 @@ public static partial class Lcms2
 
     private static Signature DecideCurveType(double ICCVersion, object? Data)
     {
-        if (ICCVersion < 4.0) return cmsSigCurveType;
+        if (ICCVersion < 4.0) return Signature.TagType.Curve;
 
         if (Data is ToneCurve Curve)
         {
-            if (Curve.nSegments is not 1) return cmsSigCurveType;
-            if (Curve.Segments?[0].Type is < 0 or > 5) return cmsSigCurveType;
+            if (Curve.nSegments is not 1) return Signature.TagType.Curve;
+            if (Curve.Segments?[0].Type is < 0 or > 5) return Signature.TagType.Curve;
         }
 
-        return cmsSigParametricCurveType;
+        return Signature.TagType.ParametricCurve;
     }
 
     private static ToneCurve? Type_ParametricCurve_Read(TagTypeHandler self, IOHandler io, out uint nItems, uint _1)
@@ -1522,19 +1522,19 @@ public static partial class Lcms2
         (ICCVersion < 4.0)
             ? Data is Pipeline p
                 ? p.SaveAs8Bits
-                    ? cmsSigLut8Type
-                    : cmsSigLut16Type
-                : cmsSigLutAtoBType
-            : cmsSigLutAtoBType;
+                    ? Signature.TagType.Lut8
+                    : Signature.TagType.Lut16
+                : Signature.TagType.LutAtoB
+            : Signature.TagType.LutAtoB;
 
     private static Signature DecideLUTtypeB2A(double ICCVersion, object? Data) =>
         (ICCVersion < 4.0)
             ? Data is Pipeline p
                 ? p.SaveAs8Bits
-                    ? cmsSigLut8Type
-                    : cmsSigLut16Type
-                : cmsSigLutBtoAType
-            : cmsSigLutBtoAType;
+                    ? Signature.TagType.Lut8
+                    : Signature.TagType.Lut16
+                : Signature.TagType.LutBtoA
+            : Signature.TagType.LutBtoA;
 
     private static bool Read8bitTables(Context? ContextID, IOHandler io, Pipeline lut, uint nChannels)
     {
@@ -1761,26 +1761,26 @@ public static partial class Lcms2
             return false;
         }
 
-        if (mpe.Type == cmsSigMatrixElemType)
+        if (mpe.Type == Signature.Stage.MatrixElem)
         {
             if (mpe.InputChannels is not 3 || mpe.OutputChannels is not 3) return false;
             MatMPE = mpe.Data as StageMatrixData;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == cmsSigCurveSetElemType)
+        if (mpe?.Type == Signature.Stage.CurveSetElem)
         {
             PreMPE = mpe.Data as StageToneCurvesData;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == cmsSigCLutElemType)
+        if (mpe?.Type == Signature.Stage.CLutElem)
         {
             clut = mpe.Data as StageCLutData<ushort>;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == cmsSigCurveSetElemType)
+        if (mpe?.Type == Signature.Stage.CurveSetElem)
         {
             PostMPE = mpe.Data as StageToneCurvesData;
             mpe = mpe.Next;
@@ -1995,26 +1995,26 @@ public static partial class Lcms2
 
         // Disassemble the LUT into components.
         var mpe = NewLut.Elements;
-        if (mpe?.Type == cmsSigMatrixElemType)
+        if (mpe?.Type == Signature.Stage.MatrixElem)
         {
             if (mpe.InputChannels is not 3 || mpe.OutputChannels is not 3) return false;
             MatMPE = mpe.Data as StageMatrixData;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == cmsSigCurveSetElemType)
+        if (mpe?.Type == Signature.Stage.CurveSetElem)
         {
             PreMPE = mpe.Data as StageToneCurvesData;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == cmsSigCLutElemType)
+        if (mpe?.Type == Signature.Stage.CLutElem)
         {
             clut = mpe.Data as StageCLutData<ushort>;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == cmsSigCurveSetElemType)
+        if (mpe?.Type == Signature.Stage.CurveSetElem)
         {
             PostMPE = mpe.Data as StageToneCurvesData;
             mpe = mpe.Next;
@@ -2204,11 +2204,11 @@ public static partial class Lcms2
     private static ToneCurve? ReadEmbeddedCurve(TagTypeHandler self, IOHandler io)
     {
         var BaseType = io.ReadTypeBase();
-        if (BaseType == cmsSigCurveType)
+        if (BaseType == Signature.TagType.Curve)
         {
             return Type_Curve_Read(self, io, out _, 0);
         }
-        else if (BaseType == cmsSigParametricCurveType)
+        else if (BaseType == Signature.TagType.ParametricCurve)
         {
             return Type_ParametricCurve_Read(self, io, out _, 0);
         }
@@ -2352,16 +2352,16 @@ public static partial class Lcms2
                 ((Curves[i].nSegments is 3) && (Curves[i].Segments[1].Type is 0)) ||    // Floating-point tabulated
                 Curves[i].Segments[0].Type < 0)
             {
-                CurrentType = cmsSigCurveType;
+                CurrentType = Signature.TagType.Curve;
             }
 
             if (!io.WriteTypeBase(CurrentType)) return false;
 
-            if (CurrentType == cmsSigCurveType)
+            if (CurrentType == Signature.TagType.Curve)
             {
                 if (!Type_Curve_Write(self, io, Curves[i], 1)) return false;
             }
-            else if (CurrentType == cmsSigParametricCurveType)
+            else if (CurrentType == Signature.TagType.ParametricCurve)
             {
                 if (!Type_ParametricCurve_Write(self, io, Curves[i], 1)) return false;
             }
@@ -2432,11 +2432,11 @@ public static partial class Lcms2
         var BassOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         if (Lut.Elements is not null &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out M, cmsSigMatrixElemType, out Matrix, cmsSigCurveSetElemType, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out A, cmsSigCLutElemType, out CLUT, cmsSigCurveSetElemType, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out A, cmsSigCLutElemType, out CLUT, cmsSigCurveSetElemType, out M,
-                                                    cmsSigMatrixElemType, out Matrix, cmsSigCurveSetElemType, out B))
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B) &&
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out M, Signature.Stage.MatrixElem, out Matrix, Signature.Stage.CurveSetElem, out B) &&
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out A, Signature.Stage.CLutElem, out CLUT, Signature.Stage.CurveSetElem, out B) &&
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out A, Signature.Stage.CLutElem, out CLUT, Signature.Stage.CurveSetElem, out M,
+                                                    Signature.Stage.MatrixElem, out Matrix, Signature.Stage.CurveSetElem, out B))
         {
             LogError(self.ContextID, ErrorCodes.NotSuitable, "LUT is not suitable to be saved as LutAToB");
             return false;
@@ -2464,7 +2464,7 @@ public static partial class Lcms2
         if (A is not null)
         {
             offsetA = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, cmsSigParametricCurveType, A)) return false;
+            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, A)) return false;
         }
 
         if (CLUT is not null)
@@ -2476,7 +2476,7 @@ public static partial class Lcms2
         if (M is not null)
         {
             offsetM = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, cmsSigParametricCurveType, M)) return false;
+            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, M)) return false;
         }
 
         if (Matrix is not null)
@@ -2488,7 +2488,7 @@ public static partial class Lcms2
         if (B is not null)
         {
             offsetB = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, cmsSigParametricCurveType, B)) return false;
+            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, B)) return false;
         }
 
         var CurrentPos = io.TellFunc(io);
@@ -2592,11 +2592,11 @@ public static partial class Lcms2
         var BassOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         if (Lut.Elements is not null &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out B, cmsSigMatrixElemType, out Matrix, cmsSigCurveSetElemType, out M) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out B, cmsSigCLutElemType, out CLUT, cmsSigCurveSetElemType, out A) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out B, cmsSigMatrixElemType, out Matrix, cmsSigCurveSetElemType, out M,
-                                                    cmsSigCLutElemType, out CLUT, cmsSigCurveSetElemType, out A))
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B) &&
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B, Signature.Stage.MatrixElem, out Matrix, Signature.Stage.CurveSetElem, out M) &&
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B, Signature.Stage.CLutElem, out CLUT, Signature.Stage.CurveSetElem, out A) &&
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B, Signature.Stage.MatrixElem, out Matrix, Signature.Stage.CurveSetElem, out M,
+                                                    Signature.Stage.CLutElem, out CLUT, Signature.Stage.CurveSetElem, out A))
         {
             LogError(self.ContextID, ErrorCodes.NotSuitable, "LUT is not suitable to be saved as LutAToB");
             return false;
@@ -2624,7 +2624,7 @@ public static partial class Lcms2
         if (A is not null)
         {
             offsetA = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, cmsSigParametricCurveType, A)) return false;
+            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, A)) return false;
         }
 
         if (CLUT is not null)
@@ -2636,7 +2636,7 @@ public static partial class Lcms2
         if (M is not null)
         {
             offsetM = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, cmsSigParametricCurveType, M)) return false;
+            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, M)) return false;
         }
 
         if (Matrix is not null)
@@ -2648,7 +2648,7 @@ public static partial class Lcms2
         if (B is not null)
         {
             offsetB = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, cmsSigParametricCurveType, B)) return false;
+            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, B)) return false;
         }
 
         var CurrentPos = io.TellFunc(io);
@@ -2845,31 +2845,33 @@ public static partial class Lcms2
 
     private static bool ReadEmbeddedText(TagTypeHandler self, IOHandler io, out Mlu? mlu, uint SizeOfTag)
     {
-        switch (io.ReadTypeBase())
+        var sig = io.ReadTypeBase();
+        if (sig == Signature.TagType.Text)
         {
-            case cmsSigTextType:
-                //if (*mlu is not null) cmsMLUfree(*mlu);
-                mlu = Type_Text_Read(self, io, out _, SizeOfTag);
-                return mlu is not null;
+            //if (*mlu is not null) cmsMLUfree(*mlu);
+            mlu = Type_Text_Read(self, io, out _, SizeOfTag);
+            return mlu is not null;
+        }
 
-            case cmsSigTextDescriptionType:
-                //if (*mlu is not null) cmsMLUfree(*mlu);
-                mlu = Type_Text_Description_Read(self, io, out _, SizeOfTag);
-                return mlu is not null;
-
-            /*
+        if (sig == Signature.TagType.TextDescription)
+        {
+            //if (*mlu is not null) cmsMLUfree(*mlu);
+            mlu = Type_Text_Description_Read(self, io, out _, SizeOfTag);
+            return mlu is not null;
+        }
+        /*
             TBD: Size is needed for MLU, and we have no idea on which is the available size
             */
 
-            case cmsSigMultiLocalizedUnicodeType:
-                //if (*mlu is not null) cmsMLUfree(*mlu);
-                mlu = Type_MLU_Read(self, io, out _, SizeOfTag);
-                return mlu is not null;
-
-            default:
-                mlu = null;
-                return false;
+        if (sig == Signature.TagType.MultiLocalizedUnicode)
+        {
+            //if (*mlu is not null) cmsMLUfree(*mlu);
+            mlu = Type_MLU_Read(self, io, out _, SizeOfTag);
+            return mlu is not null;
         }
+
+        mlu = null;
+        return false;
     }
 
     private static Sequence? Type_ProfileSequenceDesc_Read(TagTypeHandler self, IOHandler io, out uint nItems, uint SizeOfTag)
@@ -2925,12 +2927,12 @@ public static partial class Lcms2
     {
         if (self.ICCVersion < 0x04000000)
         {
-            if (!io.WriteTypeBase(cmsSigTextDescriptionType)) return false;
+            if (!io.WriteTypeBase(Signature.TagType.TextDescription)) return false;
             return Type_Text_Description_Write(self, io, Text, 1);
         }
         else
         {
-            if (!io.WriteTypeBase(cmsSigMultiLocalizedUnicodeType)) return false;
+            if (!io.WriteTypeBase(Signature.TagType.MultiLocalizedUnicode)) return false;
             return Type_MLU_Write(self, io, Text, 1);
         }
     }
@@ -2946,10 +2948,10 @@ public static partial class Lcms2
         {
             var sec = Seq.seq[i];
 
-            if (!io.Write(sec.deviceMfg)) return false;
-            if (!io.Write(sec.deviceModel)) return false;
+            if (!io.Write((uint)sec.deviceMfg)) return false;
+            if (!io.Write((uint)sec.deviceModel)) return false;
             if (!io.Write(sec.attributes)) return false;
-            if (!io.Write(sec.technology)) return false;
+            if (!io.Write((uint)sec.technology)) return false;
 
             if (!SaveDescription(self, io, sec.Manufacturer)) return false;
             if (!SaveDescription(self, io, sec.Model)) return false;
@@ -3527,7 +3529,7 @@ public static partial class Lcms2
                 goto Error;
             }
 
-            if (!io.Write(ElementSig)) goto Error;
+            if (!io.Write((uint)ElementSig)) goto Error;
             if (!io.Write((uint)0)) goto Error;
             var Before = io.TellFunc(io);
             if (!TypeHandler.WritePtr(self, io, Elem, 1)) goto Error;
@@ -4483,7 +4485,7 @@ public static partial class Lcms2
         if (!_cmsReadSignature(io, out var ElementSig)) return null;
 
         // That should be a segmented curve
-        if ((uint)ElementSig is not cmsSigSegmentedCurve) return null;
+        if (ElementSig != Signature.CurveSegment.Segmented) return null;
 
         if (!io.ReadUint(out _)) return null;
         if (!io.ReadUshort(out var nSegments)) return null;
@@ -4511,50 +4513,43 @@ public static partial class Lcms2
             if (!_cmsReadSignature(io, out ElementSig)) goto Error;
             if (!io.ReadUint(out _)) goto Error;
 
-            switch ((uint)ElementSig)
+            if (ElementSig == Signature.CurveSegment.Formula)
             {
-                case cmsSigFormulaCurveSeg:
-                    {
-                        if (!io.ReadUshort(out var Type)) goto Error;
-                        if (!io.ReadUshort(out _)) goto Error;
+                if (!io.ReadUshort(out var Type)) goto Error;
+                if (!io.ReadUshort(out _)) goto Error;
 
-                        Segments[i].Type = Type + 6;
-                        if (Type > 2) goto Error;
+                Segments[i].Type = Type + 6;
+                if (Type > 2) goto Error;
 
-                        //Segments[i].Params = Context.GetPool<double>(self.ContextID).Rent(10);
-                        Segments[i].Params = new double[10];
+                //Segments[i].Params = Context.GetPool<double>(self.ContextID).Rent(10);
+                Segments[i].Params = new double[10];
 
-                        for (var j = 0; j < ParamsByType[Type]; j++)
-                        {
-                            if (!io.ReadFloat(out var f)) goto Error;
-                            Segments[i].Params[j] = f;
-                        }
-                    }
-                    break;
+                for (var j = 0; j < ParamsByType[Type]; j++)
+                {
+                    if (!io.ReadFloat(out var f)) goto Error;
+                    Segments[i].Params[j] = f;
+                }
+            }
+            else if (ElementSig == Signature.CurveSegment.Sampled)
+            {
+                if (!io.ReadUint(out var Count)) goto Error;
 
-                case cmsSigSampledCurveSeg:
-                    {
-                        if (!io.ReadUint(out var Count)) goto Error;
+                // This first point is implicit in the last stage, we allocate an extra note to be populated later on
+                Count++;
+                Segments[i].nGridPoints = Count;
+                //Segments[i].SampledPoints = _cmsCalloc<float>(self.ContextID, Count);
+                //if (Segments[i].SampledPoints is null) goto Error;
+                //Segments[i].SampledPoints = Context.GetPool<float>(self.ContextID).Rent((int)Count);
+                Segments[i].SampledPoints = new float[Count];
 
-                        // This first point is implicit in the last stage, we allocate an extra note to be populated later on
-                        Count++;
-                        Segments[i].nGridPoints = Count;
-                        //Segments[i].SampledPoints = _cmsCalloc<float>(self.ContextID, Count);
-                        //if (Segments[i].SampledPoints is null) goto Error;
-                        //Segments[i].SampledPoints = Context.GetPool<float>(self.ContextID).Rent((int)Count);
-                        Segments[i].SampledPoints = new float[Count];
-
-                        Segments[i].SampledPoints[0] = 0;
-                        for (var j = 1; j < Count; j++)
-                            if (!io.ReadFloat(out Segments[i].SampledPoints[j])) goto Error;
-                    }
-                    break;
-
-                default:
-                    {
-                        LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown curve element type '{_cmsTagSignature2String(ElementSig)}' found.");
-                    }
-                    goto Error;
+                Segments[i].SampledPoints[0] = 0;
+                for (var j = 1; j < Count; j++)
+                    if (!io.ReadFloat(out Segments[i].SampledPoints[j])) goto Error;
+            }
+            else
+            {
+                LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown curve element type '{_cmsTagSignature2String(ElementSig)}' found.");
+                goto Error;
             }
         }
 
@@ -4627,7 +4622,7 @@ public static partial class Lcms2
         var Segments = g.Segments;
         var nSegments = g.nSegments;
 
-        if (!io.Write(cmsSigSegmentedCurve)) return false;
+        if (!io.Write((uint)Signature.CurveSegment.Segmented)) return false;
         if (!io.Write((uint)0)) return false;
         if (!io.Write((ushort)nSegments)) return false;
         if (!io.Write((ushort)0)) return false;
@@ -4644,7 +4639,7 @@ public static partial class Lcms2
             if (ActualSeg.Type is 0)
             {
                 // This is a sampled curve. First point is implicit in the ICC format, but not in our representation
-                if (!io.Write(cmsSigSampledCurveSeg)) return false;
+                if (!io.Write((uint)Signature.CurveSegment.Sampled)) return false;
                 if (!io.Write((uint)0)) return false;
                 if (!io.Write(ActualSeg.nGridPoints - 1)) return false;
 
@@ -4654,7 +4649,7 @@ public static partial class Lcms2
             else
             {
                 // This is a formula-based
-                if (!io.Write(cmsSigFormulaCurveSeg)) return false;
+                if (!io.Write((uint)Signature.CurveSegment.Formula)) return false;
                 if (!io.Write((uint)0)) return false;
 
                 // We only allow 1, 2, and 3 as types

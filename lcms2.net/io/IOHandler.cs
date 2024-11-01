@@ -259,7 +259,7 @@ public class IOHandler
     {
         Span<byte> Base = stackalloc byte[(sizeof(uint) * 2)];
 
-        BitConverter.TryWriteBytes(Base, AdjustEndianess(sig));
+        BitConverter.TryWriteBytes(Base, AdjustEndianess((uint)sig));
         return WriteFunc(this, sizeof(uint) * 2, Base);
     }
 

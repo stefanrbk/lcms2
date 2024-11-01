@@ -46,11 +46,11 @@ public class Profile : ICloneable
     public Signature PCS;
     public uint RenderingIntent;
 
-    public uint platform;
+    public Signature platform;
     public uint flags;
-    public uint manufacturer, model;
+    public Signature manufacturer, model;
     public ulong attributes;
-    public uint creator;
+    public Signature creator;
 
     public ProfileID ProfileID;
 
@@ -84,7 +84,7 @@ public class Profile : ICloneable
         [FieldOffset(40)] public Signature platform;
         [FieldOffset(44)] public uint flags;
         [FieldOffset(48)] public Signature manufacturer;
-        [FieldOffset(52)] public uint model;
+        [FieldOffset(52)] public Signature model;
         [FieldOffset(56)] public ulong attributes;
         [FieldOffset(64)] public uint renderingIntent;
         [FieldOffset(68)] public EncodedXYZNumber illuminant;

@@ -92,7 +92,7 @@ public class Context : ICloneable
 
     public void RegisterPlugin(PluginBase plugin)
     {
-        if (plugin.Magic != cmsPluginMagicNumber)
+        if (plugin.Magic != Signature.Plugin.MagicNumber)
         {
             LogError(this, ErrorCodes.UnknownExtension, "Unrecognized plugin");
         }

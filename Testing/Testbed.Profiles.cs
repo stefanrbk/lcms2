@@ -98,7 +98,7 @@ internal static partial class Testbed
         var Profile = cmsCreateGrayProfileTHR(DbgThread(), CIExyY.D50, Curve);
         cmsFreeToneCurve(Curve);
 
-        cmsSetPCS(Profile, cmsSigLabData);
+        cmsSetPCS(Profile, Signature.Colorspace.Lab);
         return Profile;
     }
 
@@ -110,7 +110,7 @@ internal static partial class Testbed
 
         Tab[0] = Tab[1] = Tab[2] = Tab[3] = Curve;
 
-        var Profile = cmsCreateLinearizationDeviceLinkTHR(DbgThread(), cmsSigCmykData, Tab);
+        var Profile = cmsCreateLinearizationDeviceLinkTHR(DbgThread(), Signature.Colorspace.Cmyk, Tab);
         cmsFreeToneCurve(Curve);
 
         return Profile;
@@ -202,7 +202,7 @@ internal static partial class Testbed
             : cmsCreate_sRGBProfile();
 
         var hLab = cmsCreateLab4Profile(null);
-        var hLimit = cmsCreateInkLimitingDeviceLink(cmsSigCmykData, InkLimit);
+        var hLimit = cmsCreateInkLimitingDeviceLink(Signature.Colorspace.Cmyk, InkLimit);
 
         var cmykfrm = FLOAT_SH(1) | BYTES_SH(0) | CHANNELS_SH(4);
         p.hLab2sRGB = cmsCreateTransform(hLab, TYPE_Lab_16, hsRGB, TYPE_RGB_DBL, INTENT_PERCEPTUAL, cmsFLAGS_NOOPTIMIZE | cmsFLAGS_NOCACHE);
@@ -218,9 +218,9 @@ internal static partial class Testbed
 
         cmsSetProfileVersion(hICC, 4.3);
 
-        cmsSetDeviceClass(hICC, cmsSigOutputClass);
-        cmsSetColorSpace(hICC, cmsSigCmykData);
-        cmsSetPCS(hICC, cmsSigLabData);
+        cmsSetDeviceClass(hICC, Signature.ProfileClass.Output);
+        cmsSetColorSpace(hICC, Signature.Colorspace.Cmyk);
+        cmsSetPCS(hICC, Signature.Colorspace.Lab);
 
         var BToA0 = cmsPipelineAlloc(ContextID, 3, 4);
         if (BToA0 is null) return null;
@@ -232,7 +232,7 @@ internal static partial class Testbed
         cmsPipelineInsertStage(BToA0, StageLoc.AtEnd, CLUT);
         cmsPipelineInsertStage(BToA0, StageLoc.AtEnd, _cmsStageAllocIdentityCurves(ContextID, 4));
 
-        if (!cmsWriteTag(hICC, cmsSigBToA0Tag, BToA0)) return null;
+        if (!cmsWriteTag(hICC, Signature.Tag.BToA0, BToA0)) return null;
         cmsPipelineFree(BToA0);
 
         var AToB0 = cmsPipelineAlloc(ContextID, 4, 3);
@@ -245,17 +245,17 @@ internal static partial class Testbed
         cmsPipelineInsertStage(AToB0, StageLoc.AtEnd, CLUT);
         cmsPipelineInsertStage(AToB0, StageLoc.AtEnd, _cmsStageAllocIdentityCurves(ContextID, 3));
 
-        if (!cmsWriteTag(hICC, cmsSigAToB0Tag, AToB0)) return null;
+        if (!cmsWriteTag(hICC, Signature.Tag.AToB0, AToB0)) return null;
         cmsPipelineFree(AToB0);
 
         cmsDeleteTransform(p.hLab2sRGB);
         cmsDeleteTransform(p.sRGB2Lab);
         cmsDeleteTransform(p.hIlimit);
 
-        cmsLinkTag(hICC, cmsSigAToB1Tag, cmsSigAToB0Tag);
-        cmsLinkTag(hICC, cmsSigAToB2Tag, cmsSigAToB0Tag);
-        cmsLinkTag(hICC, cmsSigBToA1Tag, cmsSigBToA0Tag);
-        cmsLinkTag(hICC, cmsSigBToA2Tag, cmsSigBToA0Tag);
+        cmsLinkTag(hICC, Signature.Tag.AToB1, Signature.Tag.AToB0);
+        cmsLinkTag(hICC, Signature.Tag.AToB2, Signature.Tag.AToB0);
+        cmsLinkTag(hICC, Signature.Tag.BToA1, Signature.Tag.BToA0);
+        cmsLinkTag(hICC, Signature.Tag.BToA2, Signature.Tag.BToA0);
 
         return hICC;
     }
@@ -316,7 +316,7 @@ internal static partial class Testbed
 
         // ----
         //StartAllocLogging();
-        h = cmsCreateInkLimitingDeviceLinkTHR(DbgThread(), cmsSigCmykData, 150);
+        h = cmsCreateInkLimitingDeviceLinkTHR(DbgThread(), Signature.Colorspace.Cmyk, 150);
         //EndAllocLogging();
         if (!OneVirtual(h, "Ink-limiting profile", "limitlcms2.icc")) return false;
 
@@ -402,28 +402,28 @@ internal static partial class Testbed
                 logger.LogWarning("Empty profile with nonzero number of tags");
                 goto Error;
             }
-            if (cmsIsTag(h, cmsSigAToB0Tag))
+            if (cmsIsTag(h, Signature.Tag.AToB0))
             {
                 logger.LogWarning("Found a tag in an empty profile");
                 goto Error;
             }
 
-            cmsSetColorSpace(h, cmsSigRgbData);
-            if (cmsGetColorSpace(h) != cmsSigRgbData)
+            cmsSetColorSpace(h, Signature.Colorspace.Rgb);
+            if (cmsGetColorSpace(h) != Signature.Colorspace.Rgb)
             {
                 logger.LogWarning("Unable to set colorspace");
                 goto Error;
             }
 
-            cmsSetPCS(h, cmsSigLabData);
-            if (cmsGetPCS(h) != cmsSigLabData)
+            cmsSetPCS(h, Signature.Colorspace.Lab);
+            if (cmsGetPCS(h) != Signature.Colorspace.Lab)
             {
                 logger.LogWarning("Unable to set colorspace");
                 goto Error;
             }
 
-            cmsSetDeviceClass(h, cmsSigDisplayClass);
-            if (cmsGetDeviceClass(h) != cmsSigDisplayClass)
+            cmsSetDeviceClass(h, Signature.ProfileClass.Display);
+            if (cmsGetDeviceClass(h) != Signature.ProfileClass.Display)
             {
                 logger.LogWarning("Unable to set deviceclass");
                 goto Error;
@@ -443,32 +443,32 @@ internal static partial class Testbed
             {
                 using (logger.BeginScope("Tags holding XYZ"))
                 {
-                    if (!CheckXYZ(Pass, h, cmsSigBlueColorantTag))
+                    if (!CheckXYZ(Pass, h, Signature.Tag.BlueColorant))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigBlueColorantTag");
                         goto Error;
                     }
-                    if (!CheckXYZ(Pass, h, cmsSigGreenColorantTag))
+                    if (!CheckXYZ(Pass, h, Signature.Tag.GreenColorant))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigGreenColorantTag");
                         goto Error;
                     }
-                    if (!CheckXYZ(Pass, h, cmsSigRedColorantTag))
+                    if (!CheckXYZ(Pass, h, Signature.Tag.RedColorant))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigRedColorantTag");
                         goto Error;
                     }
-                    if (!CheckXYZ(Pass, h, cmsSigMediaBlackPointTag))
+                    if (!CheckXYZ(Pass, h, Signature.Tag.MediaBlackPoint))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigMediaBlackPointTag");
                         goto Error;
                     }
-                    if (!CheckXYZ(Pass, h, cmsSigMediaWhitePointTag))
+                    if (!CheckXYZ(Pass, h, Signature.Tag.MediaWhitePoint))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigMediaWhitePointTag");
                         goto Error;
                     }
-                    if (!CheckXYZ(Pass, h, cmsSigLuminanceTag))
+                    if (!CheckXYZ(Pass, h, Signature.Tag.Luminance))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigLuminanceTag");
                         goto Error;
@@ -477,22 +477,22 @@ internal static partial class Testbed
 
                 using (logger.BeginScope("Tags holding curves"))
                 {
-                    if (!CheckGamma(Pass, h, cmsSigBlueTRCTag))
+                    if (!CheckGamma(Pass, h, Signature.Tag.BlueTRC))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigBlueTRCTag");
                         goto Error;
                     }
-                    if (!CheckGamma(Pass, h, cmsSigGrayTRCTag))
+                    if (!CheckGamma(Pass, h, Signature.Tag.GrayTRC))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigGrayTRCTag");
                         goto Error;
                     }
-                    if (!CheckGamma(Pass, h, cmsSigGreenTRCTag))
+                    if (!CheckGamma(Pass, h, Signature.Tag.GreenTRC))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigGreenTRCTag");
                         goto Error;
                     }
-                    if (!CheckGamma(Pass, h, cmsSigRedTRCTag))
+                    if (!CheckGamma(Pass, h, Signature.Tag.RedTRC))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigRedTRCTag");
                         goto Error;
@@ -501,38 +501,38 @@ internal static partial class Testbed
 
                 using (logger.BeginScope("Tags holding text"))
                 {
-                    if (!CheckTextSingle(Pass, h, cmsSigCharTargetTag))
+                    if (!CheckTextSingle(Pass, h, Signature.Tag.CharTarget))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigCharTargetTag");
                         goto Error;
                     }
-                    if (!CheckTextSingle(Pass, h, cmsSigScreeningDescTag))
+                    if (!CheckTextSingle(Pass, h, Signature.Tag.ScreeningDesc))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigScreeningDescTag");
                         goto Error;
                     }
 
-                    if (!CheckText(Pass, h, cmsSigCopyrightTag))
+                    if (!CheckText(Pass, h, Signature.Tag.Copyright))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigCopyrightTag");
                         goto Error;
                     }
-                    if (!CheckText(Pass, h, cmsSigProfileDescriptionTag))
+                    if (!CheckText(Pass, h, Signature.Tag.ProfileDescription))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigProfileDescriptionTag");
                         goto Error;
                     }
-                    if (!CheckText(Pass, h, cmsSigDeviceMfgDescTag))
+                    if (!CheckText(Pass, h, Signature.Tag.DeviceMfgDesc))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigDeviceMfgDescTag");
                         goto Error;
                     }
-                    if (!CheckText(Pass, h, cmsSigDeviceModelDescTag))
+                    if (!CheckText(Pass, h, Signature.Tag.DeviceModelDesc))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigDeviceModelDescTag");
                         goto Error;
                     }
-                    if (!CheckText(Pass, h, cmsSigViewingCondDescTag))
+                    if (!CheckText(Pass, h, Signature.Tag.ViewingCondDesc))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigViewingCondDescTag");
                         goto Error;
@@ -541,32 +541,32 @@ internal static partial class Testbed
 
                 using (logger.BeginScope("Tags holding cmsICCData"))
                 {
-                    if (!CheckData(Pass, h, cmsSigPs2CRD0Tag))
+                    if (!CheckData(Pass, h, Signature.Tag.Ps2CRD0))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPs2CRD0Tag");
                         goto Error;
                     }
-                    if (!CheckData(Pass, h, cmsSigPs2CRD1Tag))
+                    if (!CheckData(Pass, h, Signature.Tag.Ps2CRD1))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPs2CRD1Tag");
                         goto Error;
                     }
-                    if (!CheckData(Pass, h, cmsSigPs2CRD2Tag))
+                    if (!CheckData(Pass, h, Signature.Tag.Ps2CRD2))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPs2CRD2Tag");
                         goto Error;
                     }
-                    if (!CheckData(Pass, h, cmsSigPs2CRD3Tag))
+                    if (!CheckData(Pass, h, Signature.Tag.Ps2CRD3))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPs2CRD3Tag");
                         goto Error;
                     }
-                    if (!CheckData(Pass, h, cmsSigPs2CSATag))
+                    if (!CheckData(Pass, h, Signature.Tag.Ps2CSA))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPs2CSATag");
                         goto Error;
                     }
-                    if (!CheckData(Pass, h, cmsSigPs2RenderingIntentTag))
+                    if (!CheckData(Pass, h, Signature.Tag.Ps2RenderingIntent))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPs2RenderingIntentTag");
                         goto Error;
@@ -575,22 +575,22 @@ internal static partial class Testbed
 
                 using (logger.BeginScope("Tags holding signatures"))
                 {
-                    if (!CheckSignature(Pass, h, cmsSigColorimetricIntentImageStateTag))
+                    if (!CheckSignature(Pass, h, Signature.Tag.ColorimetricIntentImageState))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigColorimetricIntentImageStateTag");
                         goto Error;
                     }
-                    if (!CheckSignature(Pass, h, cmsSigPerceptualRenderingIntentGamutTag))
+                    if (!CheckSignature(Pass, h, Signature.Tag.PerceptualRenderingIntentGamut))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPerceptualRenderingIntentGamutTag");
                         goto Error;
                     }
-                    if (!CheckSignature(Pass, h, cmsSigSaturationRenderingIntentGamutTag))
+                    if (!CheckSignature(Pass, h, Signature.Tag.SaturationRenderingIntentGamut))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigSaturationRenderingIntentGamutTag");
                         goto Error;
                     }
-                    if (!CheckSignature(Pass, h, cmsSigTechnologyTag))
+                    if (!CheckSignature(Pass, h, Signature.Tag.Technology))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigTechnologyTag");
                         goto Error;
@@ -599,12 +599,12 @@ internal static partial class Testbed
 
                 using (logger.BeginScope("Tags holding date_time"))
                 {
-                    if (!CheckDateTime(Pass, h, cmsSigCalibrationDateTimeTag))
+                    if (!CheckDateTime(Pass, h, Signature.Tag.CalibrationDateTime))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigCalibrationDateTimeTag");
                         goto Error;
                     }
-                    if (!CheckDateTime(Pass, h, cmsSigDateTimeTag))
+                    if (!CheckDateTime(Pass, h, Signature.Tag.DateTime))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigDateTimeTag");
                         goto Error;
@@ -613,17 +613,17 @@ internal static partial class Testbed
 
                 using (logger.BeginScope("Tags holding named color lists"))
                 {
-                    if (!CheckNamedColor(Pass, h, cmsSigColorantTableTag, 15, false))
+                    if (!CheckNamedColor(Pass, h, Signature.Tag.ColorantTable, 15, false))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigColorantTableTag");
                         goto Error;
                     }
-                    if (!CheckNamedColor(Pass, h, cmsSigColorantTableOutTag, 15, false))
+                    if (!CheckNamedColor(Pass, h, Signature.Tag.ColorantTableOut, 15, false))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigColorantTableOutTag");
                         goto Error;
                     }
-                    if (!CheckNamedColor(Pass, h, cmsSigNamedColor2Tag, 4096, true))
+                    if (!CheckNamedColor(Pass, h, Signature.Tag.NamedColor2, 4096, true))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigNamedColor2Tag");
                         goto Error;
@@ -632,52 +632,52 @@ internal static partial class Testbed
 
                 using (logger.BeginScope("Tags holding LUTs"))
                 {
-                    if (!CheckLUT(Pass, h, cmsSigAToB0Tag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.AToB0))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigAToB0Tag");
                         goto Error;
                     }
-                    if (!CheckLUT(Pass, h, cmsSigAToB1Tag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.AToB1))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigAToB1Tag");
                         goto Error;
                     }
-                    if (!CheckLUT(Pass, h, cmsSigAToB2Tag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.AToB2))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigAToB2Tag");
                         goto Error;
                     }
-                    if (!CheckLUT(Pass, h, cmsSigBToA0Tag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.BToA0))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigBToA0Tag");
                         goto Error;
                     }
-                    if (!CheckLUT(Pass, h, cmsSigBToA1Tag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.BToA1))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigBToA1Tag");
                         goto Error;
                     }
-                    if (!CheckLUT(Pass, h, cmsSigBToA2Tag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.BToA2))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigBToA2Tag");
                         goto Error;
                     }
-                    if (!CheckLUT(Pass, h, cmsSigPreview0Tag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.Preview0))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPreview0Tag");
                         goto Error;
                     }
-                    if (!CheckLUT(Pass, h, cmsSigPreview1Tag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.Preview1))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPreview1Tag");
                         goto Error;
                     }
-                    if (!CheckLUT(Pass, h, cmsSigPreview2Tag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.Preview2))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigPreview2Tag");
                         goto Error;
                     }
-                    if (!CheckLUT(Pass, h, cmsSigGamutTag))
+                    if (!CheckLUT(Pass, h, Signature.Tag.Gamut))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigGamutTag");
                         goto Error;
@@ -685,42 +685,42 @@ internal static partial class Testbed
                 }
 
                 using (logger.BeginScope("Tags holding CHAD"))
-                    if (!CheckCHAD(Pass, h, cmsSigChromaticAdaptationTag))
+                    if (!CheckCHAD(Pass, h, Signature.Tag.ChromaticAdaptation))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigChromaticAdaptationTag");
                         goto Error;
                     }
 
                 using (logger.BeginScope("Tags holding Chromaticity"))
-                    if (!CheckChromaticity(Pass, h, cmsSigChromaticityTag))
+                    if (!CheckChromaticity(Pass, h, Signature.Tag.Chromaticity))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigChromaticityTag");
                         goto Error;
                     }
 
                 using (logger.BeginScope("Tags holding colorant order"))
-                    if (!CheckColorantOrder(Pass, h, cmsSigColorantOrderTag))
+                    if (!CheckColorantOrder(Pass, h, Signature.Tag.ColorantOrder))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigColorantOrderTag");
                         goto Error;
                     }
 
                 using (logger.BeginScope("Tags holding measurement"))
-                    if (!CheckMeasurement(Pass, h, cmsSigMeasurementTag))
+                    if (!CheckMeasurement(Pass, h, Signature.Tag.Measurement))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigMeasurementTag");
                         goto Error;
                     }
 
                 using (logger.BeginScope("Tags holding CRD info"))
-                    if (!CheckCRDinfo(Pass, h, cmsSigCrdInfoTag))
+                    if (!CheckCRDinfo(Pass, h, Signature.Tag.CrdInfo))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigCrdInfoTag");
                         goto Error;
                     }
 
                 using (logger.BeginScope("Tags holding UCR/BG"))
-                    if (!CheckUcrBg(Pass, h, cmsSigUcrBgTag))
+                    if (!CheckUcrBg(Pass, h, Signature.Tag.UcrBg))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigUcrBgTag");
                         goto Error;
@@ -728,42 +728,42 @@ internal static partial class Testbed
 
                 using (logger.BeginScope("Tags holding MPE"))
                 {
-                    if (!CheckMPE(Pass, h, cmsSigDToB0Tag))
+                    if (!CheckMPE(Pass, h, Signature.Tag.DToB0))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigDToB0Tag");
                         goto Error;
                     }
-                    if (!CheckMPE(Pass, h, cmsSigDToB1Tag))
+                    if (!CheckMPE(Pass, h, Signature.Tag.DToB1))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigDToB1Tag");
                         goto Error;
                     }
-                    if (!CheckMPE(Pass, h, cmsSigDToB2Tag))
+                    if (!CheckMPE(Pass, h, Signature.Tag.DToB2))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigDToB2Tag");
                         goto Error;
                     }
-                    if (!CheckMPE(Pass, h, cmsSigDToB3Tag))
+                    if (!CheckMPE(Pass, h, Signature.Tag.DToB3))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigDToB3Tag");
                         goto Error;
                     }
-                    if (!CheckMPE(Pass, h, cmsSigBToD0Tag))
+                    if (!CheckMPE(Pass, h, Signature.Tag.BToD0))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigBToD0Tag");
                         goto Error;
                     }
-                    if (!CheckMPE(Pass, h, cmsSigBToD1Tag))
+                    if (!CheckMPE(Pass, h, Signature.Tag.BToD1))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigBToD1Tag");
                         goto Error;
                     }
-                    if (!CheckMPE(Pass, h, cmsSigBToD2Tag))
+                    if (!CheckMPE(Pass, h, Signature.Tag.BToD2))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigBToD2Tag");
                         goto Error;
                     }
-                    if (!CheckMPE(Pass, h, cmsSigBToD3Tag))
+                    if (!CheckMPE(Pass, h, Signature.Tag.BToD3))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigBToD3Tag");
                         goto Error;
@@ -771,7 +771,7 @@ internal static partial class Testbed
                 }
 
                 using (logger.BeginScope("Tags using screening"))
-                    if (!CheckScreening(Pass, h, cmsSigScreeningTag))
+                    if (!CheckScreening(Pass, h, Signature.Tag.Screening))
                     {
                         logger.LogWarning("{tag} failed", "cmsSigScreeningTag");
                         goto Error;
@@ -1005,13 +1005,13 @@ internal static partial class Testbed
         switch (Pass)
         {
             case 1:
-                Holder = (Signature)cmsSigPerceptualReferenceMediumGamut;
+                Holder = Signature.Gamut.PerceptualReferenceMedium;
                 return cmsWriteTag(hProfile, tag, new Box<Signature>(Holder));
 
             case 2:
                 Pt = cmsReadTag(hProfile, tag) as Box<Signature>;
                 if (Pt == null) return false;
-                return Pt.Value == cmsSigPerceptualReferenceMediumGamut;
+                return Pt.Value == Signature.Gamut.PerceptualReferenceMedium;
 
             default:
                 return false;
@@ -1497,14 +1497,14 @@ internal static partial class Testbed
                 s.seq[1].attributes = cmsReflective | cmsMatte;
                 s.seq[2].attributes = cmsTransparency | cmsGlossy;
 
-                if (!cmsWriteTag(hProfile, cmsSigProfileSequenceDescTag, s))
+                if (!cmsWriteTag(hProfile, Signature.Tag.ProfileSequenceDesc, s))
                     return false;
                 cmsFreeProfileSequenceDescription(s);
                 return true;
 
             case 2:
 
-                s = (cmsReadTag(hProfile, cmsSigProfileSequenceDescTag) is Sequence box) ? box : null;
+                s = (cmsReadTag(hProfile, Signature.Tag.ProfileSequenceDesc) is Sequence box) ? box : null;
                 if (s == null)
                     return false;
 
@@ -1553,13 +1553,13 @@ internal static partial class Testbed
                 SetOneStr(out s.seq[1].Description, "Hello, world 1", "Hola, mundo 1");
                 SetOneStr(out s.seq[2].Description, "Hello, world 2", "Hola, mundo 2");
 
-                if (!cmsWriteTag(hProfile, cmsSigProfileSequenceIdTag, s)) return false;
+                if (!cmsWriteTag(hProfile, Signature.Tag.ProfileSequenceId, s)) return false;
                 cmsFreeProfileSequenceDescription(s);
                 return true;
 
             case 2:
 
-                s = (cmsReadTag(hProfile, cmsSigProfileSequenceIdTag) is Sequence seq) ? seq : null;
+                s = (cmsReadTag(hProfile, Signature.Tag.ProfileSequenceId) is Sequence seq) ? seq : null;
                 if (s == null) return false;
 
                 if (s.n != 3) return false;
@@ -1600,11 +1600,11 @@ internal static partial class Testbed
                 s.SurroundXYZ.Y = 0.5;
                 s.SurroundXYZ.Z = 0.6;
 
-                if (!cmsWriteTag(hProfile, cmsSigViewingConditionsTag, new Box<IccViewingConditions>(s))) return false;
+                if (!cmsWriteTag(hProfile, Signature.Tag.ViewingConditions, new Box<IccViewingConditions>(s))) return false;
                 return true;
 
             case 2:
-                v = cmsReadTag(hProfile, cmsSigViewingConditionsTag) as Box<IccViewingConditions>;
+                v = cmsReadTag(hProfile, Signature.Tag.ViewingConditions) as Box<IccViewingConditions>;
                 if (v == null) return false;
 
                 if (v.Value.IlluminantType != IlluminantType.D50) return false;
@@ -1635,14 +1635,14 @@ internal static partial class Testbed
                 Curves[1] = cmsBuildGamma(DbgThread(), 2.2);
                 Curves[2] = cmsBuildGamma(DbgThread(), 3.4);
 
-                if (!cmsWriteTag(hProfile, cmsSigVcgtTag, Curves)) return false;
+                if (!cmsWriteTag(hProfile, Signature.Tag.Vcgt, Curves)) return false;
 
                 cmsFreeToneCurveTriple(Curves);
                 return true;
 
             case 2:
 
-                PtrCurve = (cmsReadTag(hProfile, cmsSigVcgtTag) is ToneCurve[] curve) ? curve : null;
+                PtrCurve = (cmsReadTag(hProfile, Signature.Tag.Vcgt) is ToneCurve[] curve) ? curve : null;
                 if (PtrCurve == null) return false;
                 if (!IsGoodVal("VCGT R", cmsEstimateGamma(PtrCurve[0], 0.01), 1.1, 0.001)) return false;
                 if (!IsGoodVal("VCGT G", cmsEstimateGamma(PtrCurve[1], 0.01), 2.2, 0.001)) return false;
@@ -1720,14 +1720,14 @@ internal static partial class Testbed
                 cmsMLUfree(DisplayName);
 
                 cmsDictAddEntry(hDict, "Name2", "12", null, null);
-                if (!cmsWriteTag(hProfile, cmsSigMetaTag, hDict)) return false;
+                if (!cmsWriteTag(hProfile, Signature.Tag.Meta, hDict)) return false;
                 cmsDictFree(hDict);
 
                 return true;
 
             case 2:
 
-                hDict = (cmsReadTag(hProfile, cmsSigMetaTag) as Dictionary)!;
+                hDict = (cmsReadTag(hProfile, Signature.Tag.Meta) as Dictionary)!;
                 if (hDict == null) return false;
 
                 e = cmsDictGetEntryList(hDict);
@@ -1791,10 +1791,10 @@ internal static partial class Testbed
                     MatrixCoefficients = 0,
                     VideoFullRangeFlag = 1
                 };
-                return cmsWriteTag(hProfile, cmsSigcicpTag, new Box<VideoSignalType>(s));
+                return cmsWriteTag(hProfile, Signature.Tag.cicp, new Box<VideoSignalType>(s));
 
             case 2:
-                if (cmsReadTag(hProfile, cmsSigcicpTag) is not Box<VideoSignalType> vs)
+                if (cmsReadTag(hProfile, Signature.Tag.cicp) is not Box<VideoSignalType> vs)
                     return false;
                 var v = vs.Value;
 
@@ -1830,12 +1830,12 @@ internal static partial class Testbed
 
                 SetMHC2Matrix(s.matrix);
 
-                if (!cmsWriteTag(hProfile, cmsSigMHC2Tag, new Box<MHC2>(s)))
+                if (!cmsWriteTag(hProfile, Signature.Tag.MHC2, new Box<MHC2>(s)))
                     return false;
                 return true;
 
             case 2:
-                if (cmsReadTag(hProfile, cmsSigMHC2Tag) is not Box<MHC2> v) return false;
+                if (cmsReadTag(hProfile, Signature.Tag.MHC2) is not Box<MHC2> v) return false;
 
                 if (!IsOriginalMHC2Matrix(v.Value.matrix)) return false;
                 if (v.Value.entries is not 3) return false;
@@ -1889,7 +1889,7 @@ internal static partial class Testbed
         Span<byte> Buffer = stackalloc byte[256];
         var hProfile = cmsOpenProfileFromMem(TestProfiles.crayons)!;
 
-        var Pt = (Mlu)cmsReadTag(hProfile, cmsSigProfileDescriptionTag)!;
+        var Pt = (Mlu)cmsReadTag(hProfile, Signature.Tag.ProfileDescription)!;
         cmsMLUgetASCII(Pt, "en"u8, "GB"u8, Buffer);
         if (strcmp(Buffer, "Crayon Colours"u8) is not 0)
             return false;

@@ -47,7 +47,11 @@ internal static partial class Testbed
         return cpy;
     }
 
-    private readonly static PluginInterpolation InterpPluginSample = new(cmsPluginMagicNumber, 2060, cmsPluginInterpolationSig, my_Interpolators_Factory);
+    private static readonly PluginInterpolation InterpPluginSample = new(
+        Signature.Plugin.MagicNumber,
+        2060,
+        Signature.Plugin.Interpolation,
+        my_Interpolators_Factory);
 
     // This fake interpolation takes always the closest lower node in the interpolation table for 1D 
     private static void Fake1Dfloat(ReadOnlySpan<float> Value,
@@ -452,14 +456,14 @@ internal static partial class Testbed
     // Add nonstandard TRC curves -> Rec709
 
     private readonly static PluginParametricCurves Rec709Plugin = new(
-        cmsPluginMagicNumber, 2060, cmsPluginParametricCurveSig, new (int, uint)[] { (TYPE_709, 5) }, Rec709Math);
+        Signature.Plugin.MagicNumber, 2060, Signature.Plugin.ParametricCurve, new (int, uint)[] { (TYPE_709, 5) }, Rec709Math);
 
 
     private readonly static PluginParametricCurves CurvePluginSample = new(
-        cmsPluginMagicNumber, 2060, cmsPluginParametricCurveSig, new (int, uint)[] { (TYPE_SIN, 1), (TYPE_COS, 1) }, my_fns);
+        Signature.Plugin.MagicNumber, 2060, Signature.Plugin.ParametricCurve, new (int, uint)[] { (TYPE_SIN, 1), (TYPE_COS, 1) }, my_fns);
 
     private readonly static PluginParametricCurves CurvePluginSample2 = new(
-        cmsPluginMagicNumber, 2060, cmsPluginParametricCurveSig, new (int, uint)[] { (TYPE_TAN, 1) }, my_fns2);
+        Signature.Plugin.MagicNumber, 2060, Signature.Plugin.ParametricCurve, new (int, uint)[] { (TYPE_TAN, 1) }, my_fns2);
 
     // --------------------------------------------------------------------------------------------------
     // In this test, the DupContext function will be checked as well                      
@@ -605,14 +609,14 @@ internal static partial class Testbed
         return Result;
     }
 
-    private readonly static PluginFormatters FormattersPluginSample = new(cmsPluginMagicNumber, 2060, cmsPluginFormattersSig) 
+    private readonly static PluginFormatters FormattersPluginSample = new(Signature.Plugin.MagicNumber, 2060, Signature.Plugin.Formatters)
     {
         FormattersFactoryIn = my_FormatterFactory
     };
 
 
 
-    private readonly static PluginFormatters FormattersPluginSample2 = new(cmsPluginMagicNumber, 2060, cmsPluginFormattersSig) 
+    private readonly static PluginFormatters FormattersPluginSample2 = new(Signature.Plugin.MagicNumber, 2060, Signature.Plugin.Formatters)
     {
         FormattersFactoryOut = my_FormatterFactory2
     };
@@ -648,8 +652,8 @@ internal static partial class Testbed
         return true;
     }
 
-    const uint SigIntType = 0x74747448;   //   'tttH'
-    const uint SigInt = 0x74747448;       //   'tttH'
+    static readonly Signature SigIntType = new Signature(0x74747448);   //   'tttH'
+    static readonly Signature SigInt = new Signature(0x74747448);       //   'tttH'
 
     private static Box<uint>? Type_int_Read(TagTypeHandler self, IOHandler io, out uint nItems, uint _)
     {
@@ -670,9 +674,9 @@ internal static partial class Testbed
 
 
     private readonly static PluginTag HiddenTagPluginSample = new(
-        cmsPluginMagicNumber,
+        Signature.Plugin.MagicNumber,
         2060,
-        cmsPluginTagSig,
+        Signature.Plugin.Tag,
         SigInt,
         new(
             1,
@@ -680,9 +684,9 @@ internal static partial class Testbed
             null));
 
     private readonly static PluginTagType FirstTagTypePluginSample = new(
-        cmsPluginMagicNumber,
+        Signature.Plugin.MagicNumber,
         2060,
-        cmsPluginTagTypeSig,
+        Signature.Plugin.TagType,
         new(
             SigIntType,
             Type_int_Read,
@@ -810,7 +814,7 @@ internal static partial class Testbed
         return false;
     }
 
-    private const uint SigNegateType = 0x6E202020;
+    private static readonly Signature SigNegateType = new Signature(0x6E202020);
 
     private static void EvaluateNegate(ReadOnlySpan<float> In, Span<float> Out, Stage _)
     {
@@ -842,9 +846,9 @@ internal static partial class Testbed
     }
 
     private readonly static PluginTagType MPEPluginSample = new(
-        cmsPluginMagicNumber,
+        Signature.Plugin.MagicNumber,
         2060,
-        cmsPluginMultiProcessElementSig,
+        Signature.Plugin.MultiProcessElement,
         new(
             SigNegateType,
             Type_negate_Read,
@@ -900,7 +904,7 @@ internal static partial class Testbed
             goto Error;
         }
 
-        if (!cmsWriteTag(h, cmsSigDToB3Tag, pipe))
+        if (!cmsWriteTag(h, Signature.Tag.DToB3, pipe))
         {
             logger.LogWarning("Plug-in failed");
             goto Error;
@@ -942,7 +946,7 @@ internal static partial class Testbed
             goto Error;
         }
 
-        pipe = cmsReadTag(h, cmsSigDToB3Tag) as Pipeline;
+        pipe = cmsReadTag(h, Signature.Tag.DToB3) as Pipeline;
         if (pipe != null)
         {
 
@@ -965,7 +969,7 @@ internal static partial class Testbed
         // Get rid of data
         /*free(data);*/ data = null;
 
-        pipe = cmsReadTag(h, cmsSigDToB3Tag) as Pipeline;
+        pipe = cmsReadTag(h, Signature.Tag.DToB3) as Pipeline;
         if (pipe == null)
         {
             logger.LogWarning("Read tag/context switching failed (2)");
@@ -1013,7 +1017,7 @@ internal static partial class Testbed
              mpe = cmsStageNext(mpe))
         {
 
-            if (cmsStageType(mpe) != cmsSigCurveSetElemType) return false;
+            if (cmsStageType(mpe) != Signature.Stage.CurveSetElem) return false;
 
             // Check for identity
             Data = cmsStageData(mpe) as StageToneCurvesData;
@@ -1028,7 +1032,7 @@ internal static partial class Testbed
         return true;
     }
 
-    private readonly static PluginOptimization OptimizationPluginSample = new(cmsPluginMagicNumber, 2060, cmsPluginOptimizationSig, MyOptimize);
+    private static readonly PluginOptimization OptimizationPluginSample = new(Signature.Plugin.MagicNumber, 2060, Signature.Plugin.Optimization, MyOptimize);
 
 
     public static bool CheckOptimizationPlugin()
@@ -1046,7 +1050,7 @@ internal static partial class Testbed
         var cpy2 = DupContext(cpy, null);
 
         Linear[0] = cmsBuildGamma(cpy2, 1.0);
-        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, cmsSigGrayData, Linear);
+        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, Linear);
         cmsFreeToneCurve(Linear[0]);
 
         var xform = cmsCreateTransformTHR(cpy2, h, TYPE_GRAY_8, h, TYPE_GRAY_8, INTENT_PERCEPTUAL, 0);
@@ -1075,7 +1079,7 @@ internal static partial class Testbed
         for (var i = 0; i < nProfiles; i++)
             ICCIntents[i] = (TheIntents[i] == INTENT_DECEPTIVE) ? INTENT_PERCEPTUAL : TheIntents[i];
 
-        if (cmsGetColorSpace(hProfiles[0]) != cmsSigGrayData || cmsGetColorSpace(hProfiles[(int)nProfiles - 1]) != cmsSigGrayData)
+        if (cmsGetColorSpace(hProfiles[0]) != Signature.Colorspace.Gray || cmsGetColorSpace(hProfiles[(int)nProfiles - 1]) != Signature.Colorspace.Gray)
             return _cmsDefaultICCintents(ContextID, nProfiles, ICCIntents, hProfiles, BPC, AdaptationStates, dwFlags);
 
         Result = cmsPipelineAlloc(ContextID, 1, 1);
@@ -1087,9 +1091,9 @@ internal static partial class Testbed
     }
 
     private readonly static PluginRenderingIntent IntentPluginSample = new(
-        cmsPluginMagicNumber,
+        Signature.Plugin.MagicNumber,
         2060,
-        cmsPluginRenderingIntentSig,
+        Signature.Plugin.RenderingIntent,
         INTENT_DECEPTIVE,
         MyNewIntent,
         "bypass gray to gray rendering intent");
@@ -1111,8 +1115,8 @@ internal static partial class Testbed
 
         Linear1 = cmsBuildGamma(cpy2, 3.0)!;
         Linear2 = cmsBuildGamma(cpy2, 0.1)!;
-        h1 = cmsCreateLinearizationDeviceLinkTHR(cpy2, cmsSigGrayData, new ToneCurve[] { Linear1 });
-        h2 = cmsCreateLinearizationDeviceLinkTHR(cpy2, cmsSigGrayData, new ToneCurve[] { Linear2 });
+        h1 = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new ToneCurve[] { Linear1 });
+        h2 = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new ToneCurve[] { Linear2 });
 
         cmsFreeToneCurve(Linear1);
         cmsFreeToneCurve(Linear2);
@@ -1160,9 +1164,9 @@ internal static partial class Testbed
 
     // The Plug-in entry point
     private readonly static PluginTransform FullTransformPluginSample = new(
-        cmsPluginMagicNumber,
+        Signature.Plugin.MagicNumber,
         2060,
-        cmsPluginTransformSig,
+        Signature.Plugin.Transform,
         new() { legacy_xform = TransformFactory });
 
     public static bool CheckTransformPlugin()
@@ -1180,7 +1184,7 @@ internal static partial class Testbed
         var cpy2 = DupContext(cpy, null);
 
         Linear = cmsBuildGamma(cpy2, 1.0)!;
-        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, cmsSigGrayData, new ToneCurve[] { Linear });
+        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new ToneCurve[] { Linear });
         cmsFreeToneCurve(Linear);
 
         var xform = cmsCreateTransformTHR(cpy2, h, TYPE_GRAY_8, h, TYPE_GRAY_8, INTENT_PERCEPTUAL, 0);
@@ -1245,7 +1249,7 @@ internal static partial class Testbed
     }
 
 
-    private readonly static PluginLegacyMutex MutexPluginSample = new(cmsPluginMagicNumber, 2060, cmsPluginMutexSig, MyMtxCreate, MyMtxDestroy, MyMtxLock, MyMtxUnlock);
+    private readonly static PluginLegacyMutex MutexPluginSample = new(Signature.Plugin.MagicNumber, 2060, Signature.Plugin.Mutex, MyMtxCreate, MyMtxDestroy, MyMtxLock, MyMtxUnlock);
 
 
     public static bool CheckMutexPlugin()
@@ -1263,7 +1267,7 @@ internal static partial class Testbed
         var cpy2 = DupContext(cpy, null);
 
         Linear = cmsBuildGamma(cpy2, 1.0)!;
-        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, cmsSigGrayData, new ToneCurve[] { Linear });
+        h = cmsCreateLinearizationDeviceLinkTHR(cpy2, Signature.Colorspace.Gray, new ToneCurve[] { Linear });
         cmsFreeToneCurve(Linear);
 
         var xform = cmsCreateTransformTHR(cpy2, h, TYPE_GRAY_8, h, TYPE_GRAY_8, INTENT_PERCEPTUAL, 0);

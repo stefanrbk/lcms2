@@ -276,7 +276,7 @@ public static partial class FastFloat
         var OriginalLut = Lut;
 
         var ContextID = cmsGetPipelineContextID(OriginalLut);
-        var nGridPoints = _cmsReasonableGridpointsByColorspace(cmsSigRgbData, dwFlags);
+        var nGridPoints = _cmsReasonableGridpointsByColorspace(Signature.Colorspace.Rgb, dwFlags);
 
         //var tcPool = Context.GetPool<ToneCurve>(ContextID);
         //var uaPool = Context.GetPool<ushort[]>(ContextID);

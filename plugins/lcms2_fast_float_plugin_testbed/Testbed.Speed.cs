@@ -444,26 +444,37 @@ internal static partial class Testbed
             Fail("Unable to open profiles");
 
         var inFormatter = 0u;
-        switch ((uint)cmsGetColorSpace(profileIn))
+        var colorspaceIn = cmsGetColorSpace(profileIn);
+        if (colorspaceIn == Signature.Colorspace.Rgb)
         {
-            case cmsSigRgbData: inFormatter = TYPE_RGB_FLT; break;
-            case cmsSigLabData: inFormatter = TYPE_Lab_FLT; break;
-
-            default:
-                Fail("Invalid colorspace");
-                break;
+            inFormatter = TYPE_RGB_FLT;
+        }
+        else if (cmsGetColorSpace(profileIn) == Signature.Colorspace.Lab)
+        {
+            inFormatter = TYPE_Lab_FLT;
+        }
+        else
+        {
+            Fail("Invalid colorspace");
         }
 
         var outFormatter = 0u;
-        switch ((uint)cmsGetColorSpace(profileOut))
+        var colorspaceOut = cmsGetColorSpace(profileOut);
+        if (colorspaceOut == Signature.Colorspace.Rgb)
         {
-            case cmsSigRgbData: outFormatter = TYPE_RGB_FLT; break;
-            case cmsSigLabData: outFormatter = TYPE_Lab_FLT; break;
-            case cmsSigXYZData: outFormatter = TYPE_XYZ_FLT; break;
-
-            default:
-                Fail("Invalid colorspace");
-                break;
+            outFormatter = TYPE_RGB_FLT;
+        }
+        else if (colorspaceOut == Signature.Colorspace.Lab)
+        {
+            outFormatter = TYPE_Lab_FLT;
+        }
+        else if (colorspaceOut == Signature.Colorspace.XYZ)
+        {
+            outFormatter = TYPE_XYZ_FLT;
+        }
+        else
+        {
+            Fail("Invalid colorspace");
         }
 
         var lcmsxform = cmsCreateTransformTHR(ct, profileIn, inFormatter, profileOut, outFormatter, INTENT_PERCEPTUAL, cmsFLAGS_NOCACHE)!;
@@ -582,19 +593,26 @@ internal static partial class Testbed
         if (profileIn is null || profileOut is null)
             Fail("Unable to open profiles");
 
-        if ((uint)cmsGetColorSpace(profileIn) is not cmsSigLabData)
+        if (cmsGetColorSpace(profileIn) != Signature.Colorspace.Lab)
             Fail("Invalid colorspace");
 
         var outFormatter = 0u;
-        switch ((uint)cmsGetColorSpace(profileOut))
+        var colorspaceOut = cmsGetColorSpace(profileOut);
+        if (colorspaceOut == Signature.Colorspace.Rgb)
         {
-            case cmsSigRgbData: outFormatter = TYPE_RGB_FLT; break;
-            case cmsSigLabData: outFormatter = TYPE_Lab_FLT; break;
-            case cmsSigXYZData: outFormatter = TYPE_XYZ_FLT; break;
-
-            default:
-                Fail("Invalid colorspace");
-                break;
+            outFormatter = TYPE_RGB_FLT;
+        }
+        else if (colorspaceOut == Signature.Colorspace.Lab)
+        {
+            outFormatter = TYPE_Lab_FLT;
+        }
+        else if (colorspaceOut == Signature.Colorspace.XYZ)
+        {
+            outFormatter = TYPE_XYZ_FLT;
+        }
+        else
+        {
+            Fail("Invalid colorspace");
         }
 
         var lcmsxform = cmsCreateTransformTHR(ct, profileIn, TYPE_Lab_FLT, profileOut, outFormatter, INTENT_PERCEPTUAL, cmsFLAGS_NOCACHE)!;
@@ -936,8 +954,8 @@ internal static partial class Testbed
             var gamma18 = new ToneCurve[] { cmsBuildGamma(null, 1.8)! };
             var gamma22 = new ToneCurve[] { cmsBuildGamma(null, 2.2)! };
 
-            var profileIn = cmsCreateLinearizationDeviceLink(cmsSigGrayData, gamma18)!;
-            var profileOut = cmsCreateLinearizationDeviceLink(cmsSigGrayData, gamma22)!;
+            var profileIn = cmsCreateLinearizationDeviceLink(Signature.Colorspace.Gray, gamma18)!;
+            var profileOut = cmsCreateLinearizationDeviceLink(Signature.Colorspace.Gray, gamma22)!;
 
             cmsFreeToneCurve(gamma18[0]);
             cmsFreeToneCurve(gamma22[0]);

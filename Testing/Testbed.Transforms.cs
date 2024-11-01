@@ -203,9 +203,9 @@ internal static partial class Testbed
         ToneCurve[] c2 = new ToneCurve[] { cmsBuildGamma(DbgThread(), 1 / 2.2)! };
         ToneCurve[] c3 = new ToneCurve[] { cmsBuildGamma(DbgThread(), 4.84)! };
 
-        var h1 = cmsCreateLinearizationDeviceLinkTHR(DbgThread(), cmsSigGrayData, c1)!;
-        var h2 = cmsCreateLinearizationDeviceLinkTHR(DbgThread(), cmsSigGrayData, c2)!;
-        var h3 = cmsCreateLinearizationDeviceLinkTHR(DbgThread(), cmsSigGrayData, c3)!;
+        var h1 = cmsCreateLinearizationDeviceLinkTHR(DbgThread(), Signature.Colorspace.Gray, c1)!;
+        var h2 = cmsCreateLinearizationDeviceLinkTHR(DbgThread(), Signature.Colorspace.Gray, c2)!;
+        var h3 = cmsCreateLinearizationDeviceLinkTHR(DbgThread(), Signature.Colorspace.Gray, c3)!;
 
         using (logger.BeginScope("Gray float optimizable transform"))
         {

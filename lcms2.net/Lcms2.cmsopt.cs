@@ -397,7 +397,7 @@ public static partial class Lcms2
             ref var pt2 = ref pt1.Next;
             if (pt2 is null) return AnyOpt;
 
-            if ((uint)pt1.Implements is cmsSigMatrixElemType && (uint)pt2.Implements is cmsSigMatrixElemType)
+            if (pt1.Implements == Signature.Stage.MatrixElem && pt2.Implements == Signature.Stage.MatrixElem)
             {
                 // Get both matrices
                 var m1 = (StageMatrixData)cmsStageData(pt1)!;
@@ -457,23 +457,23 @@ public static partial class Lcms2
             Opt = false;
 
             // Remove all identities
-            Opt |= _Remove1Op(Lut, cmsSigIdentityElemType);
+            Opt |= _Remove1Op(Lut, Signature.Stage.IdentityElem);
 
             // Remove XYZ2Lab followed by Lab2XYZ
-            Opt |= _Remove2Op(Lut, cmsSigXYZ2LabElemType, cmsSigLab2XYZElemType);
+            Opt |= _Remove2Op(Lut, Signature.Stage.XYZ2LabElem, Signature.Stage.Lab2XYZElem);
 
             // Remove Lab2XYZ followed by XYZ2Lab
-            Opt |= _Remove2Op(Lut, cmsSigLab2XYZElemType, cmsSigXYZ2LabElemType);
+            Opt |= _Remove2Op(Lut, Signature.Stage.Lab2XYZElem, Signature.Stage.XYZ2LabElem);
 
             // Remove V4 to V2 followed by V2 to V4
-            Opt |= _Remove2Op(Lut, cmsSigLabV4toV2, cmsSigLabV2toV4);
+            Opt |= _Remove2Op(Lut, Signature.Stage.LabV4toV2Elem, Signature.Stage.LabV2toV4Elem);
 
             // Remove V2 to V4 followed by V4 to V2
-            Opt |= _Remove2Op(Lut, cmsSigLabV2toV4, cmsSigLabV4toV2);
+            Opt |= _Remove2Op(Lut, Signature.Stage.LabV2toV4Elem, Signature.Stage.LabV4toV2Elem);
 
             // Remove float pcs Lab conversions
-            Opt |= _Remove2Op(Lut, cmsSigLab2FloatPCS, cmsSigFloatPCS2Lab);
-            Opt |= _Remove2Op(Lut, cmsSigFloatPCS2Lab, cmsSigLab2FloatPCS);
+            Opt |= _Remove2Op(Lut, Signature.Stage.Lab2FloatPCS, Signature.Stage.FloatPCS2Lab);
+            Opt |= _Remove2Op(Lut, Signature.Stage.FloatPCS2Lab, Signature.Stage.Lab2FloatPCS);
 
             // Simplify matrix.
             Opt |= _MultiplyMatrix(Lut);
@@ -643,7 +643,7 @@ public static partial class Lcms2
         double px, py, pz, pw;
         int x0, y0, z0, w0, index;
 
-        if ((uint)CLUT.Type is not cmsSigCLutElemType)
+        if (CLUT.Type != Signature.Stage.CLutElem)
         {
             LogError(CLUT.ContextID, cmsERROR_INTERNAL, "(internal) Attempt to PatchLUT on non-lut stage");
             return false;
@@ -760,10 +760,10 @@ public static partial class Lcms2
             return true;    // Whites already match
 
         // Check if the LUT comes as Prelin, CLUT or Postlin. We allow all combinations
-        if (!cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out Stage? PreLin, cmsSigCLutElemType, out Stage? CLUT, cmsSigCurveSetElemType, out Stage? PostLin) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCurveSetElemType, out PreLin, cmsSigCLutElemType, out CLUT) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCLutElemType, out CLUT, cmsSigCurveSetElemType, out PostLin) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, cmsSigCLutElemType, out CLUT))
+        if (!cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out Stage? PreLin, Signature.Stage.CLutElem, out Stage? CLUT, Signature.Stage.CurveSetElem, out Stage? PostLin) &&
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out PreLin, Signature.Stage.CLutElem, out CLUT) &&
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CLutElem, out CLUT, Signature.Stage.CurveSetElem, out PostLin) &&
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CLutElem, out CLUT))
         {
             return false;
         }
@@ -854,7 +854,7 @@ public static partial class Lcms2
             var PreLin = cmsPipelineGetPtrToFirstStage(Src);
 
             // Check if suitable
-            if (PreLin is not null && (uint)PreLin.Type is cmsSigCurveSetElemType)
+            if (PreLin is not null && PreLin.Type == Signature.Stage.CurveSetElem)
             {
                 // Maybe this is a linear tram, so we can avoid the whole stuff
                 if (!AllCurvesAreLinear(PreLin))
@@ -887,7 +887,7 @@ public static partial class Lcms2
             var PostLin = cmsPipelineGetPtrToLastStage(Src);
 
             // Check if suitable
-            if (PostLin is not null && (uint)cmsStageType(PostLin) is cmsSigCurveSetElemType)
+            if (PostLin is not null && cmsStageType(PostLin) == Signature.Stage.CurveSetElem)
             {
                 // Maybe this is a linear tran, so we can avoid the whole stuff
                 if (!AllCurvesAreLinear(PostLin))
@@ -1187,7 +1187,7 @@ public static partial class Lcms2
             var last = cmsPipelineGetPtrToLastStage(OriginalLut);
 
             if (last is null) goto Error;
-            if ((uint)cmsStageType(last) is cmsSigCurveSetElemType)
+            if (cmsStageType(last) == Signature.Stage.CurveSetElem)
             {
                 var Data = cmsStageData(last) as StageToneCurvesData;
                 for (var i = 0; i < Data?.nCurves; i++)
@@ -1468,7 +1468,7 @@ public static partial class Lcms2
              mpe is not null;
              mpe = cmsStageNext(mpe))
         {
-            if ((uint)cmsStageType(mpe) is not cmsSigCurveSetElemType)
+            if (cmsStageType(mpe) != Signature.Stage.CurveSetElem)
                 return false;
         }
 
@@ -1722,10 +1722,10 @@ public static partial class Lcms2
 
         var IdentityMat = false;
         if (cmsPipelineCheckAndRetrieveStages(
-            Src, cmsSigCurveSetElemType, out var Curve1,
-                 cmsSigMatrixElemType, out var Matrix1,
-                 cmsSigMatrixElemType, out var Matrix2,
-                 cmsSigCurveSetElemType, out var Curve2))
+            Src, Signature.Stage.CurveSetElem, out var Curve1,
+                 Signature.Stage.MatrixElem, out var Matrix1,
+                 Signature.Stage.MatrixElem, out var Matrix2,
+                 Signature.Stage.CurveSetElem, out var Curve2))
         {
             // Get both matrices
             var Data1 = (StageMatrixData)cmsStageData(Matrix1!)!;
@@ -1757,9 +1757,9 @@ public static partial class Lcms2
             }
         }
         else if (cmsPipelineCheckAndRetrieveStages(
-            Src, cmsSigCurveSetElemType, out Curve1,
-                 cmsSigMatrixElemType, out Matrix1,
-                 cmsSigCurveSetElemType, out Curve2))
+            Src, Signature.Stage.CurveSetElem, out Curve1,
+                 Signature.Stage.MatrixElem, out Matrix1,
+                 Signature.Stage.CurveSetElem, out Curve2))
         {
             var Data = (StageMatrixData)cmsStageData(Matrix1!)!;
 
@@ -1907,7 +1907,7 @@ public static partial class Lcms2
              mpe is not null;
              mpe = cmsStageNext(mpe))
         {
-            if ((uint)cmsStageType(mpe) is cmsSigNamedColorElemType) return false;
+            if (cmsStageType(mpe) == Signature.Stage.NamedColorElem) return false;
         }
 
         // Try to get rid of identities and trivial conversions.
