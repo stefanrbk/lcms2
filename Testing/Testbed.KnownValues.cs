@@ -573,22 +573,22 @@ internal static partial class Testbed
 
         hProfile = cmsOpenProfileFromMemTHR(DbgThread(), TestProfiles.test1)!;
         Black = cmsDetectDestinationBlackPoint(hProfile, INTENT_RELATIVE_COLORIMETRIC);
-        cmsXYZ2Lab(null, out var Lab, Black);
+        var Lab = Black.AsLab();
         cmsCloseProfile(hProfile);
 
         hProfile = cmsOpenProfileFromFileTHR(DbgThread(), "lcms2cmyk.icc", "r")!;
         Black = cmsDetectDestinationBlackPoint(hProfile, INTENT_RELATIVE_COLORIMETRIC);
-        cmsXYZ2Lab(null, out Lab, Black);
+        Lab = Black.AsLab();
         cmsCloseProfile(hProfile);
 
         hProfile = cmsOpenProfileFromMemTHR(DbgThread(), TestProfiles.test2)!;
         Black = cmsDetectDestinationBlackPoint(hProfile, INTENT_RELATIVE_COLORIMETRIC);
-        cmsXYZ2Lab(null, out Lab, Black);
+        Lab = Black.AsLab();
         cmsCloseProfile(hProfile);
 
         hProfile = cmsOpenProfileFromMemTHR(DbgThread(), TestProfiles.test1)!;
         Black = cmsDetectDestinationBlackPoint(hProfile, INTENT_PERCEPTUAL);
-        cmsXYZ2Lab(null, out Lab, Black);
+        Lab = Black.AsLab();
         cmsCloseProfile(hProfile);
 
         return true;
@@ -751,7 +751,7 @@ internal static partial class Testbed
         using (logger.BeginScope("LCh chroma ring"))
         {
             rc |= !CheckOneGBD(
-                v => cmsLCh2Lab(new(70, 60, v[0])),
+                v => new CIELCh(70, 60, v[0]).AsLab,
                 (SteppedRange<int>.CreateExclusive(0, 360, 1), null));
         }
 

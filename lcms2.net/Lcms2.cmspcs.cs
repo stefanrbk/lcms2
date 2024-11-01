@@ -41,21 +41,6 @@ public static partial class Lcms2
     private static readonly ushort[] GrayBlack = new ushort[4];
     private static readonly ushort[] GrayWhite = new ushort[4] { 0xFFFF, 0, 0, 0 };
 
-    public static CIExyY cmsXYZ2xyY(CIEXYZ Source) =>
-        // See CIEXYZ.As_xyY
-        Source.As_xyY;
-
-    public static CIEXYZ cmsxyY2XYZ(CIExyY Source) =>
-        // See CIExyY.AsXYZ
-        Source.AsXYZ;
-
-    public static void cmsXYZ2Lab(CIEXYZ? WhitePoint, out CIELab Lab, CIEXYZ xyz) =>
-        // See CIEXYZ.AsLab()
-        Lab = xyz.AsLab(WhitePoint);
-
-    public static void cmsLab2XYZ(CIEXYZ? WhitePoint, out CIEXYZ xyz, CIELab Lab) =>
-        // See CIELab.AsXYZ()
-        xyz = Lab.AsXYZ(WhitePoint);
 
     public static CIELab cmsLabEncoded2FloatV2(ReadOnlySpan<ushort> wLab) =>
         // See CIELab.FromLabEncodedV2
@@ -72,14 +57,6 @@ public static partial class Lcms2
     public static void cmsFloat2LabEncoded(Span<ushort> wLab, CIELab fLab) =>
         // See CIELab.ToLabEncoded
         fLab.ToLabEncoded(wLab);
-
-    public static CIELCh cmsLab2LCh(CIELab Lab) =>
-        // See CIELab.AsLCh
-        Lab.AsLCh;
-
-    public static CIELab cmsLCh2Lab(CIELCh LCh) =>
-        // See CIELCh.AsLab
-        LCh.AsLab;
 
     public static void cmsFloat2XYZEncoded(Span<ushort> XYZ, CIEXYZ xyz) =>
         // See CIEXYZ.ToXYZEncoded()

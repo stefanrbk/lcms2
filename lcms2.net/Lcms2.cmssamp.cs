@@ -105,7 +105,7 @@ public static partial class Lcms2
         cmsDeleteTransform(xform);
 
         // Convert from Lab (which is now clipped) to XYZ
-        cmsLab2XYZ(null, out BlackXYZ, Lab[0]);
+        BlackXYZ = Lab[0].AsXYZ();
 
         return BlackXYZ;
 
@@ -137,7 +137,7 @@ public static partial class Lcms2
         cmsDeleteTransform(hRoundTrip);
 
         // Convert it to XYZ
-        cmsLab2XYZ(null, out BlackXYZ, LabOut[0]);
+        BlackXYZ = LabOut[0].AsXYZ();
 
         return BlackXYZ;
 
@@ -305,7 +305,7 @@ public static partial class Lcms2
                 return CIEXYZ.NaN;
 
             // convert the XYZ to Lab
-            cmsXYZ2Lab(null, out InitialLab, IniXYZ);
+            InitialLab = IniXYZ.AsLab();
         }
         else
         {
@@ -363,7 +363,7 @@ public static partial class Lcms2
             // using curve fitting.
             if (NearlyStraightMidrange)
             {
-                cmsLab2XYZ(null, out var bp, InitialLab);
+                var bp = InitialLab.AsXYZ();
                 cmsDeleteTransform(hRoundTrip);
                 return bp;
             }
@@ -406,7 +406,7 @@ public static partial class Lcms2
         Lab[0].a = InitialLab.a;
         Lab[0].b = InitialLab.b;
 
-        cmsLab2XYZ(null, out var BlackPoint, Lab[0]);
+        var BlackPoint = Lab[0].AsXYZ();
 
         cmsDeleteTransform(hRoundTrip);
         return BlackPoint;

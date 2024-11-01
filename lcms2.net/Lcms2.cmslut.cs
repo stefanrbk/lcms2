@@ -929,7 +929,7 @@ public static partial class Lcms2
         Lab.a = (In[1] * 255.0) - 128.0;
         Lab.b = (In[2] * 255.0) - 128.0;
 
-        cmsLab2XYZ(null, out XYZ, Lab);
+        XYZ = Lab.AsXYZ();
 
         // From XYZ, range 0..19997 to 0..1.0, note that 1.99997 comes from 0xffff
         // encoded as 1.15 fixed point, so 1 + (32767.0 / 32768.0)
@@ -1105,7 +1105,7 @@ public static partial class Lcms2
         XYZ.Y = In[1] * XYZadj;
         XYZ.Z = In[2] * XYZadj;
 
-        cmsXYZ2Lab(null, out Lab, XYZ);
+        Lab = XYZ.AsLab();
 
         // From V4 Lab to 0..1.0
         Out[0] = (float)(Lab.L / 100);

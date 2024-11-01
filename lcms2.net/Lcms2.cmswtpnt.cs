@@ -40,7 +40,7 @@ public static partial class Lcms2
 
     internal static bool _cmsAdaptMatrixToD50(ref MAT3 r, CIExyY SourceWhitePt)
     {
-        var Dn = cmsxyY2XYZ(SourceWhitePt);
+        var Dn = SourceWhitePt.AsXYZ;
 
         var Bradford = CHAD.AdaptationMatrix(null, Dn, CIEXYZ.D50);
         if (Bradford.IsNaN)

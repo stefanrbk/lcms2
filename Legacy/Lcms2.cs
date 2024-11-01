@@ -389,4 +389,30 @@ public class Lcms2
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CIExyY cmsD50_xyY() =>
         CIExyY.D50;
+
+    // Colorimetric space conversions
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsXYZ2xyY(out CIExyY Dest, CIEXYZ Source) =>
+        Dest = Source.As_xyY;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsxyY2XYZ(out CIEXYZ Dest, CIExyY Source) =>
+        Dest = Source.AsXYZ;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsXYZ2Lab(CIEXYZ? WhitePoint, out CIELab Lab, CIEXYZ xyz) =>
+        Lab = xyz.AsLab(WhitePoint);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsLab2XYZ(CIEXYZ? WhitePoint, out CIEXYZ xyz, CIELab Lab) =>
+        xyz = Lab.AsXYZ(WhitePoint);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsLab2LCh(out CIELCh LCh, CIELab Lab) =>
+        LCh = Lab.AsLCh;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsLCh2Lab(out CIELab Lab, CIELCh LCh) =>
+        Lab = LCh.AsLab;
 }

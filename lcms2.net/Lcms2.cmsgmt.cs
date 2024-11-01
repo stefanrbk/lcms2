@@ -475,7 +475,7 @@ public static partial class Lcms2
                 return true;
             }
 
-            LCh = cmsLab2LCh(Lab);
+            LCh = Lab.AsLCh;
 
             var slope = Lab.b / Lab.a;
             var h = LCh.h;

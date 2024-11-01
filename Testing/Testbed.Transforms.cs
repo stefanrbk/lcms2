@@ -617,9 +617,9 @@ internal static partial class Testbed
         if (!result) return false;
 
         var tripxyY = new CIExyYTRIPLE(
-            cmsXYZ2xyY(tripXYZ.Red),
-            cmsXYZ2xyY(tripXYZ.Green),
-            cmsXYZ2xyY(tripXYZ.Blue));
+            tripXYZ.Red.As_xyY,
+            tripXYZ.Green.As_xyY,
+            tripXYZ.Blue.As_xyY);
 
         /* valus were taken from
         http://en.wikipedia.org/wiki/RGB_color_spaces#Specifications */

@@ -807,7 +807,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
 
         var Dest = d.AsXYZ;
 
-        var DestChromaticity = cmsXYZ2xyY(Dest);
+        var DestChromaticity = Dest.As_xyY;
 
         var TempK = cmsTempFromWhitePoint(DestChromaticity);
         if (double.IsNaN(TempK))
@@ -819,7 +819,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
     private static MAT3 Temp2CHAD(double Temp)
     {
         var ChromaticityOfWhite = cmsWhitePointFromTemp(Temp);
-        var White = cmsxyY2XYZ(ChromaticityOfWhite);
+        var White = ChromaticityOfWhite.AsXYZ;
         return CHAD.AdaptationMatrix(null, White, CIEXYZ.D50);
     }
 

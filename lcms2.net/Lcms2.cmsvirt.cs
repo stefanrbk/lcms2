@@ -133,7 +133,7 @@ public static partial class Lcms2
             if (!cmsWriteTag(hICC, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50)))
                 goto Error;
 
-            WhitePointXYZ = cmsxyY2XYZ(WhitePoint.Value);
+            WhitePointXYZ = WhitePoint.Value.AsXYZ;
             CHAD = lcms2.CHAD.AdaptationMatrix(null, WhitePointXYZ, CIEXYZ.D50);
 
             // This is a V4 tag, but many CMM does read and understand it no matter which version
@@ -243,7 +243,7 @@ public static partial class Lcms2
 
         if (WhitePoint is not null)
         {
-            tmp = cmsxyY2XYZ(WhitePoint.Value);
+            tmp = WhitePoint.Value.AsXYZ;
             if (!cmsWriteTag(hICC, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(tmp))) goto Error;
         }
 
@@ -700,7 +700,7 @@ public static partial class Lcms2
 
         LabIn = cmsLabEncoded2Float(In);
 
-        LChIn = cmsLab2LCh(LabIn);
+        LChIn = LabIn.AsLCh;
 
         // Do some adjusts on LCh
 
@@ -708,13 +708,13 @@ public static partial class Lcms2
         LChOut.C = LChIn.C + bchsw.Value.Saturation;
         LChOut.h = LChIn.h + bchsw.Value.Hue;
 
-        LabOut = cmsLCh2Lab(LChOut);
+        LabOut = LChOut.AsLab;
 
         // Move white point in Lab
         if (bchsw.Value.lAdjustWP)
         {
-            cmsLab2XYZ(bchsw.Value.WPsrc, out XYZ, LabOut);
-            cmsXYZ2Lab(bchsw.Value.WPdest, out LabOut, XYZ);
+            XYZ = LabOut.AsXYZ(bchsw.Value.WPsrc);
+            LabOut = XYZ.AsLab(bchsw.Value.WPdest);
         }
 
         // Back to encoded
@@ -749,9 +749,9 @@ public static partial class Lcms2
         {
             bchsw.lAdjustWP = true;
             WhitePnt = cmsWhitePointFromTemp(TempSrc);
-            bchsw.WPsrc = cmsxyY2XYZ(WhitePnt);
+            bchsw.WPsrc = WhitePnt.AsXYZ;
             WhitePnt = cmsWhitePointFromTemp(TempDest);
-            bchsw.WPdest = cmsxyY2XYZ(WhitePnt);
+            bchsw.WPdest = WhitePnt.AsXYZ;
         }
 
         var hICC = cmsCreateProfilePlaceholder(ContextID);

@@ -48,8 +48,8 @@ internal static partial class Testbed
                     Lab.a = a;
                     Lab.b = b;
 
-                    LCh = cmsLab2LCh(Lab);
-                    Lab2 = cmsLCh2Lab(LCh);
+                    LCh = Lab.AsLCh;
+                    Lab2 = LCh.AsLab;
 
                     var dist = cmsDeltaE(Lab, Lab2);
                     Max = Math.Max(dist, Max);
@@ -76,8 +76,8 @@ internal static partial class Testbed
                     Lab.a = a;
                     Lab.b = b;
 
-                    cmsLab2XYZ(null, out XYZ, Lab);
-                    cmsXYZ2Lab(null, out Lab2, XYZ);
+                    XYZ = Lab.AsXYZ();
+                    Lab2 = XYZ.AsLab();
 
                     var dist = cmsDeltaE(Lab, Lab2);
                     Max = Math.Max(dist, Max);
@@ -105,10 +105,10 @@ internal static partial class Testbed
                     Lab.a = a;
                     Lab.b = b;
 
-                    cmsLab2XYZ(null, out XYZ, Lab);
-                    xyY = cmsXYZ2xyY(XYZ);
-                    XYZ = cmsxyY2XYZ(xyY);
-                    cmsXYZ2Lab(null, out Lab2, XYZ);
+                    XYZ = Lab.AsXYZ();
+                    xyY = XYZ.As_xyY;
+                    XYZ = xyY.AsXYZ;
+                    Lab2 = XYZ.AsLab();
 
                     var dist = cmsDeltaE(Lab, Lab2);
                     if (!Double.IsNaN(dist))
