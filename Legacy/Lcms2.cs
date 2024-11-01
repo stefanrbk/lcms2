@@ -62,8 +62,7 @@ public class Lcms2
     public const uint cmsSigMultiLocalizedUnicodeType = 0x6D6C7563;
     public const uint cmsSigMultiProcessElementType = 0x6D706574;
 
-    [Obsolete]
-    public const uint cmsSigNamedColorType = 0x6E636f6C;
+    [Obsolete] public const uint cmsSigNamedColorType = 0x6E636f6C;
 
     public const uint cmsSigNamedColor2Type = 0x6E636C32;
     public const uint cmsSigParametricCurveType = 0x70617261;
