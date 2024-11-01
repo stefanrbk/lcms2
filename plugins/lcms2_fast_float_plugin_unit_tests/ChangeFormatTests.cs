@@ -24,15 +24,11 @@ using lcms2.state;
 namespace lcms2.FastFloatPlugin.tests;
 public class ChangeFormatTests
 {
-    private static readonly Context _ctx = cmsCreateContext()!;
+    private static readonly Context _ctx = new();
 
     [OneTimeSetUp]
     public void Setup() =>
         cmsPluginTHR(_ctx, cmsFastFloatExtensions());
-
-    [OneTimeTearDown]
-    public void Cleanup() =>
-        cmsDeleteContext(_ctx);
 
     [Test]
     public void TestChangeFormatFunctionWorksWithKnownValues()

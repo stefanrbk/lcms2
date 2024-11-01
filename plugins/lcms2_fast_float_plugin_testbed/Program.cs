@@ -106,8 +106,6 @@ if (doSpeedTests)
 
 trace("All tests passed!");
 
-cmsDeleteContext(null);
-
 Thread.Sleep(10);
 
 return 0;

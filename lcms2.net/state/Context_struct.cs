@@ -58,11 +58,11 @@ public class Context : ICloneable
 
     public const ushort LibraryVersion = 2160;
 
-    private Context(object? userdata = null) =>
+    public Context(object? userdata = null) =>
         userData = userdata;
 
     public Context(IEnumerable<PluginBase> plugins,
-                   object? UserData = null) : this(UserData)    // cmsCreateContext
+                   object? UserData = null) : this(UserData)
     {
         foreach (var plugin in plugins)
         {

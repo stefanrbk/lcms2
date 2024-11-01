@@ -1538,7 +1538,7 @@ internal static partial class Testbed
 
     internal static bool CheckEmptyMLUC()
     {
-        var context = cmsCreateContext();
+        var context = new Context();
         var white = new CIExyY(0.31271, 0.32902, 1.0);
         var primaries = new CIExyYTRIPLE(
             new(0.640, 0.330, 1.0),
@@ -1568,7 +1568,6 @@ internal static partial class Testbed
 
         // Cleanup
         cmsCloseProfile(profile);
-        cmsDeleteContext(context);
 
         return true;
     }

@@ -216,19 +216,8 @@ internal static partial class Testbed
     //    CheckHeap();
     //}
 
-    public static Context WatchDogContext(object? usr)
-    {
-        //var ctx = cmsCreateContext(DebugMemHandler, usr);
-        var ctx = cmsCreateContext(UserData: usr);
-
-        if (ctx is null)
-        {
-            Die("Unable to create memory managed context");
-        }
-
-        //DebugMemDontCheckThis(ctx);
-        return ctx;
-    }
+    public static Context WatchDogContext(object? usr) =>
+        new(usr);
 
     public static ILoggerFactory BuildDebugLogger()
     {

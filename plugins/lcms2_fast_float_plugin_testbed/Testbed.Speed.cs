@@ -331,7 +331,7 @@ internal static partial class Testbed
     {
         var size_rgb8bits = Unsafe.SizeOf<Scanline_rgb8bits>();
 
-        var noPlugin = cmsCreateContext();
+        var noPlugin = new Context();
         Thread.Sleep(10);
         Console.WriteLine();
 
@@ -364,8 +364,6 @@ internal static partial class Testbed
                 Performance("8 bits on curves", SpeedTest8bitsRGB, null, "*curves", "*curves", size_rgb8bits, t3);
             }
         }
-
-        cmsDeleteContext(noPlugin);
     }
 
     public static void SpeedTest15()
@@ -373,7 +371,7 @@ internal static partial class Testbed
         var size_rgb15bits = Unsafe.SizeOf<Scanline_rgb15bits>();
         var size_cmyk15bits = Unsafe.SizeOf<Scanline_cmyk15bits>();
 
-        var noPlugin = cmsCreateContext();
+        var noPlugin = new Context();
         Thread.Sleep(10);
         Console.WriteLine();
 
@@ -390,8 +388,6 @@ internal static partial class Testbed
                 Performance("15 bits on CMYK CLUT profiles", SpeedTest15bitsCMYK, null, TestProfiles.test1, TestProfiles.test2, size_cmyk15bits, default);
             }
         }
-
-        cmsDeleteContext(noPlugin);
     }
 
     public static void SpeedTest16()
@@ -399,7 +395,7 @@ internal static partial class Testbed
         var size_rgb16bits = Unsafe.SizeOf<Scanline_rgb16bits>();
         var size_cmyk16bits = Unsafe.SizeOf<Scanline_cmyk16bits>();
 
-        var noPlugin = cmsCreateContext();
+        var noPlugin = new Context();
         Thread.Sleep(10);
         Console.WriteLine();
 
@@ -434,8 +430,6 @@ internal static partial class Testbed
                 Performance("16 bits on CMYK CLUT profiles",     SpeedTest16bitsCMYK, null, TestProfiles.test1, TestProfiles.test2, size_cmyk16bits, t4);
             }
         }
-
-        cmsDeleteContext(noPlugin);
     }
 
     private static TimeSpan SpeedTestFloatRGB(Context? ct, Profile profileIn, Profile profileOut)
@@ -655,7 +649,7 @@ internal static partial class Testbed
         var size_cmykFloat = Unsafe.SizeOf<Scanline_cmykFloat>();
         var size_LabFloat = Unsafe.SizeOf<Scanline_LabFloat>();
 
-        var noPlugin = cmsCreateContext();
+        var noPlugin = new Context();
         Thread.Sleep(10);
         Console.WriteLine();
 
@@ -696,8 +690,6 @@ internal static partial class Testbed
                 Performance("Floating point on Lab->RGB",               SpeedTestFloatLab,  null, "*lab",        TestProfiles.test3, size_LabFloat, t7);
             }
         }
-
-        cmsDeleteContext(noPlugin);
     }
 
     private static TimeSpan SpeedTestFloatByUsing16BitsRGB(Context? ct, Profile profileIn, Profile profileOut)
@@ -890,8 +882,8 @@ internal static partial class Testbed
 
     public static void ComparativeLineStride8bits()
     {
-        var NoPlugin = cmsCreateContext();
-        var Plugin = cmsCreateContext(cmsFastFloatExtensions());
+        var NoPlugin = new Context();
+        var Plugin = new Context(cmsFastFloatExtensions());
 
         Thread.Sleep(10);
         Console.WriteLine();
@@ -906,9 +898,6 @@ internal static partial class Testbed
             ComparativeCt(NoPlugin, Plugin, "same Matrix-Shaper", "cmsDoTransform", "cmsDoTransformLineStride", SpeedTest8bitDoTransform, SpeedTest8bitLineStride, TestProfiles.test0, TestProfiles.test0);
             ComparativeCt(NoPlugin, Plugin, "curves", "cmsDoTransform", "cmsDoTransformLineStride", SpeedTest8bitDoTransform, SpeedTest8bitLineStride, default, default);
         }
-
-        cmsDeleteContext(NoPlugin);
-        cmsDeleteContext(Plugin);
     }
 
     public static void TestGrayTransformPerformance()

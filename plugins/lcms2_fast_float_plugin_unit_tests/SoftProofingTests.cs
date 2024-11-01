@@ -26,8 +26,8 @@ using NUnit.Framework.Internal;
 namespace lcms2.FastFloatPlugin.tests;
 public class SoftProofingTests
 {
-    private static readonly Context _pluginCtx = cmsCreateContext()!;
-    private static readonly Context _rawCtx = cmsCreateContext()!;
+    private static readonly Context _pluginCtx = new();
+    private static readonly Context _rawCtx = new();
 
     [OneTimeSetUp]
     public void Setup() =>
@@ -36,8 +36,6 @@ public class SoftProofingTests
     [OneTimeTearDown]
     public void Cleanup()
     {
-        cmsDeleteContext(_rawCtx);
-        cmsDeleteContext(_pluginCtx);
     }
 
     [TestCaseSource(nameof(TestSoftProofingTransformParityCaseGenerator))]

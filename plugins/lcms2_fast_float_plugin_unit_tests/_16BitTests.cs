@@ -29,8 +29,8 @@ namespace lcms2.FastFloatPlugin.tests;
 //[Parallelizable(ParallelScope.All)]
 public class _16BitTests
 {
-    private static readonly Context _pluginCtx = cmsCreateContext()!;
-    private static readonly Context _rawCtx = cmsCreateContext()!;
+    private static readonly Context _pluginCtx = new();
+    private static readonly Context _rawCtx = new();
 
     [OneTimeSetUp]
     public void Setup() =>
@@ -39,8 +39,6 @@ public class _16BitTests
     [OneTimeTearDown]
     public void Cleanup()
     {
-        cmsDeleteContext(_rawCtx);
-        cmsDeleteContext(_pluginCtx);
     }
 
     [TestCase(nameof(TestProfiles.test5), nameof(TestProfiles.test3), INTENT_PERCEPTUAL, Description = "CLUT accuracy")]

@@ -26,8 +26,8 @@ namespace lcms2.FastFloatPlugin.tests;
 //[Parallelizable(ParallelScope.All)]
 public class PremultipliedAlphaTests
 {
-    private static readonly Context _pluginCtx = cmsCreateContext()!;
-    private static readonly Context _rawCtx = cmsCreateContext()!;
+    private static readonly Context _pluginCtx = new();
+    private static readonly Context _rawCtx = new();
 
     [OneTimeSetUp]
     public void Setup() =>
@@ -36,8 +36,6 @@ public class PremultipliedAlphaTests
     [OneTimeTearDown]
     public void Cleanup()
     {
-        cmsDeleteContext(_rawCtx);
-        cmsDeleteContext(_pluginCtx);
     }
 
     [Test]

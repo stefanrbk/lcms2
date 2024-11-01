@@ -529,8 +529,8 @@ internal static partial class Testbed
 
     private static void TryAllValues16(Profile profileIn, Profile profileOut, int Intent)
     {
-        var Raw = cmsCreateContext();
-        var Plugin = cmsCreateContext(cmsFastFloatExtensions(), null);
+        var Raw = new Context();
+        var Plugin = new Context(cmsFastFloatExtensions());
 
         var xformRaw = cmsCreateTransformTHR(Raw, profileIn, TYPE_RGBA_16, profileOut, TYPE_RGBA_16, (uint)Intent, cmsFLAGS_NOCACHE | cmsFLAGS_COPY_ALPHA);
         var xformPlugin = cmsCreateTransformTHR(Plugin, profileIn, TYPE_RGBA_16, profileOut, TYPE_RGBA_16, (uint)Intent, cmsFLAGS_NOCACHE | cmsFLAGS_COPY_ALPHA);
@@ -618,9 +618,6 @@ internal static partial class Testbed
         cmsDeleteTransform(xformRaw);
         cmsDeleteTransform(xformPlugin);
 
-        cmsDeleteContext(Plugin);
-        cmsDeleteContext(Raw);
-
         if (failed is not 0)
             Fail("{0} failed", failed);
 
@@ -703,7 +700,7 @@ internal static partial class Testbed
 
         const uint npixels = 100;
 
-        var Plugin = cmsCreateContext(cmsFastFloatExtensions());
+        var Plugin = new Context(cmsFastFloatExtensions());
 
         var xformPlugin = cmsCreateTransformTHR(Plugin, profileIn, TYPE_RGB_FLT, profileOut, TYPE_RGB_FLT, (uint)Intent, 0);
 
@@ -748,8 +745,6 @@ internal static partial class Testbed
 
         cmsDeleteTransform(xformPlugin);
 
-        cmsDeleteContext(Plugin);
-
         trace("Passed");
     }
 
@@ -769,8 +764,8 @@ internal static partial class Testbed
     {
         using (logger.BeginScope("Lab encoding"))
         {
-            var Plugin = cmsCreateContext(cmsFastFloatExtensions());
-            var Raw = cmsCreateContext();
+            var Plugin = new Context(cmsFastFloatExtensions());
+            var Raw = new Context();
 
             var hsRGB = cmsCreate_sRGBProfile()!;
             var hLab = cmsCreateLab4Profile(null)!;
@@ -814,8 +809,6 @@ internal static partial class Testbed
 
             cmsDeleteTransform(xform);
             cmsCloseProfile(hsRGB); cmsCloseProfile(hLab);
-            cmsDeleteContext(Raw);
-            cmsDeleteContext(Plugin);
 
             if (maxErr > 0.1)
                 Fail("Failed");
@@ -828,8 +821,8 @@ internal static partial class Testbed
     {
         using (logger.BeginScope("Float Lab encoding"))
         {
-            var Plugin = cmsCreateContext(cmsFastFloatExtensions());
-            var Raw = cmsCreateContext();
+            var Plugin = new Context(cmsFastFloatExtensions());
+            var Raw = new Context();
 
             var hsRGB = cmsCreate_sRGBProfile()!;
             var hLab = cmsCreateLab4Profile(null)!;
@@ -868,8 +861,6 @@ internal static partial class Testbed
 
             cmsDeleteTransform(xform);
             cmsCloseProfile(hsRGB); cmsCloseProfile(hLab);
-            cmsDeleteContext(Raw);
-            cmsDeleteContext(Plugin);
 
             if (maxErr > 0.1)
                 Fail("Failed");
@@ -883,8 +874,8 @@ internal static partial class Testbed
 
     private static void TryAllValuesFloat(Profile profileIn, Profile profileOut, int Intent)
     {
-        var Raw = cmsCreateContext();
-        var Plugin = cmsCreateContext(cmsFastFloatExtensions());
+        var Raw = new Context();
+        var Plugin = new Context(cmsFastFloatExtensions());
 
         var xformRaw = cmsCreateTransformTHR(Raw, profileIn, TYPE_RGB_FLT, profileOut, TYPE_RGB_FLT, (uint)Intent, cmsFLAGS_NOCACHE);
         var xformPlugin = cmsCreateTransformTHR(Plugin, profileIn, TYPE_RGB_FLT, profileOut, TYPE_RGB_FLT, (uint)Intent, cmsFLAGS_NOCACHE);
@@ -962,9 +953,6 @@ internal static partial class Testbed
         cmsDeleteTransform(xformRaw);
         cmsDeleteTransform(xformPlugin);
 
-        cmsDeleteContext(Plugin);
-        cmsDeleteContext(Raw);
-
         if (failed > 0)
             Fail("{0} failed", failed);
         trace("Passed");
@@ -1013,8 +1001,8 @@ internal static partial class Testbed
 
     private static void TryAllValuesFloatAlpha(Profile profileIn, Profile profileOut, int Intent, bool copyAlpha)
     {
-        var Raw = cmsCreateContext();
-        var Plugin = cmsCreateContext(cmsFastFloatExtensions());
+        var Raw = new Context();
+        var Plugin = new Context(cmsFastFloatExtensions());
         var flags = cmsFLAGS_NOCACHE | (copyAlpha ? cmsFLAGS_COPY_ALPHA : 0);
 
         var xformRaw = cmsCreateTransformTHR(Raw, profileIn, TYPE_RGBA_FLT, profileOut, TYPE_RGBA_FLT, (uint)Intent, flags);
@@ -1093,9 +1081,6 @@ internal static partial class Testbed
 
         cmsDeleteTransform(xformRaw);
         cmsDeleteTransform(xformPlugin);
-
-        cmsDeleteContext(Plugin);
-        cmsDeleteContext(Raw);
 
         if (failed > 0)
             Fail("{0} failed", failed);
@@ -1451,7 +1436,7 @@ internal static partial class Testbed
     {
         var hLab = cmsCreateLab4Profile(null)!;
         var hRGB = cmsOpenProfileFromMem(TestProfiles.test3)!;
-        var noPlugin = cmsCreateContext();
+        var noPlugin = new Context();
 
         var hXformNoPlugin = cmsCreateTransformTHR(noPlugin, hLab, TYPE_Lab_FLT, hRGB, TYPE_RGB_FLT, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_NOCACHE)!;
         var hXformPlugin = cmsCreateTransform(hLab, TYPE_Lab_FLT, hRGB, TYPE_RGB_FLT, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_NOCACHE)!;
@@ -1555,8 +1540,6 @@ internal static partial class Testbed
 
         cmsDeleteTransform(hXformNoPlugin);
         cmsDeleteTransform(hXformPlugin);
-
-        cmsDeleteContext(noPlugin);
     }
 
     public static void CheckSoftProofing()
@@ -1568,7 +1551,7 @@ internal static partial class Testbed
 #endif
             var hRGB1 = cmsOpenProfileFromMem(TestProfiles.test5)!;
             var hRGB2 = cmsOpenProfileFromMem(TestProfiles.test3)!;
-            var noPlugin = cmsCreateContext();
+            var noPlugin = new Context();
 
             var xformNoPlugin = cmsCreateProofingTransformTHR(noPlugin, hRGB1, TYPE_RGB_FLT, hRGB1, TYPE_RGB_FLT, hRGB2, INTENT_RELATIVE_COLORIMETRIC, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_GAMUTCHECK | cmsFLAGS_SOFTPROOFING)!;
             var xformPlugin = cmsCreateProofingTransform(hRGB1, TYPE_RGB_FLT, hRGB1, TYPE_RGB_FLT, hRGB2, INTENT_RELATIVE_COLORIMETRIC, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_GAMUTCHECK | cmsFLAGS_SOFTPROOFING)!;
@@ -1649,8 +1632,6 @@ internal static partial class Testbed
             cmsDeleteTransform(xformNoPlugin);
             cmsDeleteTransform(xformPlugin);
 
-            cmsDeleteContext(noPlugin);
-
             if (failed is not 0)
                 Fail("{0} failed", failed);
 
@@ -1715,7 +1696,7 @@ internal static partial class Testbed
         var srgb1 = cmsCreate_sRGBProfile();
         var srgb2 = cmsCreate_sRGBProfile();
 
-        var noPlugin = cmsCreateContext();
+        var noPlugin = new Context();
 
         var xform1 = cmsCreateTransformTHR(noPlugin, srgb1, TYPE_BGRA_8, srgb2, TYPE_BGRA_8_PREMUL, INTENT_PERCEPTUAL, cmsFLAGS_COPY_ALPHA);
         var xform2 = cmsCreateTransform(srgb1, TYPE_BGRA_8, srgb2, TYPE_BGRA_8_PREMUL, INTENT_PERCEPTUAL, cmsFLAGS_COPY_ALPHA);

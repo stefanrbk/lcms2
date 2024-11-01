@@ -38,14 +38,8 @@ internal static partial class Testbed
     const ushort TYPE_COS = 1010;
     const ushort TYPE_TAN = 1020;
     const ushort TYPE_709 = 709;
-    private static Context? DupContext(Context? src, object? Data)
-    {
-        var cpy = cmsDupContext(src, Data);
-
-        //DebugMemDontCheckThis(cpy);
-
-        return cpy;
-    }
+    private static Context DupContext(Context? src, object? Data) =>
+        Context.Get(src).Clone(Data);
 
     private static readonly PluginInterpolation InterpPluginSample = new(
         Signature.Plugin.MagicNumber,
@@ -164,7 +158,6 @@ internal static partial class Testbed
         // This function creates a context with a special
         // memory manager that checks allocation
         var c1 = WatchDogContext(a);
-        cmsDeleteContext(c1);
 
         c1 = WatchDogContext(a);
 
@@ -173,12 +166,9 @@ internal static partial class Testbed
         var c3 = DupContext(c2, null);
 
         // User data should have been propagated
-        bool rc = (int?)cmsGetContextUserData(c3) == 1;
+        bool rc = (int?)c3.UserData == 1;
 
         // Free resources
-        cmsDeleteContext(c1);
-        cmsDeleteContext(c2);
-        cmsDeleteContext(c3);
 
         if (!rc)
         {
@@ -187,18 +177,14 @@ internal static partial class Testbed
         }
 
         // Back to create 3 levels of inheritance
-        c1 = cmsCreateContext(UserData: a);
+        c1 = new Context(a);
         //DebugMemDontCheckThis(c1);
 
         c2 = DupContext(c1, null);
         c3 = DupContext(c2, b);
 
         // New user data should be applied to c3
-        rc = (int?)cmsGetContextUserData(c3) == 32;
-
-        cmsDeleteContext(c1);
-        cmsDeleteContext(c2);
-        cmsDeleteContext(c3);
+        rc = (int?)c3.UserData == 32;
 
         if (!rc)
         {
@@ -234,10 +220,6 @@ internal static partial class Testbed
             }
         }
 
-        cmsDeleteContext(c1);
-        cmsDeleteContext(c2);
-        cmsDeleteContext(c3);
-
         return rc;
     }
 
@@ -254,10 +236,6 @@ internal static partial class Testbed
         var c3 = DupContext(c2, null);
 
         rc = IsGoodVal("Adaption state", cmsSetAdaptationStateTHR(c3, -1), 0.7, 0.001);
-
-        cmsDeleteContext(c1);
-        cmsDeleteContext(c2);
-        cmsDeleteContext(c3);
 
         var old2 = cmsSetAdaptationStateTHR(null, -1);
 
@@ -308,8 +286,6 @@ internal static partial class Testbed
         if (!IsGoodVal("0.9999", cmsEvalToneCurveFloat(Sampled1D, 0.9999f), 0.90, 0.01)) goto Error;
 
         cmsFreeToneCurve(Sampled1D);
-        cmsDeleteContext(ctx);
-        cmsDeleteContext(cpy);
 
         // Now in global context
         Sampled1D = cmsBuildTabulatedToneCurveFloat(null, 11, tab);
@@ -329,8 +305,14 @@ internal static partial class Testbed
         return true;
 
     Error:
-        if (ctx != null) cmsDeleteContext(ctx);
-        if (cpy != null) cmsDeleteContext(ctx);
+        if (ctx != null)
+        {
+        }
+
+        if (cpy != null)
+        {
+        }
+
         if (Sampled1D != null) cmsFreeToneCurve(Sampled1D);
         return false;
 
@@ -388,7 +370,6 @@ internal static partial class Testbed
         if (!IsGoodWord("2", 0xFFFF - 0x1234, Out[2])) goto Error;
 
         cmsPipelineFree(p);
-        cmsDeleteContext(ctx);
 
         // Now without the plug-in
 
@@ -466,7 +447,7 @@ internal static partial class Testbed
         Signature.Plugin.MagicNumber, 2060, Signature.Plugin.ParametricCurve, new (int, uint)[] { (TYPE_TAN, 1) }, my_fns2);
 
     // --------------------------------------------------------------------------------------------------
-    // In this test, the DupContext function will be checked as well                      
+    // In this test, the DupContext function will be checked as well
     // --------------------------------------------------------------------------------------------------
     public static bool CheckParametricCurvePlugin()
     {
@@ -523,10 +504,6 @@ internal static partial class Testbed
         cmsFreeToneCurve(reverse_sinus);
         cmsFreeToneCurve(reverse_cosinus);
 
-        cmsDeleteContext(ctx);
-        cmsDeleteContext(cpy);
-        cmsDeleteContext(cpy2);
-
         return true;
 
     Error:
@@ -536,13 +513,22 @@ internal static partial class Testbed
         cmsFreeToneCurve(cosinus);
         cmsFreeToneCurve(reverse_cosinus);
 
-        if (ctx != null) cmsDeleteContext(ctx);
-        if (cpy != null) cmsDeleteContext(cpy);
-        if (cpy2 != null) cmsDeleteContext(cpy2);
+        if (ctx != null)
+        {
+        }
+
+        if (cpy != null)
+        {
+        }
+
+        if (cpy2 != null)
+        {
+        }
+
         return false;
     }
 
-    // We define this special type as 0 bytes not float, and set the upper bit 
+    // We define this special type as 0 bytes not float, and set the upper bit
 
     private readonly static uint TYPE_RGB_565 = (COLORSPACE_SH(PT_RGB) | CHANNELS_SH(3) | BYTES_SH(0) | (1 << 23));
 
@@ -560,7 +546,7 @@ internal static partial class Testbed
         wIn[2] = (ushort) r;
         wIn[1] = (ushort) g;
         wIn[0] = (ushort) b;
-    
+
         return accum.Length <= 2 ? default : accum[2..];
     }
 
@@ -642,9 +628,6 @@ internal static partial class Testbed
         cmsDoTransform<ushort, ushort>(xform, stream, result, 4);
 
         cmsDeleteTransform(xform);
-        cmsDeleteContext(ctx);
-        cmsDeleteContext(cpy);
-        cmsDeleteContext(cpy2);
 
         for (i = 0; i < 4; i++)
             if (stream[i] != result[i]) return false;
@@ -716,9 +699,6 @@ internal static partial class Testbed
 
         cpy = DupContext(ctx, null);
         cpy2 = DupContext(cpy, null);
-
-        cmsDeleteContext(ctx);
-        cmsDeleteContext(cpy);
 
         h = cmsCreateProfilePlaceholder(cpy2);
         if (h == null)
@@ -799,16 +779,22 @@ internal static partial class Testbed
 
         cmsCloseProfile(h);
 
-        cmsDeleteContext(cpy2);
-
         return rc;
 
     Error:
 
         if (h != null) cmsCloseProfile(h);
-        if (ctx != null) cmsDeleteContext(ctx);
-        if (cpy != null) cmsDeleteContext(cpy);
-        if (cpy2 != null) cmsDeleteContext(cpy2);
+        if (ctx != null)
+        {
+        }
+
+        if (cpy != null)
+        {
+        }
+
+        if (cpy2 != null)
+        {
+        }
         //if (data is not null) free(data);
 
         return false;
@@ -876,9 +862,6 @@ internal static partial class Testbed
 
         cpy = DupContext(ctx, null);
         cpy2 = DupContext(cpy, null);
-
-        cmsDeleteContext(ctx);
-        cmsDeleteContext(cpy);
 
         h = cmsCreateProfilePlaceholder(cpy2);
         if (h == null)
@@ -986,16 +969,22 @@ internal static partial class Testbed
 
         cmsCloseProfile(h);
 
-        cmsDeleteContext(cpy2);
-
         return rc;
 
     Error:
 
         if (h != null) cmsCloseProfile(h);
-        if (ctx != null) cmsDeleteContext(ctx);
-        if (cpy != null) cmsDeleteContext(cpy);
-        if (cpy2 != null) cmsDeleteContext(cpy2);
+        if (ctx != null)
+        {
+        }
+
+        if (cpy != null)
+        {
+        }
+
+        if (cpy2 != null)
+        {
+        }
         //if (data != null) free(data);
 
         return false;
@@ -1059,9 +1048,6 @@ internal static partial class Testbed
         cmsDoTransform(xform, In, Out, 4);
 
         cmsDeleteTransform(xform);
-        cmsDeleteContext(ctx);
-        cmsDeleteContext(cpy);
-        cmsDeleteContext(cpy2);
 
         for (i = 0; i < 4; i++)
             if (In[i] != Out[i]) return false;
@@ -1127,9 +1113,6 @@ internal static partial class Testbed
         cmsDoTransform(xform, In, Out, 4);
 
         cmsDeleteTransform(xform);
-        cmsDeleteContext(ctx);
-        cmsDeleteContext(cpy);
-        cmsDeleteContext(cpy2);
 
         for (i = 0; i < 4; i++)
             if (Out[i] != In[i]) return false;
@@ -1194,9 +1177,6 @@ internal static partial class Testbed
 
 
         cmsDeleteTransform(xform);
-        cmsDeleteContext(ctx);
-        cmsDeleteContext(cpy);
-        cmsDeleteContext(cpy2);
 
         for (i = 0; i < 4; i++)
             if (Out[i] != 0x42) return false;
@@ -1277,9 +1257,6 @@ internal static partial class Testbed
 
 
         cmsDeleteTransform(xform);
-        cmsDeleteContext(ctx);
-        cmsDeleteContext(cpy);
-        cmsDeleteContext(cpy2);
 
         for (i = 0; i < 4; i++)
             if (Out[i] != In[i]) return false;

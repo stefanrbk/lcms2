@@ -1,10 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using lcms2.io;
 using lcms2.state;
 using lcms2.types;
 
 namespace lcms2.legacy;
 
+[DebuggerStepThrough]
 public class Lcms2
 {
     // Version/release
@@ -286,9 +288,12 @@ public class Lcms2
     public const uint cmsSigDNN = 0x444E4E20;
     public const uint cmsSigDNNP = 0x444E4E50;
 
+    // Get version
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int cmsGetEncodedCMMversion() =>
         Context.LibraryVersion;
 
+    // Support of non-standard functions
     public static int cmsstrcasecmp(ReadOnlySpan<byte> s1, ReadOnlySpan<byte> s2)
     {
         var us1 = Char.ToUpper((char)s1[0]);
@@ -325,4 +330,17 @@ public class Lcms2
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long cmsfilelength(FILE f) =>
         f.Length();
+
+    // Context handling
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Context? cmsCreateContext(IEnumerable<PluginBase> Plugins, object? UserData = null) =>
+        new(Plugins, UserData);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Context? cmsDupContext(Context? context, object? NewUserData) =>
+        context?.Clone(NewUserData) ?? Context.Shared.Clone(NewUserData);
+
+    public static ref object? cmsGetContextUserData(Context? context) =>
+        ref context is null ? ref Context.Shared.UserData : ref context.UserData;
 }
