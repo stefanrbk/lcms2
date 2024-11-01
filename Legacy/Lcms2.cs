@@ -1,11 +1,14 @@
-﻿using lcms2.types;
+﻿using System.Runtime.CompilerServices;
+using lcms2.io;
+using lcms2.state;
+using lcms2.types;
 
 namespace lcms2.legacy;
 
 public class Lcms2
 {
     // Version/release
-    public const ushort LCMS_VERSION = state.Context.LibraryVersion;
+    public const ushort LCMS_VERSION = Context.LibraryVersion;
 
     public const ushort cmsMAX_PATH = lcms2.Lcms2.MaxPath;
 
@@ -282,4 +285,44 @@ public class Lcms2
     public const uint cmsSigDNP = 0x444E2050;
     public const uint cmsSigDNN = 0x444E4E20;
     public const uint cmsSigDNNP = 0x444E4E50;
+
+    public static int cmsGetEncodedCMMversion() =>
+        Context.LibraryVersion;
+
+    public static int cmsstrcasecmp(ReadOnlySpan<byte> s1, ReadOnlySpan<byte> s2)
+    {
+        var us1 = Char.ToUpper((char)s1[0]);
+        var us2 = Char.ToUpper((char)s2[0]);
+
+        while (us1 == us2)
+        {
+            // If both spans reach a '0' at the same time...
+            if (us1 is '\0')
+                return 0;
+
+            s1 = s1[1..];
+            s2 = s2[1..];
+
+            // If both spans are now empty...
+            if (s1.Length is 0 && s2.Length is 0)
+                return 0;
+
+            // If the 1st span is empty and the 2nd is not...
+            if (s1.Length is 0)
+                return us2;
+
+            // If the 2nd span is empty and the 1st is not...
+            if (s2.Length is 0)
+                return -us1;
+
+            us1 = Char.ToUpper((char)s1[0]);
+            us2 = Char.ToUpper((char)s2[0]);
+        }
+
+        return us1 - us2;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static long cmsfilelength(FILE f) =>
+        f.Length();
 }

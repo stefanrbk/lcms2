@@ -30,4 +30,25 @@ public class FILE(Stream stream, string filename = "")
 {
     public string Filename = filename;
     public Stream Stream = stream;
+
+    public long Length()
+    {
+        try
+        {
+            var p = ftell(this); // register current file position
+            if (p is -1) return -1;
+
+            if (fseek(this, 0, SEEK_END) is not 0)
+                return -1;
+
+            var n = ftell(this);
+            fseek(this, p, SEEK_SET);  // file position restored
+
+            return n;
+        }
+        catch
+        {
+            return -1;
+        }
+    }
 }

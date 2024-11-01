@@ -24,13 +24,14 @@
 //
 //---------------------------------------------------------------------------------
 
+using lcms2.state;
 using lcms2.testbed;
 
 using Microsoft.Extensions.Logging;
 
 var now = DateTime.Now;
 
-logger.LogInformation("LittleCMS.net {version:#.##} test bed {now:MMM d yyyy HH:mm:ss}", cmsGetEncodedCMMversion() / 1000.0, now);
+logger.LogInformation("LittleCMS.net {version:#.##} test bed {now:MMM d yyyy HH:mm:ss}", Context.LibraryVersion / 1000.0, now);
 
 Thread.Sleep(10);
 Console.WriteLine();

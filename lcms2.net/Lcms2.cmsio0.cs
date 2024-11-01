@@ -365,7 +365,7 @@ public static partial class Lcms2
                     LogError(ContextID, ErrorCodes.File, $"File '{FileName}' not found");
                     return null;
                 }
-                fileLen = (int)cmsfilelength(fm);
+                fileLen = (int)fm.Length();
                 if (fileLen < 0)
                 {
                     fclose(fm);
@@ -418,7 +418,7 @@ public static partial class Lcms2
         var file = new FILE(Stream);
         //file.Stream = Stream;
 
-        var fileSize = cmsfilelength(file);
+        var fileSize = file.Length();
         if (fileSize < 0)
         {
             LogError(ContextID, ErrorCodes.File, "Cannot get size of stream");
