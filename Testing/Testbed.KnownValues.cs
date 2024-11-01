@@ -1475,14 +1475,14 @@ internal static partial class Testbed
             ? COLORSPACE_SH(PT_Lab) | CHANNELS_SH(nSrcComponents) | BYTES_SH(0)
             : COLORSPACE_SH(PT_ANY) | CHANNELS_SH(nSrcComponents) | BYTES_SH(1);
 
-        cmsSetLogErrorHandler(BuildNullLogger());
+        Context.Shared.SetLoggerFactory(BuildNullLogger());
 
         var hTransform = cmsCreateTransform(srcProfile, srcFormat, dstProfile,
             TYPE_BGR_8, intent, flags)!;
         cmsCloseProfile(srcProfile);
         cmsCloseProfile(dstProfile);
 
-        cmsSetLogErrorHandler(BuildDebugLogger());
+        Context.Shared.SetLoggerFactory(BuildDebugLogger());
 
         // Transform should NOT be created
         if (hTransform is null) return true;
@@ -1551,7 +1551,7 @@ internal static partial class Testbed
 
         var profile = cmsCreateRGBProfileTHR(context, white, primaries, toneCurves)!;
 
-        cmsSetLogErrorHandlerTHR(null, BuildDebugLogger());
+        Context.Shared.SetLoggerFactory(BuildDebugLogger());
 
         cmsFreeToneCurve(toneCurve);
 
@@ -1826,7 +1826,7 @@ internal static partial class Testbed
         var hsrgb = cmsCreate_sRGBProfile()!;
         var hLab = cmsCreateLab4Profile(null);
 
-        cmsSetLogErrorHandler(BuildNullLogger());
+        Context.Shared.SetLoggerFactory(BuildNullLogger());
         cmsWriteRawTag(hsrgb, Signature.Tag.BlueColorant, garbage, (uint)garbage.Length);
 
         var xform0 = cmsCreateTransform(hsrgb, TYPE_RGB_16, hLab, TYPE_Lab_16, INTENT_RELATIVE_COLORIMETRIC, 0);
@@ -1836,7 +1836,7 @@ internal static partial class Testbed
         cmsCloseProfile(hsrgb);
         cmsCloseProfile(hLab);
 
-        cmsSetLogErrorHandler(BuildDebugLogger());
+        Context.Shared.SetLoggerFactory(BuildDebugLogger());
         return true;
     }
 }

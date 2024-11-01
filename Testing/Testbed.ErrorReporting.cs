@@ -24,6 +24,7 @@
 //
 //---------------------------------------------------------------------------------
 
+using lcms2.state;
 using lcms2.types;
 
 using Microsoft.Extensions.Logging;
@@ -102,9 +103,9 @@ internal static partial class Testbed
 
     internal static bool CheckErrReportingOnBadProfiles()
     {
-        cmsSetLogErrorHandler(BuildNullLogger());
+        Context.Shared.SetLoggerFactory(BuildNullLogger());
         var rc = CheckBadProfiles();
-        cmsSetLogErrorHandler(BuildDebugLogger());
+        Context.Shared.SetLoggerFactory(BuildDebugLogger());
 
         return rc;
     }
@@ -168,9 +169,9 @@ internal static partial class Testbed
 
     internal static bool CheckErrReportingOnBadTransforms()
     {
-        cmsSetLogErrorHandler(BuildNullLogger());
+        Context.Shared.SetLoggerFactory(BuildNullLogger());
         var rc = CheckBadTransforms();
-        cmsSetLogErrorHandler(BuildDebugLogger());
+        Context.Shared.SetLoggerFactory(BuildDebugLogger());
 
         return rc;
     }

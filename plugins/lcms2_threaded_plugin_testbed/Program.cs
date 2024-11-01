@@ -34,7 +34,7 @@ trace("Copyright (c) 2022-2023 Stefan Kewatt, all rights reserved\n");
 
 using (logger.BeginScope("Installing error logger"))
 {
-    cmsSetLogErrorHandler(BuildDebugLogger());
+    Context.Shared.SetLoggerFactory(BuildDebugLogger());
     trace("Done");
 }
 

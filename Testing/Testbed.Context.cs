@@ -691,7 +691,7 @@ internal static partial class Testbed
 
         cmsCloseProfile(h);
 
-        cmsSetLogErrorHandler(BuildNullLogger());
+        Context.Shared.SetLoggerFactory(BuildNullLogger());
         h = cmsOpenProfileFromMem(data, clen);
         if (h == null)
         {
@@ -708,7 +708,7 @@ internal static partial class Testbed
         }
 
         cmsCloseProfile(h);
-        cmsSetLogErrorHandler(BuildDebugLogger());
+        Context.Shared.SetLoggerFactory(BuildDebugLogger());
 
         h = cmsOpenProfileFromMemTHR(cpy2, data, clen);
         if (h == null)
@@ -844,7 +844,7 @@ internal static partial class Testbed
 
         cmsCloseProfile(h);
 
-        cmsSetLogErrorHandler(BuildNullLogger());
+        Context.Shared.SetLoggerFactory(BuildNullLogger());
         h = cmsOpenProfileFromMem(data, clen);
         if (h == null)
         {
@@ -863,7 +863,7 @@ internal static partial class Testbed
 
         cmsCloseProfile(h);
 
-        cmsSetLogErrorHandler(BuildDebugLogger());
+        Context.Shared.SetLoggerFactory(BuildDebugLogger());
 
         h = cmsOpenProfileFromMemTHR(cpy2, data, clen);
         if (h == null)

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using lcms2.io;
 using lcms2.state;
 using lcms2.types;
+using Microsoft.Extensions.Logging;
 
 namespace lcms2.legacy;
 
@@ -368,4 +369,15 @@ public class Lcms2
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void cmsUnregisterPluginsTHR(Context? context) =>
         (context ?? Context.Shared).ClearAllPlugins();
+
+    // Error logger
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsSetLogErrorHandlerTHR(Context? context, ILoggerFactory? factory) =>
+        (context ?? Context.Shared).SetLoggerFactory(factory ?? lcms2.Lcms2.DefaultLogErrorHandlerFunction());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsSetLogErrorHandler(ILoggerFactory? factory) =>
+        Context.Shared.SetLoggerFactory(factory ?? lcms2.Lcms2.DefaultLogErrorHandlerFunction());
+
 }

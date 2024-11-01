@@ -239,7 +239,7 @@ internal static partial class Testbed
         Die(eventId, text);
 
     public static void ResetFatalError() =>
-        cmsSetLogErrorHandler(BuildDebugLogger());
+        Context.Shared.SetLoggerFactory(BuildDebugLogger());
 
     public static void Check(string title, Func<bool> test)
     {

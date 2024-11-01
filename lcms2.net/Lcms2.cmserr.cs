@@ -326,22 +326,6 @@ public static partial class Lcms2
     }
 
     /// <summary>
-    ///     Change error logger, context based
-    /// </summary>
-    [DebuggerStepThrough]
-    public static void cmsSetLogErrorHandlerTHR(Context? context, ILoggerFactory? factory) =>
-        // See Context.SetLoggerFactory()
-        (context ?? Context.Shared).SetLoggerFactory(factory ?? DefaultLogErrorHandlerFunction());
-
-    /// <summary>
-    ///     Change error logger, legacy
-    /// </summary>
-    [DebuggerStepThrough]
-    public static void cmsSetLogErrorHandler(ILoggerFactory? factory) =>
-        // See Context.SetLoggerFactory()
-        Context.Shared.SetLoggerFactory(factory ?? DefaultLogErrorHandlerFunction());
-
-    /// <summary>
     ///     Utility function to print signatures
     /// </summary>
     [DebuggerStepThrough]

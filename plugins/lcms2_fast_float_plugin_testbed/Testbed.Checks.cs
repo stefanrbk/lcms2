@@ -1351,7 +1351,7 @@ internal static partial class Testbed
             //var hsRGB = cmsCreate_sRGBProfileTHR(ctx)!;
 
             //var xform = cmsCreateTransformTHR(ctx, hsRGB, TYPE_RGB_FLT, hsRGB, TYPE_RGBA_FLT, INTENT_PERCEPTUAL, cmsFLAGS_COPY_ALPHA);
-            cmsSetLogErrorHandler(BuildNullLogger());
+            Context.Shared.SetLoggerFactory(BuildNullLogger());
 
             var hsRGB = cmsCreate_sRGBProfile()!;
 

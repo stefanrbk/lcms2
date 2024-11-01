@@ -47,7 +47,7 @@ logger.LogInformation(
 
 using (logger.BeginScope("Installing error logger"))
 {
-    cmsSetLogErrorHandler(BuildDebugLogger());
+    Context.Shared.SetLoggerFactory(BuildDebugLogger());
     trace("Done");
 }
 

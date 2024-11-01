@@ -32,6 +32,7 @@ global using static lcms2.Conversions;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Testbed")]
+[assembly: InternalsVisibleTo("lcms2Legacy")]
 [assembly: InternalsVisibleTo("UnitTests")]
 [assembly: InternalsVisibleTo("Fast Float UnitTests")]
 [assembly: InternalsVisibleTo("lcms2_fast_float_plugin")]

@@ -57,7 +57,7 @@ if (exhaustive)
 //    cmsPlugin(DebugMemHandler);
 
 using (logger.BeginScope("Setting up error logger"))
-    cmsSetLogErrorHandler(factory);
+    Context.Shared.SetLoggerFactory(factory);
 
 PrintSupportedIntents();
 

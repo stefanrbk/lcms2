@@ -41,7 +41,7 @@ public class FloatConversionTests
     [Test]
     public void TestTransformCreationFailureWhenUsingMismatchedChannelsAndCopyAlpha()
     {
-        cmsSetLogErrorHandlerTHR(_pluginCtx, BuildNullLogger());
+        _pluginCtx.SetLoggerFactory(BuildNullLogger());
 
         var hsRGB = cmsCreate_sRGBProfileTHR(_pluginCtx)!;
 
