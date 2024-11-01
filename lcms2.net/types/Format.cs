@@ -8,7 +8,7 @@ public struct Format
         readonly get =>
             ((_value >> 23) & 1) is not 0;
         set =>
-            _value = (_value & ~(1u << 23)) | ((value ? 1u : 0 << 23) & 1);
+            _value = (_value & ~(1u << 23)) | (((value ? 1u : 0) << 23) & 1);
     }
 
     public bool FloatingPoint
@@ -16,7 +16,7 @@ public struct Format
         readonly get =>
             ((_value >> 22) & 1) is not 0;
         set =>
-            _value = (_value & ~(1u << 22)) | ((value ? 1u : 0 << 22) & 1);
+            _value = (_value & ~(1u << 22)) | (((value ? 1u : 0) << 22) & 1);
     }
 
     public bool Optimized
@@ -24,7 +24,7 @@ public struct Format
         readonly get =>
             ((_value >> 21) & 1) is not 0;
         set =>
-            _value = (_value & ~(1u << 21)) | ((value ? 1u : 0 << 21) & 1);
+            _value = (_value & ~(1u << 21)) | (((value ? 1u : 0) << 21) & 1);
     }
 
     public byte ColorSpace
@@ -40,7 +40,7 @@ public struct Format
         readonly get =>
             ((_value >> 14) & 1) is not 0;
         set =>
-            _value = (_value & ~(1u << 14)) | ((value ? 1u : 0 << 14) & 1);
+            _value = (_value & ~(1u << 14)) | (((value ? 1u : 0) << 14) & 1);
     }
 
     public bool Subtractive
@@ -48,7 +48,7 @@ public struct Format
         readonly get =>
             ((_value >> 13) & 1) is not 0;
         set =>
-            _value = (_value & ~(1u << 13)) | ((value ? 1u : 0 << 13) & 1);
+            _value = (_value & ~(1u << 13)) | (((value ? 1u : 0) << 13) & 1);
     }
 
     public bool Planar
@@ -56,7 +56,7 @@ public struct Format
         readonly get =>
             ((_value >> 12) & 1) is not 0;
         set =>
-            _value = (_value & ~(1u << 12)) | ((value ? 1u : 0 << 12) & 1);
+            _value = (_value & ~(1u << 12)) | (((value ? 1u : 0) << 12) & 1);
     }
 
     public bool BigEndian
@@ -64,7 +64,7 @@ public struct Format
         readonly get =>
             ((_value >> 11) & 1) is not 0;
         set =>
-            _value = (_value & ~(1u << 11)) | ((value ? 1u : 0 << 11) & 1);
+            _value = (_value & ~(1u << 11)) | (((value ? 1u : 0) << 11) & 1);
     }
 
     public bool Reversed
@@ -72,7 +72,7 @@ public struct Format
         readonly get =>
             ((_value >> 10) & 1) is not 0;
         set =>
-            _value = (_value & ~(1u << 10)) | ((value ? 1u : 0 << 10) & 1);
+            _value = (_value & ~(1u << 10)) | (((value ? 1u : 0) << 10) & 1);
     }
 
     public byte ExtraSamples
