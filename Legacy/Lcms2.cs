@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+
 using lcms2.io;
 using lcms2.state;
 using lcms2.types;
+
 using Microsoft.Extensions.Logging;
 
 namespace lcms2.legacy;
