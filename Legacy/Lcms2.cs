@@ -380,4 +380,13 @@ public class Lcms2
     public static void cmsSetLogErrorHandler(ILoggerFactory? factory) =>
         Context.Shared.SetLoggerFactory(factory ?? lcms2.Lcms2.DefaultLogErrorHandlerFunction());
 
+    // "Constant" structs
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CIEXYZ cmsD50_XYZ() =>
+        CIEXYZ.D50;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CIExyY cmsD50_xyY() =>
+        CIExyY.D50;
 }
