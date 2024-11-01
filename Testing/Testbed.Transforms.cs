@@ -372,7 +372,7 @@ internal static partial class Testbed
         In[2] = 0x9A9A;
 
         cmsDoTransform(xform, In, out Lab, 1);
-        cmsFloat2LabEncoded(wLab, Lab);
+        Lab.FloatToEncoded(wLab);
         if (memcmp(In, wLab) is not 0)
             return false;
         if (cmsDeltaE(Lab, Color) > 0.0001)

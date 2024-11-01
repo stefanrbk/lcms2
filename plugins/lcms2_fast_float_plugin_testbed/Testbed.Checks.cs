@@ -757,7 +757,7 @@ internal static partial class Testbed
             FROM_8_TO_16(lab8[2])
         };
 
-        return cmsLabEncoded2Float(lab16);
+        return lab16.LabEncodedToFloat();
     }
 
     private static void CheckToEncodedLab()

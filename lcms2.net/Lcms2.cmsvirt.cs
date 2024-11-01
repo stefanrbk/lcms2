@@ -698,7 +698,7 @@ public static partial class Lcms2
         if (Cargo is not Box<BCHSWADJUSTS> bchsw)
             return false;
 
-        LabIn = cmsLabEncoded2Float(In);
+        LabIn = In.LabEncodedToFloat();
 
         LChIn = LabIn.AsLCh;
 
@@ -718,7 +718,7 @@ public static partial class Lcms2
         }
 
         // Back to encoded
-        cmsFloat2LabEncoded(Out, LabOut);
+        LabOut.FloatToEncoded(Out);
         return true;
     }
 

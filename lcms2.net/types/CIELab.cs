@@ -55,7 +55,16 @@ public struct CIELab(double L, double a, double b)
         return new(f_1(x) * wp.X, f_1(y) * wp.Y, f_1(z) * wp.Z);
     }
 
-    public readonly void ToLabEncoded(Span<ushort> wLab)
+    public readonly ushort[] FloatToEncoded()
+    {
+        var lab = new ushort[3];
+
+        FloatToEncoded(lab);
+
+        return lab;
+    }
+
+    public readonly void FloatToEncoded(Span<ushort> wLab)
     {
         if (wLab.Length < 3)
             return;
@@ -65,7 +74,16 @@ public struct CIELab(double L, double a, double b)
         wLab[2] = ab2Fix4(Clamp_ab_doubleV4(b));
     }
 
-    public readonly void ToLabEncodedV2(Span<ushort> wLab)
+    public readonly ushort[] FloatToEncodedV2()
+    {
+        var lab = new ushort[3];
+
+        FloatToEncodedV2(lab);
+
+        return lab;
+    }
+
+    public readonly void FloatToEncodedV2(Span<ushort> wLab)
     {
         if (wLab.Length < 3)
             return;

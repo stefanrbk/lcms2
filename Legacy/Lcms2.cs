@@ -415,4 +415,30 @@ public class Lcms2
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void cmsLCh2Lab(out CIELab Lab, CIELCh LCh) =>
         Lab = LCh.AsLab;
+
+    // PCS Encoding/Decoding
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsLabEncoded2Float(out CIELab Lab, ReadOnlySpan<ushort> wLab) =>
+        Lab = wLab.LabEncodedToFloat();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsLabEncoded2FloatV2(out CIELab Lab, ReadOnlySpan<ushort> wLab) =>
+        Lab = wLab.LabEncodedToFloatV2();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsFloat2LabEncoded(Span<ushort> wLab, CIELab Lab) =>
+        Lab.FloatToEncoded(wLab);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsFloat2LabEncodedV2(Span<ushort> wLab, CIELab Lab) =>
+        Lab.FloatToEncodedV2(wLab);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsXYZEncoded2Float(out CIEXYZ fxyz, ReadOnlySpan<ushort> XYZ) =>
+        fxyz = XYZ.XYZEncodedToFloat();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void cmsFloat2XYZEncoded(Span<ushort> XYZ, CIEXYZ fxyz) =>
+        fxyz.FloatToEncoded(XYZ);
 }

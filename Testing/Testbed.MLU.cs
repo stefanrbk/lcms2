@@ -333,13 +333,13 @@ internal static partial class Testbed
 
         // Populate one value, Colorant = CMYK values in 16 bits, PCS[] = Encoded Lab values (in V2 format!!)
         Lab.L = 50; Lab.a = 10; Lab.b = -10;
-        cmsFloat2LabEncodedV2(PCS, Lab);
+        Lab.FloatToEncodedV2(PCS);
         Colorant[0] = 10 * 257; Colorant[1] = 20 * 257; Colorant[2] = 30 * 257; Colorant[3] = 40 * 257;
         cmsAppendNamedColor(colors, "Hazelnut 14-1315"u8, PCS, Colorant);
 
         // Another one. Consider to write a routine for that
         Lab.L = 40; Lab.a = -5; Lab.b = 8;
-        cmsFloat2LabEncodedV2(PCS, Lab);
+        Lab.FloatToEncodedV2(PCS);
         Colorant[0] = 10 * 257; Colorant[1] = 20 * 257; Colorant[2] = 30 * 257; Colorant[3] = 40 * 257;
         cmsAppendNamedColor(colors, "Kale 18-0107"u8, PCS, Colorant);
 

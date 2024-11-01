@@ -924,12 +924,12 @@ public static partial class Lcms2
             Lab.a = BitConverter.ToDouble(pos_a);
             Lab.b = BitConverter.ToDouble(pos_b);
 
-            cmsFloat2LabEncoded(wIn, Lab);
+            Lab.FloatToEncoded(wIn);
             return accum[sizeof(double)..];
         }
         else
         {
-            cmsFloat2LabEncoded(wIn, MemoryMarshal.Read<CIELab>(accum));
+            MemoryMarshal.Read<CIELab>(accum).FloatToEncoded(wIn);
             var ptr = (sizeof(double) * 3) + (T_EXTRA(info.InputFormat) * sizeof(double));
             return accum[ptr..];
         }
@@ -949,7 +949,7 @@ public static partial class Lcms2
             Lab.a = BitConverter.ToSingle(pos_a);
             Lab.b = BitConverter.ToSingle(pos_b);
 
-            cmsFloat2LabEncoded(wIn, Lab);
+            Lab.FloatToEncoded(wIn);
             return accum[sizeof(float)..];
         }
         else
@@ -959,7 +959,7 @@ public static partial class Lcms2
             Lab.a = acc[1];
             Lab.b = acc[2];
 
-            cmsFloat2LabEncoded(wIn, Lab);
+            Lab.FloatToEncoded(wIn);
             var ptr = (3 + T_EXTRA(info.InputFormat)) * sizeof(float);
             return accum[ptr..];
         }
@@ -979,12 +979,12 @@ public static partial class Lcms2
             XYZ.Y = BitConverter.ToDouble(pos_Y);
             XYZ.Z = BitConverter.ToDouble(pos_Z);
 
-            cmsFloat2XYZEncoded(wIn, XYZ);
+            XYZ.FloatToEncoded(wIn);
             return accum[sizeof(double)..];
         }
         else
         {
-            cmsFloat2XYZEncoded(wIn, MemoryMarshal.Read<CIEXYZ>(accum));
+            MemoryMarshal.Read<CIEXYZ>(accum).FloatToEncoded(wIn);
             var ptr = (sizeof(double) * 3) + (T_EXTRA(info.InputFormat) * sizeof(double));
             return accum[ptr..];
         }
@@ -1004,7 +1004,7 @@ public static partial class Lcms2
             XYZ.Y = BitConverter.ToSingle(pos_Y);
             XYZ.Z = BitConverter.ToSingle(pos_Z);
 
-            cmsFloat2XYZEncoded(wIn, XYZ);
+            XYZ.FloatToEncoded(wIn);
             return accum[sizeof(float)..];
         }
         else
@@ -1014,7 +1014,7 @@ public static partial class Lcms2
             XYZ.X = pt[0];
             XYZ.Y = pt[1];
             XYZ.Z = pt[2];
-            cmsFloat2XYZEncoded(wIn, XYZ);
+            XYZ.FloatToEncoded(wIn);
             var ptr = (3 + T_EXTRA(info.InputFormat)) * sizeof(float);
             return accum[ptr..];
         }
@@ -2077,7 +2077,7 @@ public static partial class Lcms2
         if (T_PLANAR(info.OutputFormat) is not 0)
         {
             var Out = MemoryMarshal.Cast<byte, double>(output);
-            var Lab = cmsLabEncoded2Float(wOut);
+            var Lab = wOut.LabEncodedToFloat();
 
             Out[0] = Lab.L;
             Out[(int)Stride] = Lab.a;
@@ -2087,7 +2087,7 @@ public static partial class Lcms2
         }
         else
         {
-            var value = cmsLabEncoded2Float(wOut);
+            var value = wOut.LabEncodedToFloat();
             MemoryMarshal.Write(output, ref value);
             return output[((sizeof(double) * 3) + (T_EXTRA(info.OutputFormat) * sizeof(double)))..];
         }
@@ -2095,7 +2095,7 @@ public static partial class Lcms2
 
     private static Span<byte> PackLabFloatFrom16(Transform info, ReadOnlySpan<ushort> wOut, Span<byte> output, uint Stride)
     {
-        var Lab = cmsLabEncoded2Float(wOut);
+        var Lab = wOut.LabEncodedToFloat();
 
         var Out = MemoryMarshal.Cast<byte, float>(output);
 
@@ -2122,7 +2122,7 @@ public static partial class Lcms2
         if (T_PLANAR(info.OutputFormat) is not 0)
         {
             var Out = MemoryMarshal.Cast<byte, double>(output);
-            var XYZ = cmsXYZEncoded2Float(wOut);
+            var XYZ = wOut.XYZEncodedToFloat();
 
             Out[0] = XYZ.X;
             Out[(int)Stride] = XYZ.Y;
@@ -2132,15 +2132,15 @@ public static partial class Lcms2
         }
         else
         {
-            var value = cmsXYZEncoded2Float(wOut);
-            MemoryMarshal.Write(output, ref value);
+            var value = wOut.XYZEncodedToFloat();
+            MemoryMarshal.Write(output, in value);
             return output[((sizeof(double) * 3) + (T_EXTRA(info.OutputFormat) * sizeof(double)))..];
         }
     }
 
     private static Span<byte> PackXYZFloatFrom16(Transform info, ReadOnlySpan<ushort> wOut, Span<byte> output, uint Stride)
     {
-        var XYZ = cmsXYZEncoded2Float(wOut);
+        var XYZ = wOut.XYZEncodedToFloat();
 
         var Out = MemoryMarshal.Cast<byte, float>(output);
 
@@ -2381,7 +2381,7 @@ public static partial class Lcms2
         Lab.a = (wOut[1] * 255.0) - 128.0;
         Lab.b = (wOut[2] * 255.0) - 128.0;
 
-        cmsFloat2LabEncoded(wlab, Lab);
+        Lab = wlab.LabEncodedToFloat();
 
         if (T_PLANAR(info.OutputFormat) is not 0)
         {
@@ -2414,7 +2414,7 @@ public static partial class Lcms2
         Lab.a = (wOut[1] * 255.0) - 128.0;
         Lab.b = (wOut[2] * 255.0) - 128.0;
 
-        cmsFloat2LabEncodedV2(wlab, Lab);
+        Lab.FloatToEncoded(wlab);
 
         if (T_PLANAR(info.OutputFormat) is not 0)
         {

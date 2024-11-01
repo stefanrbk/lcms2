@@ -82,7 +82,16 @@ public struct CIEXYZ(double x, double y, double z)
         return new((116 * fy) - 16, 500 * (fx - fy), 200 * (fy - fz));
     }
 
-    public readonly void ToXYZEncoded(Span<ushort> xyz)
+    public readonly ushort[] FloatToEncoded()
+    {
+        var xyz = new ushort[3];
+
+        FloatToEncoded(xyz);
+
+        return xyz;
+    }
+
+    public readonly void FloatToEncoded(Span<ushort> xyz)
     {
         if (xyz.Length < 3)
             return;

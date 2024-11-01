@@ -42,30 +42,6 @@ public static partial class Lcms2
     private static readonly ushort[] GrayWhite = new ushort[4] { 0xFFFF, 0, 0, 0 };
 
 
-    public static CIELab cmsLabEncoded2FloatV2(ReadOnlySpan<ushort> wLab) =>
-        // See CIELab.FromLabEncodedV2
-        CIELab.FromLabEncodedV2(wLab);
-
-    public static CIELab cmsLabEncoded2Float(ReadOnlySpan<ushort> wLab) =>
-        // See CIELab.FromLabEncoded
-        CIELab.FromLabEncoded(wLab);
-
-    public static void cmsFloat2LabEncodedV2(Span<ushort> wLab, CIELab fLab) =>
-        // See CIELab.ToLabEncodedV2
-        fLab.ToLabEncodedV2(wLab);
-
-    public static void cmsFloat2LabEncoded(Span<ushort> wLab, CIELab fLab) =>
-        // See CIELab.ToLabEncoded
-        fLab.ToLabEncoded(wLab);
-
-    public static void cmsFloat2XYZEncoded(Span<ushort> XYZ, CIEXYZ xyz) =>
-        // See CIEXYZ.ToXYZEncoded()
-        xyz.ToXYZEncoded(XYZ);
-
-    public static CIEXYZ cmsXYZEncoded2Float(ReadOnlySpan<ushort> XYZ) =>
-        // See CIEXYZ.FromXYZEncoded()
-        CIEXYZ.FromXYZEncoded(XYZ);
-
     public static double cmsDeltaE(CIELab Lab1, CIELab Lab2) =>
         // See DeltaE.De76()
         DeltaE.De76(Lab1, Lab2);

@@ -136,8 +136,8 @@ internal static partial class Testbed
         {
             Inw[0] = Inw[1] = Inw[2] = (ushort)j;
 
-            Lab = cmsLabEncoded2FloatV2(Inw);
-            cmsFloat2LabEncodedV2(aw, Lab);
+            Lab = Inw.LabEncodedToFloatV2();
+            aw = Lab.FloatToEncodedV2();
 
             for (var i = 0; i < 3; i++)
             {
@@ -160,8 +160,8 @@ internal static partial class Testbed
         {
             Inw[0] = Inw[1] = Inw[2] = (ushort)j;
 
-            Lab = cmsLabEncoded2Float(Inw);
-            cmsFloat2LabEncoded(aw, Lab);
+            Lab = Inw.LabEncodedToFloat();
+            aw = Lab.FloatToEncoded();
 
             for (var i = 0; i < 3; i++)
             {
