@@ -906,19 +906,11 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
 
         var DestChromaticity = Dest.As_xyY;
 
-        var TempK = cmsTempFromWhitePoint(DestChromaticity);
-        if (double.IsNaN(TempK))
-            return -1.0;
-
-        return TempK;
+        return WhitePoint.ToTemp(DestChromaticity).IfNone(-1.0);
     }
 
-    private static MAT3 Temp2CHAD(double Temp)
-    {
-        var ChromaticityOfWhite = cmsWhitePointFromTemp(Temp);
-        var White = ChromaticityOfWhite.AsXYZ;
-        return CHAD.AdaptationMatrix(null, White, CIEXYZ.D50);
-    }
+    private static MAT3 Temp2CHAD(double Temp) =>
+        CHAD.AdaptationMatrix(null, ((CIExyY)WhitePoint.FromTemp(Temp)).AsXYZ, CIEXYZ.D50);
 
     private class PreserveKPlaneParams
     {

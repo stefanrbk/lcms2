@@ -541,5 +541,31 @@ public class Lcms2
 
     #endregion DeltaE metrics
 
+    #region Temperature <-> Chromaticity (Black body)
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool cmsWhitePointFromTemp(out CIExyY WhitePoint, double TempK)
+    {
+        WhitePoint = default;
+        var result = lcms2.WhitePoint.FromTemp(TempK);
+        if (result.IsNone)
+            return false;
+        WhitePoint = (CIExyY)result;
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool cmsTempFromWhitePoint(out double TempK, CIExyY WhitePoint)
+    {
+        TempK = default;
+        var result = lcms2.WhitePoint.ToTemp(WhitePoint);
+        if (result.IsNone)
+            return false;
+        TempK = (double)result;
+        return true;
+    }
+
+    #endregion
+
     #endregion cms* Functions
 }
