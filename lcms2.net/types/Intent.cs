@@ -84,8 +84,8 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
             // First profile is used as input unless devicelink or abstract
             var isInput = (i is 0 && !isDeviceLink) ||
                           // Else use profile in the input direction if current space is not PCS
-                          CurrentColorSpace != Signature.Colorspace.XYZ &&
-                          CurrentColorSpace != Signature.Colorspace.Lab;
+                          (CurrentColorSpace != Signature.Colorspace.XYZ &&
+                           CurrentColorSpace != Signature.Colorspace.Lab);
 
             Intent = TheIntents[i];
 
@@ -159,16 +159,12 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
 
         // Check for non-negatives clip
         if ((dwFlags & cmsFLAGS_NONEGATIVES) is 0)
-        {
             return Result;
-        }
 
         if (ColorSpaceOut != Signature.Colorspace.Gray &&
             ColorSpaceOut != Signature.Colorspace.Rgb &&
             ColorSpaceOut != Signature.Colorspace.Cmyk)
-        {
             return Result;
-        }
 
         var clip = _cmsStageClipNegatives(Result.ContextID, (uint)cmsChannelsOfColorSpace(ColorSpaceOut));
         if (clip is null)
@@ -232,9 +228,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         if (cmsGetColorSpace(Profiles[0]) != Signature.Colorspace.Cmyk ||
             !(cmsGetColorSpace(hLastProfile) == Signature.Colorspace.Cmyk ||
               cmsGetDeviceClass(hLastProfile) == Signature.ProfileClass.Output))
-        {
             return ICCDefault(ContextID, nProfiles, ICCIntents, Profiles, BPC, AdaptationStates, dwFlags);
-        }
 
         // Allocate an empty LUT for holding the result
         Result = cmsPipelineAlloc(ContextID, 4, 4);
@@ -244,26 +238,28 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         //memset(&bp, 0);
 
         // Create a LUT holding normal ICC transform
-        bp.cmyk2cmyk = ICCDefault(ContextID,
-                                  preservationProfilesCount,
-                                  ICCIntents,
-                                  Profiles,
-                                  BPC,
-                                  AdaptationStates,
-                                  dwFlags);
+        bp.cmyk2cmyk = ICCDefault(
+            ContextID,
+            preservationProfilesCount,
+            ICCIntents,
+            Profiles,
+            BPC,
+            AdaptationStates,
+            dwFlags);
 
         if (bp.cmyk2cmyk is null)
             goto Error;
 
         // Now, compute the tone curve
-        bp.KTone = _cmsBuildKToneCurve(ContextID,
-                                       4096,
-                                       preservationProfilesCount,
-                                       ICCIntents,
-                                       Profiles,
-                                       BPC,
-                                       AdaptationStates,
-                                       dwFlags);
+        bp.KTone = _cmsBuildKToneCurve(
+            ContextID,
+            4096,
+            preservationProfilesCount,
+            ICCIntents,
+            Profiles,
+            BPC,
+            AdaptationStates,
+            dwFlags);
 
         if (bp.KTone is null)
             goto Error;
@@ -356,9 +352,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         if (cmsGetColorSpace(Profiles[0]) != Signature.Colorspace.Cmyk ||
             !(cmsGetColorSpace(hLastProfile) == Signature.Colorspace.Cmyk ||
               cmsGetDeviceClass(hLastProfile) == Signature.ProfileClass.Output))
-        {
             return ICCDefault(ContextID, nProfiles, ICCIntents, Profiles, BPC, AdaptationStates, dwFlags);
-        }
 
         // Allocate an empty LUT for holding the result
         Result = cmsPipelineAlloc(ContextID, 4, 4);
@@ -380,48 +374,52 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
             goto Cleanup;
 
         // Create a LUT holding normal ICC transform
-        bp.cmyk2cmyk = ICCDefault(ContextID,
-                                  preservationProfilesCount,
-                                  ICCIntents,
-                                  Profiles,
-                                  BPC,
-                                  AdaptationStates,
-                                  dwFlags);
+        bp.cmyk2cmyk = ICCDefault(
+            ContextID,
+            preservationProfilesCount,
+            ICCIntents,
+            Profiles,
+            BPC,
+            AdaptationStates,
+            dwFlags);
         if (bp.cmyk2cmyk is null)
             goto Cleanup;
 
         // Now the tone curve
-        bp.KTone = _cmsBuildKToneCurve(ContextID,
-                                       4096,
-                                       preservationProfilesCount,
-                                       ICCIntents,
-                                       Profiles,
-                                       BPC,
-                                       AdaptationStates,
-                                       dwFlags)!;
+        bp.KTone = _cmsBuildKToneCurve(
+            ContextID,
+            4096,
+            preservationProfilesCount,
+            ICCIntents,
+            Profiles,
+            BPC,
+            AdaptationStates,
+            dwFlags)!;
         if (bp.KTone is null)
             goto Cleanup;
 
         // To measure the output, Last profile to Lab
         hLab = cmsCreateLab4ProfileTHR(ContextID, null);
-        bp.hProofOutput = cmsCreateTransformTHR(ContextID,
-                                                hLastProfile,
-                                                CHANNELS_SH(4) | BYTES_SH(2),
-                                                hLab,
-                                                TYPE_Lab_DBL,
-                                                INTENT_RELATIVE_COLORIMETRIC,
-                                                cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE);
+        bp.hProofOutput = cmsCreateTransformTHR(
+            ContextID,
+            hLastProfile,
+            CHANNELS_SH(4) | BYTES_SH(2),
+            hLab,
+            TYPE_Lab_DBL,
+            INTENT_RELATIVE_COLORIMETRIC,
+            cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE);
         if (bp.hProofOutput is null)
             goto Cleanup;
 
         // Same as anterior, but lab in the 0..1 range
-        bp.cmyk2Lab = cmsCreateTransformTHR(ContextID,
-                                            hLastProfile,
-                                            FLOAT_SH(1) | CHANNELS_SH(4) | BYTES_SH(4),
-                                            hLab,
-                                            FLOAT_SH(1) | CHANNELS_SH(3) | BYTES_SH(4),
-                                            INTENT_RELATIVE_COLORIMETRIC,
-                                            cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE);
+        bp.cmyk2Lab = cmsCreateTransformTHR(
+            ContextID,
+            hLastProfile,
+            FLOAT_SH(1) | CHANNELS_SH(4) | BYTES_SH(4),
+            hLab,
+            FLOAT_SH(1) | CHANNELS_SH(3) | BYTES_SH(4),
+            INTENT_RELATIVE_COLORIMETRIC,
+            cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE);
         if (bp.cmyk2Lab is null)
             goto Cleanup;
         cmsCloseProfile(hLab);
@@ -517,11 +515,12 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
             if (!_cmsReadCHAD(out var ChromaticAdaptationMatrixOut, Profiles[i]))
                 return false;
 
-            m = ComputeAbsoluteIntent(AdaptationState,
-                                      WhitePointIn,
-                                      ChromaticAdaptationMatrixIn,
-                                      WhitePointOut,
-                                      ChromaticAdaptationMatrixOut);
+            m = ComputeAbsoluteIntent(
+                AdaptationState,
+                WhitePointIn,
+                ChromaticAdaptationMatrixIn,
+                WhitePointOut,
+                ChromaticAdaptationMatrixOut);
             if (m.IsNaN)
                 return false;
         }
@@ -545,9 +544,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
                 if (BlackPointIn.X != BlackPointOut.X ||
                     BlackPointIn.Y != BlackPointOut.Y ||
                     BlackPointIn.Z != BlackPointOut.Z)
-                {
                     ComputeBlackPointCompensation(BlackPointIn, BlackPointOut, out m, out off);
-                }
             }
         }
 
@@ -581,30 +578,26 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
             if (OutPCS == Signature.Colorspace.XYZ) // XYZ -> XYZ
             {
                 if (!IsEmptyLayer(m, off) &&
-                    !cmsPipelineInsertStage(Result,
-                                            StageLoc.AtEnd,
-                                            cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
-                {
+                    !cmsPipelineInsertStage(
+                        Result,
+                        StageLoc.AtEnd,
+                        cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
                     goto Error;
-                }
             }
             else if (OutPCS == Signature.Colorspace.Lab)  // XYZ -> Lab
             {
                 if (!IsEmptyLayer(m, off) &&
-                    !cmsPipelineInsertStage(Result,
-                                            StageLoc.AtEnd,
-                                            cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
-                {
+                    !cmsPipelineInsertStage(
+                        Result,
+                        StageLoc.AtEnd,
+                        cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
                     goto Error;
-                }
 
                 if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocXYZ2Lab(Result.ContextID)))
                     goto Error;
             }
-            else    // Colorspace mismatch
-            {
+            else // Colorspace mismatch
                 goto Error;
-            }
         }
         else if (InPCS == Signature.Colorspace.Lab)
         {
@@ -613,31 +606,27 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
                 if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocLab2XYZ(Result.ContextID)))
                     goto Error;
                 if (!IsEmptyLayer(m, off) &&
-                    !cmsPipelineInsertStage(Result,
-                                            StageLoc.AtEnd,
-                                            cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
-                {
+                    !cmsPipelineInsertStage(
+                        Result,
+                        StageLoc.AtEnd,
+                        cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
                     goto Error;
-                }
             }
             else if (OutPCS == Signature.Colorspace.Lab)  // Lab -> Lab
             {
                 if (!IsEmptyLayer(m, off))
                 {
                     if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocLab2XYZ(Result.ContextID)) ||
-                        !cmsPipelineInsertStage(Result,
-                                                StageLoc.AtEnd,
-                                                cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)) ||
+                        !cmsPipelineInsertStage(
+                            Result,
+                            StageLoc.AtEnd,
+                            cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)) ||
                         !cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocXYZ2Lab(Result.ContextID)))
-                    {
                         goto Error;
-                    }
                 }
             }
-            else    // Colorspace mismatch
-            {
+            else // Colorspace mismatch
                 goto Error;
-            }
         }
         else // On colorspaces other than PCS, check for same space
         {
@@ -660,9 +649,10 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         // TODO: Follow Marc Mahy's recommendation to check if CHAD is same by using M1*M2 == M2*M1. If so, do nothing.
         // TODO: Add support for ArgyllArts tag
 
-        var Scale = new MAT3(x: new(WhitePointIn.X / WhitePointOut.X, 0, 0),
-                             y: new(0, WhitePointIn.Y / WhitePointOut.Y, 0),
-                             z: new(0, 0, WhitePointIn.Z / WhitePointOut.Z));
+        var Scale = new MAT3(
+            new(WhitePointIn.X / WhitePointOut.X, 0, 0),
+            new(0, WhitePointIn.Y / WhitePointOut.Y, 0),
+            new(0, 0, WhitePointIn.Z / WhitePointOut.Z));
 
         // Adaptation state
         if (AdaptationState is 1.0)
@@ -681,7 +671,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
             var m3 = ChromaticAdaptationMatrixIn;
             var m4 = m3.Inverse;
 
-            return (m4.IsNaN)
+            return m4.IsNaN
                        ? MAT3.NaN
                        : m2 * m4;
         }
@@ -734,13 +724,14 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
         var ay = (BlackPointOut.Y - CIEXYZ.D50.Y) / ty;
         var az = (BlackPointOut.Z - CIEXYZ.D50.Z) / tz;
 
-        var bx = -CIEXYZ.D50.X * (BlackPointOut.X - BlackPointIn.X) / tx;
-        var by = -CIEXYZ.D50.Y * (BlackPointOut.Y - BlackPointIn.Y) / ty;
-        var bz = -CIEXYZ.D50.Z * (BlackPointOut.Z - BlackPointIn.Z) / tz;
+        var bx = (-CIEXYZ.D50.X * (BlackPointOut.X - BlackPointIn.X)) / tx;
+        var by = (-CIEXYZ.D50.Y * (BlackPointOut.Y - BlackPointIn.Y)) / ty;
+        var bz = (-CIEXYZ.D50.Z * (BlackPointOut.Z - BlackPointIn.Z)) / tz;
 
-        m = new(x: new(ax, 0, 0),
-                y: new(0, ay, 0),
-                z: new(0, 0, az));
+        m = new(
+            new(ax, 0, 0),
+            new(0, ay, 0),
+            new(0, 0, az));
 
         off = new(bx, by, bz);
     }
@@ -829,7 +820,7 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
             Out[i] = _cmsQuickSaturateWord(Outf[i] * 65535.0);
 
         // Maybe K is already ok (mostly on K=0)
-        if (MathF.Abs(Outf[3] - LabK[3]) < (3.0 / 65535.0))
+        if (MathF.Abs(Outf[3] - LabK[3]) < 3.0 / 65535.0)
             return true;
 
         // K differs, measure and keep Lab measurement for further usage
@@ -873,14 +864,11 @@ public class Intent(uint intent, string desc, IntentFn fn) : ICloneable
     private static uint TranslateNonICCIntents(uint Intent) =>
         Intent switch
         {
-            INTENT_PRESERVE_K_ONLY_PERCEPTUAL or
-                INTENT_PRESERVE_K_PLANE_PERCEPTUAL =>
+            INTENT_PRESERVE_K_ONLY_PERCEPTUAL or INTENT_PRESERVE_K_PLANE_PERCEPTUAL =>
                 INTENT_PERCEPTUAL,
-            INTENT_PRESERVE_K_ONLY_RELATIVE_COLORIMETRIC or
-                INTENT_PRESERVE_K_PLANE_RELATIVE_COLORIMETRIC =>
+            INTENT_PRESERVE_K_ONLY_RELATIVE_COLORIMETRIC or INTENT_PRESERVE_K_PLANE_RELATIVE_COLORIMETRIC =>
                 INTENT_RELATIVE_COLORIMETRIC,
-            INTENT_PRESERVE_K_ONLY_SATURATION or
-                INTENT_PRESERVE_K_PLANE_SATURATION =>
+            INTENT_PRESERVE_K_ONLY_SATURATION or INTENT_PRESERVE_K_PLANE_SATURATION =>
                 INTENT_SATURATION,
             _ => Intent,
         };
