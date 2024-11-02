@@ -33,10 +33,10 @@ public struct CIELab(double L, double a, double b)
     public double b = b;
 
     public static CIELab NaN =>
-        new(double.NaN, double.NaN, double.NaN);
+        new(Double.NaN, Double.NaN, Double.NaN);
 
     public readonly bool IsNaN =>
-        double.IsNaN(L) || double.IsNaN(a) || double.IsNaN(b);
+        Double.IsNaN(L) || Double.IsNaN(a) || Double.IsNaN(b);
 
     public readonly CIELCh AsLCh =>
         new(L, Math.Pow(Sqr(a) + Sqr(b), 0.5), atan2deg(b, a));
@@ -140,7 +140,7 @@ public struct CIELab(double L, double a, double b)
         _cmsQuickSaturateWord((ab + 128) * 257);
 
     private static double Clamp_L_doubleV2(double L) =>
-        Math.Max(Math.Min(L, 0xffff * 100.0 / 0xff00), 0);
+        Math.Max(Math.Min(L, (0xffff * 100.0) / 0xff00), 0);
 
     private static double Clamp_ab_doubleV2(double ab) =>
         Math.Max(Math.Min(ab, MAX_ENCODEABLE_ab2), MIN_ENCODEABLE_ab2);

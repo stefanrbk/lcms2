@@ -17,16 +17,12 @@ public static class WhitePoint
         // For correlated color temperature (T) between 4000K and 7000K:
 
         if (T is >= 4000 and <= 7000)
-        {
             x = (-4.6070 * (1E9 / T3)) + (2.9678 * (1E6 / T2)) + (0.09911 * (1E3 / T)) + 0.244063;
-        }
         else
             // or for correlated color temperature (T) between 7000K and 25000K:
 
         if (T is > 7000.0 and <= 25000.0)
-        {
             x = (-2.0064 * (1E9 / T3)) + (1.9018 * (1E6 / T2)) + (0.24748 * (1E3 / T)) + 0.237040;
-        }
         else
         {
             LogError(null, ErrorCodes.Range, "cmsWhitePointFromTemp: invalid temp");
@@ -34,16 +30,18 @@ public static class WhitePoint
         }
 
         // Obtain y(x)
-        var y = (-3.000 * (x * x)) + (2.870 * x) - 0.275;
+        var y = ((-3.000 * (x * x)) + (2.870 * x)) - 0.275;
 
         // wave factors (not used, but here for futures extensions)
 
         // M1 = (-1.3515 - 1.7703*x + 5.9114 *y)/(0.0241 + 0.2562*x - 0.7341*y);
         // M2 = (0.0300 - 31.4424*x + 30.0717*y)/(0.0241 + 0.2562*x - 0.7341*y);
 
-        return Option<CIExyY>.Some(new(x: x,
-                                       y: y,
-                                       Y: 1.0));
+        return Option<CIExyY>.Some(
+            new(
+                x,
+                y,
+                1.0));
     }
 
     private struct ISOTEMPERATURE
@@ -104,8 +102,8 @@ public static class WhitePoint
 
         // convert (x,y) to CIE 1960 (u,WhitePoint)
 
-        var us = 2 * xs / (-xs + (6 * ys) + 1.5);
-        var vs = 3 * ys / (-xs + (6 * ys) + 1.5);
+        var us = (2 * xs) / (-xs + (6 * ys) + 1.5);
+        var vs = (3 * ys) / (-xs + (6 * ys) + 1.5);
 
         for (var j = 0; j < NISO; j++)
         {
@@ -116,10 +114,10 @@ public static class WhitePoint
 
             var dj = (vs - vj - (tj * (us - uj))) / Math.Sqrt(1.0 + (tj * tj));
 
-            if ((j != 0) && (di / dj < 0.0))
+            if (j != 0 && di / dj < 0.0)
             {
                 // Found a match
-                return Option<double>.Some(1000000.0 / (mi + (di / (di - dj) * (mj - mi))));
+                return Option<double>.Some(1000000.0 / (mi + ((di / (di - dj)) * (mj - mi))));
             }
 
             di = dj;

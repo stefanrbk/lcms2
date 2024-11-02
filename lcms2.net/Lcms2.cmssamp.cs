@@ -24,21 +24,25 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.types;
-
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+
+using lcms2.types;
 
 namespace lcms2;
 
 public static partial class Lcms2
 {
-    [DebuggerStepThrough, MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static T cmsmin<T>(T a, T b) where T : IComparisonOperators<T, T, bool> => (a < b) ? a : b;
+    [DebuggerStepThrough]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T cmsmin<T>(T a, T b) where T : IComparisonOperators<T, T, bool> =>
+        a < b ? a : b;
 
-    [DebuggerStepThrough, MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static T cmsmax<T>(T a, T b) where T : IComparisonOperators<T, T, bool> => (a > b) ? a : b;
+    [DebuggerStepThrough]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T cmsmax<T>(T a, T b) where T : IComparisonOperators<T, T, bool> =>
+        a > b ? a : b;
 
     private static Transform? CreateRoundtripXForm(Profile Profile, uint nIntent)
     {
@@ -49,10 +53,21 @@ public static partial class Lcms2
         var Profiles = new Profile[4] { hLab, Profile, Profile, hLab };
         Span<uint> Intents = stackalloc uint[4];
 
-        Intents[0] = Intents[2] = Intents[3] = INTENT_RELATIVE_COLORIMETRIC; Intents[1] = nIntent;
+        Intents[0] = Intents[2] = Intents[3] = INTENT_RELATIVE_COLORIMETRIC;
+        Intents[1] = nIntent;
 
-        var xform = cmsCreateExtendedTransform(ContextID, 4, Profiles, BPC, Intents,
-            States, null, 0, TYPE_Lab_DBL, TYPE_Lab_DBL, cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE);
+        var xform = cmsCreateExtendedTransform(
+            ContextID,
+            4,
+            Profiles,
+            BPC,
+            Intents,
+            States,
+            null,
+            0,
+            TYPE_Lab_DBL,
+            TYPE_Lab_DBL,
+            cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE);
 
         cmsCloseProfile(hLab);
         return xform;
@@ -87,7 +102,14 @@ public static partial class Lcms2
             goto Fail;
 
         // Create the transform
-        var xform = cmsCreateTransformTHR(ContextID, hInput, dwFormat, hLab, TYPE_Lab_DBL, Intent, cmsFLAGS_NOOPTIMIZE | cmsFLAGS_NOCACHE);
+        var xform = cmsCreateTransformTHR(
+            ContextID,
+            hInput,
+            dwFormat,
+            hLab,
+            TYPE_Lab_DBL,
+            Intent,
+            cmsFLAGS_NOOPTIMIZE | cmsFLAGS_NOCACHE);
         cmsCloseProfile(hLab);
 
         if (xform is null)
@@ -141,7 +163,7 @@ public static partial class Lcms2
 
         return BlackXYZ;
 
-    Fail:        
+    Fail:
         return CIEXYZ.NaN;
     }
 
@@ -152,9 +174,7 @@ public static partial class Lcms2
         if (devClass == Signature.ProfileClass.Link ||
             devClass == Signature.ProfileClass.Abstract ||
             devClass == Signature.ProfileClass.NamedColor)
-        {
             return new(0, 0, 0);
-        }
 
         // Make sure intent is adequate
         if (Intent is not INTENT_PERCEPTUAL and not INTENT_RELATIVE_COLORIMETRIC and not INTENT_SATURATION)
@@ -162,8 +182,8 @@ public static partial class Lcms2
 
         // v4 + perceptual & saturation intents does have its own black point, and it is
         // well specified enough to use it. Black point tag is deprecated in V4.
-        if ((cmsGetEncodedICCVersion(Profile) >= 0x04000000) &&
-            (Intent is INTENT_PERCEPTUAL or INTENT_SATURATION))
+        if (cmsGetEncodedICCVersion(Profile) >= 0x04000000 &&
+            Intent is INTENT_PERCEPTUAL or INTENT_SATURATION)
         {
             // Matrix shaper share MRC + perceptual intents
             if (cmsIsMatrixShaper(Profile))
@@ -175,9 +195,9 @@ public static partial class Lcms2
 
         // If output profile, discount ink-limiting and that's all
         if (Intent is INTENT_RELATIVE_COLORIMETRIC &&
-            (cmsGetDeviceClass(Profile) == Signature.ProfileClass.Output) &&
-            (cmsGetColorSpace(Profile) == Signature.Colorspace.Cmyk))
-        { return BlackPointUsingPerceptualBlack(Profile); }
+            cmsGetDeviceClass(Profile) == Signature.ProfileClass.Output &&
+            cmsGetColorSpace(Profile) == Signature.Colorspace.Cmyk)
+            return BlackPointUsingPerceptualBlack(Profile);
 
         // Nope, compute BP using current intent.
         return BlackPointAsDarkerColorant(Profile, Intent);
@@ -188,7 +208,8 @@ public static partial class Lcms2
         double sum_x = 0, sum_x2 = 0, sum_x3 = 0, sum_x4 = 0;
         double sum_y = 0, sum_yx = 0, sum_yx2 = 0;
 
-        if (n < 4) return 0;
+        if (n < 4)
+            return 0;
 
         for (var i = 0; i < n; i++)
         {
@@ -206,9 +227,9 @@ public static partial class Lcms2
         }
 
         var m = new MAT3(
-            x: new(n, sum_x, sum_x2),
-            y: new(sum_x, sum_x2, sum_x3),
-            z: new(sum_x2, sum_x3, sum_x4));
+            new(n, sum_x, sum_x2),
+            new(sum_x, sum_x2, sum_x3),
+            new(sum_x2, sum_x3, sum_x4));
 
         var v = new VEC3(sum_y, sum_yx, sum_yx2);
 
@@ -222,19 +243,19 @@ public static partial class Lcms2
 
         if (Math.Abs(a) < 1e-10)
         {
-            if (Math.Abs(b) < 1e-10) return 0;
+            if (Math.Abs(b) < 1e-10)
+                return 0;
             return cmsmin(0, cmsmax(50, -c / b));
         }
         else
         {
-            var d = b * b - 4.0 * a * c;
+            var d = (b * b) - (4.0 * a * c);
             if (d <= 0)
-            {
                 return 0;
-            }
             else
             {
-                if (Math.Abs(a) < 1e-10) return 0;
+                if (Math.Abs(a) < 1e-10)
+                    return 0;
 
                 var rt = (-b + Math.Sqrt(d)) / (2 * a);
                 return cmsmax(0, cmsmin(50, rt));
@@ -260,9 +281,7 @@ public static partial class Lcms2
         if (devClass == Signature.ProfileClass.Link ||
             devClass == Signature.ProfileClass.Abstract ||
             devClass == Signature.ProfileClass.NamedColor)
-        {
             goto Fail;
-        }
 
         // Make sure intent is adequate
         if (Intent is not INTENT_PERCEPTUAL and not INTENT_RELATIVE_COLORIMETRIC and not INTENT_SATURATION)
@@ -270,8 +289,8 @@ public static partial class Lcms2
 
         // v4 + perceptual & saturation itents do have their own black point, and it is
         // well specified enough to use it. Black point tag is deprecated in V4.
-        if ((cmsGetEncodedICCVersion(Profile) >= 0x04000000) &&
-            (Intent is INTENT_PERCEPTUAL or INTENT_SATURATION))
+        if (cmsGetEncodedICCVersion(Profile) >= 0x04000000 &&
+            Intent is INTENT_PERCEPTUAL or INTENT_SATURATION)
         {
             // Matrix shaper share MRC & perceptual intents
             if (cmsIsMatrixShaper(Profile))
@@ -318,12 +337,13 @@ public static partial class Lcms2
 
         // Create a roundtrip. Define a Transform BT for all x in L*a*b*
         hRoundTrip = CreateRoundtripXForm(Profile, Intent);
-        if (hRoundTrip is null) goto Fail;
+        if (hRoundTrip is null)
+            goto Fail;
 
         // Compute ramps
         for (var l = 0; l < 256; l++)
         {
-            Lab[0].L = l * 100.0 / 255.0;
+            Lab[0].L = (l * 100.0) / 255.0;
             Lab[0].a = cmsmin(50, cmsmax(-50, InitialLab.a));
             Lab[0].b = cmsmin(50, cmsmax(-50, InitialLab.b));
 
@@ -352,9 +372,9 @@ public static partial class Lcms2
         {
             for (var l = 0; l < 256; l++)
             {
-                if (!((inRamp[l] <= MinL + 0.2 * (MaxL - MinL)) ||
-                    (Math.Abs(inRamp[l] - outRamp[l]) < 4.0)))
-                { NearlyStraightMidrange = false; }
+                if (!(inRamp[l] <= MinL + (0.2 * (MaxL - MinL)) ||
+                      Math.Abs(inRamp[l] - outRamp[l]) < 4.0))
+                    NearlyStraightMidrange = false;
             }
 
             // If the mid range is straight (as determined above) then the
@@ -375,10 +395,10 @@ public static partial class Lcms2
             yRamp[l] = (outRamp[l] - MinL) / (MaxL - MinL);
 
         // find the black point using the least squares error quadratic curve fitting
-        var (lo, hi) = (Intent is INTENT_RELATIVE_COLORIMETRIC)
-            ? (0.1, 0.5)
-            // Perceptual and saturation
-            : (0.03, 0.25);
+        var (lo, hi) = Intent is INTENT_RELATIVE_COLORIMETRIC
+                           ? (0.1, 0.5)
+                           // Perceptual and saturation
+                           : (0.03, 0.25);
 
         // Capture shadow points for the fitting.
         var n = 0;

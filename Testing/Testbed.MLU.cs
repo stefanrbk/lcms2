@@ -24,11 +24,11 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Text;
+
 using lcms2.types;
 
 using Microsoft.Extensions.Logging;
-
-using System.Text;
 
 namespace lcms2.testbed;
 
@@ -69,21 +69,30 @@ internal static partial class Testbed
         cmsMLUgetASCII(mlu, enLang, us, Buffer);
         if (strcmp(Buffer[..Encoding.ASCII.GetByteCount(enHello)], Encoding.ASCII.GetBytes(enHello)) is not 0)
         {
-            logger.LogWarning("Unexpected string '{Expected}' but found '{Actual}'", enHello, Encoding.ASCII.GetString(Buffer));
+            logger.LogWarning(
+                "Unexpected string '{Expected}' but found '{Actual}'",
+                enHello,
+                Encoding.ASCII.GetString(Buffer));
             rc = false;
         }
 
         cmsMLUgetASCII(mlu, esLang, es, Buffer);
         if (strcmp(Buffer[..Encoding.ASCII.GetByteCount(esHello)], Encoding.ASCII.GetBytes(esHello)) is not 0)
         {
-            logger.LogWarning("Unexpected string '{Expected}' but found '{Actual}'", esHello, Encoding.ASCII.GetString(Buffer));
+            logger.LogWarning(
+                "Unexpected string '{Expected}' but found '{Actual}'",
+                esHello,
+                Encoding.ASCII.GetString(Buffer));
             rc = false;
         }
 
         cmsMLUgetASCII(mlu, frLang, fr, Buffer);
         if (strcmp(Buffer[..Encoding.ASCII.GetByteCount(frHello)], Encoding.ASCII.GetBytes(frHello)) is not 0)
         {
-            logger.LogWarning("Unexpected string '{Expected}' but found '{Actual}'", frHello, Encoding.ASCII.GetString(Buffer));
+            logger.LogWarning(
+                "Unexpected string '{Expected}' but found '{Actual}'",
+                frHello,
+                Encoding.ASCII.GetString(Buffer));
             rc = false;
         }
 
@@ -128,11 +137,18 @@ internal static partial class Testbed
             var tmp = Encoding.ASCII.GetBytes($"String #{i}");
             tmp.AsSpan().CopyTo(Buffer[..tmp.Length]);
 
-            if (strcmp(Buffer[..tmp.Length], Buffer2[..tmp.Length]) is not 0) { rc = false; break; }
+            if (strcmp(Buffer[..tmp.Length], Buffer2[..tmp.Length]) is not 0)
+            {
+                rc = false;
+                break;
+            }
         }
 
         if (!rc)
-            logger.LogWarning("Unexpected string '{Expected}' but found '{Actual}'", Encoding.ASCII.GetString(Buffer), Encoding.ASCII.GetString(Buffer2));
+            logger.LogWarning(
+                "Unexpected string '{Expected}' but found '{Actual}'",
+                Encoding.ASCII.GetString(Buffer),
+                Encoding.ASCII.GetString(Buffer2));
 
         // Check profile IO
 
@@ -141,7 +157,8 @@ internal static partial class Testbed
         cmsSetProfileVersion(h, 4.3);
 
         cmsWriteTag(h, Signature.Tag.ProfileDescription, mlu2);
-        cmsCloseProfile(h); h = null;
+        cmsCloseProfile(h);
+        h = null;
         cmsMLUfree(mlu2);
 
         h = cmsOpenProfileFromFileTHR(DbgThread(), "mlucheck.icc", "r");
@@ -164,15 +181,22 @@ internal static partial class Testbed
             tmp.AsSpan().CopyTo(Buffer[..tmp.Length]);
 
             if (strcmp(Buffer[..tmp.Length], Buffer2[..tmp.Length]) is not 0)
-            { rc = false; break; }
+            {
+                rc = false;
+                break;
+            }
         }
 
         if (!rc)
-            logger.LogWarning("Unexpected string '{Expected}' but found '{Actual}'", Encoding.ASCII.GetString(Buffer), Encoding.ASCII.GetString(Buffer2));
+            logger.LogWarning(
+                "Unexpected string '{Expected}' but found '{Actual}'",
+                Encoding.ASCII.GetString(Buffer),
+                Encoding.ASCII.GetString(Buffer2));
 
-        Error:
+    Error:
 
-        if (h is not null) cmsCloseProfile(h);
+        if (h is not null)
+            cmsCloseProfile(h);
         File.Delete("mlucheck.icc");
 
         return rc;
@@ -188,7 +212,7 @@ internal static partial class Testbed
         cmsMLUsetWide(mlu, "en"u8.ToArray(), "US"u8.ToArray(), "\x3b2\x14b");
 
         cmsMLUgetUTF8(mlu, "en"u8.ToArray(), "US"u8.ToArray(), buf);
-        if (strcmp(buf, [0xce, 0xb2, 0xc5, 0x8b]) != 0)
+        if (strcmp(buf, [ 0xce, 0xb2, 0xc5, 0x8b ]) != 0)
             rc = false;
 
         if (!rc)
@@ -203,7 +227,7 @@ internal static partial class Testbed
     {
         NamedColorList? nc = null, nc2;
         int i, j;
-        bool rc = true;
+        var rc = true;
         Span<byte> Name = stackalloc byte[MaxPath];
         Span<ushort> PCS = stackalloc ushort[3];
         Span<ushort> Colorant = stackalloc ushort[cmsMAXCHANNELS];
@@ -213,7 +237,8 @@ internal static partial class Testbed
         Profile h;
 
         nc = cmsAllocNamedColorList(DbgThread(), 0, 4, "prefix"u8, "suffix"u8);
-        if (nc == null) return false;
+        if (nc == null)
+            return false;
 
         for (i = 0; i < 4096; i++)
         {
@@ -221,7 +246,11 @@ internal static partial class Testbed
             Colorant[0] = Colorant[1] = Colorant[2] = Colorant[3] = (ushort)(4096 - i);
 
             sprintf(Name, "#{0}", i);
-            if (!cmsAppendNamedColor(nc, Name, PCS, Colorant)) { rc = false; break; }
+            if (!cmsAppendNamedColor(nc, Name, PCS, Colorant))
+            {
+                rc = false;
+                break;
+            }
         }
 
         for (i = 0; i < 4096; i++)
@@ -230,16 +259,30 @@ internal static partial class Testbed
             CheckColorant[0] = CheckColorant[1] = CheckColorant[2] = CheckColorant[3] = (ushort)(4096 - i);
 
             sprintf(CheckName, "#{0}", i);
-            if (!cmsNamedColorInfo(nc, (uint)i, Name, null, null, PCS, Colorant)) { rc = false; goto Error; }
+            if (!cmsNamedColorInfo(nc, (uint)i, Name, null, null, PCS, Colorant))
+            {
+                rc = false;
+                goto Error;
+            }
 
             for (j = 0; j < 3; j++)
-            {
-                if (CheckPCS[j] != PCS[j]) { rc = false; logger.LogWarning("Invalid PCS"); goto Error; }
-            }
+                if (CheckPCS[j] != PCS[j])
+                {
+                    rc = false;
+                    logger.LogWarning("Invalid PCS");
+                    goto Error;
+                }
 
             for (j = 0; j < 4; j++)
             {
-                if (CheckColorant[j] != Colorant[j]) { rc = false; logger.LogWarning("Invalid Colorant"); goto Error; };
+                if (CheckColorant[j] != Colorant[j])
+                {
+                    rc = false;
+                    logger.LogWarning("Invalid Colorant");
+                    goto Error;
+                }
+
+                ;
             }
 
             if (strcmp(Name, CheckName) != 0)
@@ -247,23 +290,37 @@ internal static partial class Testbed
                 rc = false;
                 logger.LogWarning("Invalid Name");
                 goto Error;
-            };
+            }
+
+            ;
         }
 
         h = cmsOpenProfileFromFileTHR(DbgThread(), "namedcol.icc", "w");
-        if (h == null) return false;
-        if (!cmsWriteTag(h, Signature.Tag.NamedColor2, nc)) return false;
+        if (h == null)
+            return false;
+        if (!cmsWriteTag(h, Signature.Tag.NamedColor2, nc))
+            return false;
         cmsCloseProfile(h);
         cmsFreeNamedColorList(nc);
         nc = null;
 
         h = cmsOpenProfileFromFileTHR(DbgThread(), "namedcol.icc", "r");
-        nc2 = (cmsReadTag(h, Signature.Tag.NamedColor2) is NamedColorList box) ? box : null;
+        nc2 = cmsReadTag(h, Signature.Tag.NamedColor2) is NamedColorList box ? box : null;
 
-        if (cmsNamedColorCount(nc2) != 4096) { rc = false; logger.LogWarning("Invalid count"); goto Error; }
+        if (cmsNamedColorCount(nc2) != 4096)
+        {
+            rc = false;
+            logger.LogWarning("Invalid count");
+            goto Error;
+        }
 
         i = cmsNamedColorIndex(nc2, "#123"u8);
-        if (i != 123) { rc = false; logger.LogWarning("Invalid index"); goto Error; }
+        if (i != 123)
+        {
+            rc = false;
+            logger.LogWarning("Invalid index");
+            goto Error;
+        }
 
         for (i = 0; i < 4096; i++)
         {
@@ -271,26 +328,48 @@ internal static partial class Testbed
             CheckColorant[0] = CheckColorant[1] = CheckColorant[2] = CheckColorant[3] = (ushort)(4096 - i);
 
             sprintf(CheckName, "#{0}", i);
-            if (!cmsNamedColorInfo(nc2, (uint)i, Name, null, null, PCS, Colorant)) { rc = false; goto Error; }
+            if (!cmsNamedColorInfo(nc2, (uint)i, Name, null, null, PCS, Colorant))
+            {
+                rc = false;
+                goto Error;
+            }
 
             for (j = 0; j < 3; j++)
-            {
-                if (CheckPCS[j] != PCS[j]) { rc = false; logger.LogWarning("Invalid PCS"); goto Error; }
-            }
+                if (CheckPCS[j] != PCS[j])
+                {
+                    rc = false;
+                    logger.LogWarning("Invalid PCS");
+                    goto Error;
+                }
 
             for (j = 0; j < 4; j++)
             {
-                if (CheckColorant[j] != Colorant[j]) { rc = false; logger.LogWarning("Invalid Colorant"); goto Error; };
+                if (CheckColorant[j] != Colorant[j])
+                {
+                    rc = false;
+                    logger.LogWarning("Invalid Colorant");
+                    goto Error;
+                }
+
+                ;
             }
 
-            if (strcmp(Name, CheckName) != 0) { rc = false; logger.LogWarning("Invalid Name"); goto Error; };
+            if (strcmp(Name, CheckName) != 0)
+            {
+                rc = false;
+                logger.LogWarning("Invalid Name");
+                goto Error;
+            }
+
+            ;
         }
 
         cmsCloseProfile(h);
         File.Delete("namedcol.icc");
 
     Error:
-        if (nc != null) cmsFreeNamedColorList(nc);
+        if (nc != null)
+            cmsFreeNamedColorList(nc);
         return rc;
     }
 
@@ -298,7 +377,7 @@ internal static partial class Testbed
     public static bool CreateNamedColorProfile()
     {
         // Color list database
-        NamedColorList? colors = cmsAllocNamedColorList(null, 10, 4, "PANTONE"u8, "TCX"u8);
+        var colors = cmsAllocNamedColorList(null, 10, 4, "PANTONE"u8, "TCX"u8);
 
         // Containers for names
         Mlu? DescriptionMLU, CopyrightMLU;
@@ -332,15 +411,25 @@ internal static partial class Testbed
         cmsWriteTag(hProfile, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50));
 
         // Populate one value, Colorant = CMYK values in 16 bits, PCS[] = Encoded Lab values (in V2 format!!)
-        Lab.L = 50; Lab.a = 10; Lab.b = -10;
+        Lab.L = 50;
+        Lab.a = 10;
+        Lab.b = -10;
         Lab.FloatToEncodedV2(PCS);
-        Colorant[0] = 10 * 257; Colorant[1] = 20 * 257; Colorant[2] = 30 * 257; Colorant[3] = 40 * 257;
+        Colorant[0] = 10 * 257;
+        Colorant[1] = 20 * 257;
+        Colorant[2] = 30 * 257;
+        Colorant[3] = 40 * 257;
         cmsAppendNamedColor(colors, "Hazelnut 14-1315"u8, PCS, Colorant);
 
         // Another one. Consider to write a routine for that
-        Lab.L = 40; Lab.a = -5; Lab.b = 8;
+        Lab.L = 40;
+        Lab.a = -5;
+        Lab.b = 8;
         Lab.FloatToEncodedV2(PCS);
-        Colorant[0] = 10 * 257; Colorant[1] = 20 * 257; Colorant[2] = 30 * 257; Colorant[3] = 40 * 257;
+        Colorant[0] = 10 * 257;
+        Colorant[1] = 20 * 257;
+        Colorant[2] = 30 * 257;
+        Colorant[3] = 40 * 257;
         cmsAppendNamedColor(colors, "Kale 18-0107"u8, PCS, Colorant);
 
         // Write the colors database

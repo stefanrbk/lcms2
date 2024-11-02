@@ -25,9 +25,8 @@
 //---------------------------------------------------------------------------------
 
 using System.Runtime.CompilerServices;
-using lcms2.types;
 
-using System.Text;
+using lcms2.types;
 
 namespace lcms2;
 

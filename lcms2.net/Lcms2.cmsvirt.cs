@@ -307,9 +307,10 @@ public static partial class Lcms2
             goto Error;
 
         // Copy tables to Pipeline
-        if (!cmsPipelineInsertStage(Pipeline,
-                                    StageLoc.AtBegin,
-                                    cmsStageAllocToneCurves(ContextID, nChannels, TransferFunctions)))
+        if (!cmsPipelineInsertStage(
+                Pipeline,
+                StageLoc.AtBegin,
+                cmsStageAllocToneCurves(ContextID, nChannels, TransferFunctions)))
             goto Error;
 
         // Create tags
@@ -364,7 +365,7 @@ public static partial class Lcms2
         var SumCMY = (double)In[0] + In[1] + In[2];
         var SumCMYK = SumCMY + In[3];
 
-        var Ratio = Math.Max(0, (SumCMYK > InkLimit) ? 1 - ((SumCMYK - InkLimit) / SumCMY) : 1);
+        var Ratio = Math.Max(0, SumCMYK > InkLimit ? 1 - ((SumCMYK - InkLimit) / SumCMY) : 1);
 
         Out[0] = _cmsQuickSaturateWord(In[0] * Ratio); // C
         Out[1] = _cmsQuickSaturateWord(In[1] * Ratio); // M
@@ -418,9 +419,7 @@ public static partial class Lcms2
         if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCurves(ContextID, nChannels)) ||
             !cmsPipelineInsertStage(LUT, StageLoc.AtEnd, CLUT) ||
             !cmsPipelineInsertStage(LUT, StageLoc.AtEnd, _cmsStageAllocIdentityCurves(ContextID, nChannels)))
-        {
             goto Error;
-        }
 
         // Create tags
         if (!SetTextTags(hICC, "ink-limiting built-in"))
@@ -631,7 +630,7 @@ public static partial class Lcms2
 
         double[] M_D65_D50 =
         [
-            1.047886, 0.022919, -0.050216, 0.029582, 0.990484, -0.017079, -0.009252, 0.015073,  0.751678
+            1.047886, 0.022919, -0.050216, 0.029582, 0.990484, -0.017079, -0.009252, 0.015073,  0.751678,
         ];
 
         double[] M_D50_D65 =
@@ -644,7 +643,7 @@ public static partial class Lcms2
             0.021054814890112,
             0.012328875695483,
             -0.020535835374141,
-            1.330713916450354
+            1.330713916450354,
         ];
 
         var D65toD50 = cmsStageAllocMatrix(ctx, 3, 3, M_D65_D50, null);
@@ -660,7 +659,7 @@ public static partial class Lcms2
             0.0361456387,
             0.0482003018,
             0.2643662691,
-            0.6338517070
+            0.6338517070,
         ];
 
         double[] M_LMS_D65 =
@@ -673,7 +672,7 @@ public static partial class Lcms2
             -0.071676678665601,
             -0.076381284505707,
             -0.421481978418013,
-            1.586163220440795
+            1.586163220440795,
         ];
 
         var D65toLMS = cmsStageAllocMatrix(ctx, 3, 3, M_D65_LMS, null);
@@ -702,7 +701,7 @@ public static partial class Lcms2
             0.4505937099,
             0.0259040371,
             0.7827717662,
-            -0.8086757660
+            -0.8086757660,
         ];
 
         double[] M_OkLab_LMSprime =
@@ -715,7 +714,7 @@ public static partial class Lcms2
             -0.063854174771706,
             1.000000054672411,
             -0.089484182094966,
-            -1.291485537864092
+            -1.291485537864092,
         ];
 
         var LMSprime_OkLab = cmsStageAllocMatrix(ctx, 3, 3, M_LMSprime_OkLab, null);
@@ -844,9 +843,7 @@ public static partial class Lcms2
         bchsw.Hue = Hue;
         bchsw.Saturation = Saturation;
         if (TempSrc == TempDest)
-        {
             bchsw.lAdjustWP = false;
-        }
         else
         {
             bchsw.lAdjustWP = true;
@@ -1034,16 +1031,15 @@ public static partial class Lcms2
         nc2.ColorantCount = cmsPipelineOutputChannels(v.Lut);
 
         // Make sure we have proper formatters
-        cmsChangeBuffersFormat(xform,
-                               TYPE_NAMED_COLOR_INDEX,
-                               FLOAT_SH(0) | COLORSPACE_SH((uint)_cmsLCMScolorSpace(v.ExitColorSpace)) |
-                               BYTES_SH(2) | CHANNELS_SH((uint)cmsChannelsOfColorSpace(v.ExitColorSpace)));
+        cmsChangeBuffersFormat(
+            xform,
+            TYPE_NAMED_COLOR_INDEX,
+            FLOAT_SH(0) | COLORSPACE_SH((uint)_cmsLCMScolorSpace(v.ExitColorSpace)) |
+            BYTES_SH(2) | CHANNELS_SH((uint)cmsChannelsOfColorSpace(v.ExitColorSpace)));
 
         // Apply the transform to colorants.
         for (i[0] = 0; i[0] < nColors; i[0]++)
-        {
             cmsDoTransform(xform, i, nc2.List[i[0]].DeviceColorant, 1);
-        }
 
         if (!cmsWriteTag(hICC, Signature.Tag.NamedColor2, nc2))
             goto Error;
@@ -1072,22 +1068,22 @@ public static partial class Lcms2
             LutType = lutType;
             nTypes = mpeTypes.Length;
             for (var i = 0; i < mpeTypes.Length && i < 5; i++)
-            {
                 MpeTypes[i] = mpeTypes[i];
-            }
         }
     }
 
     private static readonly AllowedLUT[] AllowedLUTTypes = new AllowedLUT[]
     {
-        new(false,
+        new(
+            false,
             default,
             Signature.TagType.Lut16,
             Signature.Stage.MatrixElem,
             Signature.Stage.CurveSetElem,
             Signature.Stage.CLutElem,
             Signature.Stage.CurveSetElem),
-        new(false,
+        new(
+            false,
             default,
             Signature.TagType.Lut16,
             Signature.Stage.CurveSetElem,
@@ -1095,19 +1091,22 @@ public static partial class Lcms2
             Signature.Stage.CurveSetElem),
         new(false, default, Signature.TagType.Lut16, Signature.Stage.CurveSetElem, Signature.Stage.CLutElem),
         new(true, default, Signature.TagType.LutAtoB, Signature.Stage.CurveSetElem),
-        new(true,
+        new(
+            true,
             Signature.Tag.AToB0,
             Signature.TagType.LutAtoB,
             Signature.Stage.CurveSetElem,
             Signature.Stage.MatrixElem,
             Signature.Stage.CurveSetElem),
-        new(true,
+        new(
+            true,
             Signature.Tag.AToB0,
             Signature.TagType.LutAtoB,
             Signature.Stage.CurveSetElem,
             Signature.Stage.CLutElem,
             Signature.Stage.CurveSetElem),
-        new(true,
+        new(
+            true,
             Signature.Tag.AToB0,
             Signature.TagType.LutAtoB,
             Signature.Stage.CurveSetElem,
@@ -1116,19 +1115,22 @@ public static partial class Lcms2
             Signature.Stage.MatrixElem,
             Signature.Stage.CurveSetElem),
         new(true, Signature.Tag.BToA0, Signature.TagType.LutBtoA, Signature.Stage.CurveSetElem),
-        new(true,
+        new(
+            true,
             Signature.Tag.BToA0,
             Signature.TagType.LutBtoA,
             Signature.Stage.CurveSetElem,
             Signature.Stage.MatrixElem,
             Signature.Stage.CurveSetElem),
-        new(true,
+        new(
+            true,
             Signature.Tag.BToA0,
             Signature.TagType.LutBtoA,
             Signature.Stage.CurveSetElem,
             Signature.Stage.CLutElem,
             Signature.Stage.CurveSetElem),
-        new(true,
+        new(
+            true,
             Signature.Tag.BToA0,
             Signature.TagType.LutBtoA,
             Signature.Stage.CurveSetElem,
@@ -1163,7 +1165,7 @@ public static partial class Lcms2
             var Tab = AllowedLUTTypes[n];
             if (IsV4 ^ Tab.IsV4)
                 continue;
-            if (((uint)Tab.RequiredTag is not 0) && (Tab.RequiredTag != DestinationTag))
+            if ((uint)Tab.RequiredTag is not 0 && Tab.RequiredTag != DestinationTag)
                 continue;
 
             if (CheckOne(Tab, Lut))
@@ -1202,14 +1204,14 @@ public static partial class Lcms2
             return null;
 
         // Time to fix the Lab2/Lab4 issue.
-        if ((xform.EntryColorSpace == Signature.Colorspace.Lab) && (Version < 4.0))
+        if (xform.EntryColorSpace == Signature.Colorspace.Lab && Version < 4.0)
         {
             if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocLabV2ToV4curves(ContextID)))
                 goto Error;
         }
 
         // On the output side too. Note that due to V2/V4 PCS encoding on lab we cannot fix white misalignments
-        if ((xform.ExitColorSpace) == Signature.Colorspace.Lab && (Version < 4.0))
+        if (xform.ExitColorSpace == Signature.Colorspace.Lab && Version < 4.0)
         {
             dwFlags |= cmsFLAGS_NOWHITEONWHITEFIXUP;
             if (!cmsPipelineInsertStage(LUT, StageLoc.AtEnd, _cmsStageAllocLabV4ToV2(ContextID)))
@@ -1236,12 +1238,12 @@ public static partial class Lcms2
 
         var deviceClass = cmsGetDeviceClass(Profile);
 
-        var DestinationTag = (Signature)((deviceClass == Signature.ProfileClass.Output)
+        var DestinationTag = (Signature)(deviceClass == Signature.ProfileClass.Output
                                              ? Signature.Tag.BToA0
                                              : Signature.Tag.AToB0);
 
         // Check if the profile/version can store the result
-        var AllowedLUT = ((dwFlags & cmsFLAGS_FORCE_CLUT) is 0)
+        var AllowedLUT = (dwFlags & cmsFLAGS_FORCE_CLUT) is 0
                              ? FindCombination(LUT, Version >= 4.0, DestinationTag)
                              : default;
 
@@ -1263,17 +1265,13 @@ public static partial class Lcms2
             if (FirstStage is not null &&
                 FirstStage.Type != Signature.Stage.CurveSetElem &&
                 !cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCurves(ContextID, ChansIn)))
-            {
                 goto Error;
-            }
 
             var LastStage = cmsPipelineGetPtrToLastStage(LUT);
             if (LastStage is not null &&
                 LastStage.Type != Signature.Stage.CurveSetElem &&
                 !cmsPipelineInsertStage(LUT, StageLoc.AtEnd, _cmsStageAllocIdentityCurves(ContextID, ChansOut)))
-            {
                 goto Error;
-            }
 
             AllowedLUT = FindCombination(LUT, Version >= 4.0, DestinationTag);
         }
@@ -1297,11 +1295,9 @@ public static partial class Lcms2
              !cmsWriteTag(Profile, Signature.Tag.ColorantTable, xform.InputColorant)) ||
             (xform.OutputColorant is not null &&
              !cmsWriteTag(Profile, Signature.Tag.ColorantTableOut, xform.OutputColorant)) ||
-            ((deviceClass == Signature.ProfileClass.Link) &&
-             (xform.Sequence is not null) && !_cmsWriteProfileSequence(Profile, xform.Sequence)))
-        {
+            (deviceClass == Signature.ProfileClass.Link &&
+             xform.Sequence is not null && !_cmsWriteProfileSequence(Profile, xform.Sequence)))
             goto Error;
-        }
 
         // Set the white point
         if (deviceClass == Signature.ProfileClass.Input)

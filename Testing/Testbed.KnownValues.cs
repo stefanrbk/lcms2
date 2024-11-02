@@ -58,21 +58,23 @@ internal static partial class Testbed
         var hXYZ = cmsCreateXYZProfileTHR(DbgThread())!;
         var hLab = cmsCreateLab4ProfileTHR(DbgThread(), null)!;
 
-        var xform1 = cmsCreateTransformTHR(DbgThread(),
-                                           hsRGB,
-                                           TYPE_RGB_FLT,
-                                           hXYZ,
-                                           TYPE_XYZ_DBL,
-                                           INTENT_RELATIVE_COLORIMETRIC,
-                                           0)!;
+        var xform1 = cmsCreateTransformTHR(
+            DbgThread(),
+            hsRGB,
+            TYPE_RGB_FLT,
+            hXYZ,
+            TYPE_XYZ_DBL,
+            INTENT_RELATIVE_COLORIMETRIC,
+            0)!;
 
-        var xform2 = cmsCreateTransformTHR(DbgThread(),
-                                           hsRGB,
-                                           TYPE_RGB_FLT,
-                                           hLab,
-                                           TYPE_Lab_DBL,
-                                           INTENT_RELATIVE_COLORIMETRIC,
-                                           0)!;
+        var xform2 = cmsCreateTransformTHR(
+            DbgThread(),
+            hsRGB,
+            TYPE_RGB_FLT,
+            hLab,
+            TYPE_Lab_DBL,
+            INTENT_RELATIVE_COLORIMETRIC,
+            0)!;
 
         cmsCloseProfile(hsRGB);
         cmsCloseProfile(hXYZ);
@@ -168,9 +170,10 @@ internal static partial class Testbed
 
     private static bool CheckOutGray(Transform xform, double L, byte g)
     {
-        var Lab = new CIELab(L: L,
-                             a: 0,
-                             b: 0);
+        var Lab = new CIELab(
+            L,
+            0,
+            0);
 
         cmsDoTransform(xform, Lab, out byte g_out, 1);
 
@@ -221,7 +224,7 @@ internal static partial class Testbed
 
         for (var i = 0; i < 100; i++)
         {
-            var g = (byte)Math.Floor(i * 255.0 / 100.0 + 0.5);
+            var g = (byte)Math.Floor(((i * 255.0) / 100.0) + 0.5);
 
             if (!CheckOutGray(xform, i, g))
                 return false;
@@ -308,15 +311,16 @@ internal static partial class Testbed
     internal static bool CheckProofingXFORMFloat()
     {
         var hAbove = Create_AboveRGB()!;
-        var xform = cmsCreateProofingTransformTHR(DbgThread(),
-                                                  hAbove,
-                                                  TYPE_RGB_FLT,
-                                                  hAbove,
-                                                  TYPE_RGB_FLT,
-                                                  hAbove,
-                                                  INTENT_RELATIVE_COLORIMETRIC,
-                                                  INTENT_RELATIVE_COLORIMETRIC,
-                                                  cmsFLAGS_SOFTPROOFING)!;
+        var xform = cmsCreateProofingTransformTHR(
+            DbgThread(),
+            hAbove,
+            TYPE_RGB_FLT,
+            hAbove,
+            TYPE_RGB_FLT,
+            hAbove,
+            INTENT_RELATIVE_COLORIMETRIC,
+            INTENT_RELATIVE_COLORIMETRIC,
+            cmsFLAGS_SOFTPROOFING)!;
 
         cmsCloseProfile(hAbove);
         var rc = CheckFloatLinearXFORM(xform, 3);
@@ -327,15 +331,16 @@ internal static partial class Testbed
     internal static bool CheckProofingXFORM16()
     {
         var hAbove = Create_AboveRGB()!;
-        var xform = cmsCreateProofingTransformTHR(DbgThread(),
-                                                  hAbove,
-                                                  TYPE_RGB_16,
-                                                  hAbove,
-                                                  TYPE_RGB_16,
-                                                  hAbove,
-                                                  INTENT_RELATIVE_COLORIMETRIC,
-                                                  INTENT_RELATIVE_COLORIMETRIC,
-                                                  cmsFLAGS_SOFTPROOFING | cmsFLAGS_NOCACHE)!;
+        var xform = cmsCreateProofingTransformTHR(
+            DbgThread(),
+            hAbove,
+            TYPE_RGB_16,
+            hAbove,
+            TYPE_RGB_16,
+            hAbove,
+            INTENT_RELATIVE_COLORIMETRIC,
+            INTENT_RELATIVE_COLORIMETRIC,
+            cmsFLAGS_SOFTPROOFING | cmsFLAGS_NOCACHE)!;
 
         cmsCloseProfile(hAbove);
         var rc = Check16linearXFORM(xform, 3);
@@ -363,15 +368,16 @@ internal static partial class Testbed
         using (logger.BeginScope("Gamut check on floating point"))
         {
             // Create a gamut checker in the same space. No value should be out of gamut
-            var xform = cmsCreateProofingTransformTHR(DbgThread(),
-                                                      hAbove,
-                                                      TYPE_RGB_FLT,
-                                                      hAbove,
-                                                      TYPE_RGB_FLT,
-                                                      hAbove,
-                                                      INTENT_RELATIVE_COLORIMETRIC,
-                                                      INTENT_RELATIVE_COLORIMETRIC,
-                                                      cmsFLAGS_GAMUTCHECK);
+            var xform = cmsCreateProofingTransformTHR(
+                DbgThread(),
+                hAbove,
+                TYPE_RGB_FLT,
+                hAbove,
+                TYPE_RGB_FLT,
+                hAbove,
+                INTENT_RELATIVE_COLORIMETRIC,
+                INTENT_RELATIVE_COLORIMETRIC,
+                cmsFLAGS_GAMUTCHECK);
 
             if (!CheckFloatLinearXFORM(xform, 3))
             {
@@ -387,15 +393,16 @@ internal static partial class Testbed
 
         using (logger.BeginScope("Gamut check on 16 bits"))
         {
-            var xform = cmsCreateProofingTransformTHR(DbgThread(),
-                                                      hAbove,
-                                                      TYPE_RGB_16,
-                                                      hAbove,
-                                                      TYPE_RGB_16,
-                                                      hSRGB,
-                                                      INTENT_RELATIVE_COLORIMETRIC,
-                                                      INTENT_RELATIVE_COLORIMETRIC,
-                                                      cmsFLAGS_GAMUTCHECK);
+            var xform = cmsCreateProofingTransformTHR(
+                DbgThread(),
+                hAbove,
+                TYPE_RGB_16,
+                hAbove,
+                TYPE_RGB_16,
+                hSRGB,
+                INTENT_RELATIVE_COLORIMETRIC,
+                INTENT_RELATIVE_COLORIMETRIC,
+                cmsFLAGS_GAMUTCHECK);
 
             cmsCloseProfile(hSRGB);
             cmsCloseProfile(hAbove);
@@ -422,13 +429,14 @@ internal static partial class Testbed
 
         var hLab = cmsCreateLab4ProfileTHR(DbgThread(), null)!;
 
-        var xform = cmsCreateTransformTHR(DbgThread(),
-                                          hSWOP,
-                                          TYPE_CMYK_FLT,
-                                          hFOGRA,
-                                          TYPE_CMYK_FLT,
-                                          INTENT_PRESERVE_K_ONLY_PERCEPTUAL,
-                                          0)!;
+        var xform = cmsCreateTransformTHR(
+            DbgThread(),
+            hSWOP,
+            TYPE_CMYK_FLT,
+            hFOGRA,
+            TYPE_CMYK_FLT,
+            INTENT_PRESERVE_K_ONLY_PERCEPTUAL,
+            0)!;
 
         var swop_lab =
             cmsCreateTransformTHR(DbgThread(), hSWOP, TYPE_CMYK_FLT, hLab, TYPE_Lab_DBL, INTENT_PERCEPTUAL, 0)!;
@@ -483,13 +491,14 @@ internal static partial class Testbed
         {
             Max = 0;
 
-            xform = cmsCreateTransformTHR(DbgThread(),
-                                          hFOGRA,
-                                          TYPE_CMYK_FLT,
-                                          hSWOP,
-                                          TYPE_CMYK_FLT,
-                                          INTENT_PRESERVE_K_ONLY_PERCEPTUAL,
-                                          0)!;
+            xform = cmsCreateTransformTHR(
+                DbgThread(),
+                hFOGRA,
+                TYPE_CMYK_FLT,
+                hSWOP,
+                TYPE_CMYK_FLT,
+                INTENT_PRESERVE_K_ONLY_PERCEPTUAL,
+                0)!;
 
             for (var i = 0; i <= 100; i++)
             {
@@ -537,13 +546,14 @@ internal static partial class Testbed
 
         var hLab = cmsCreateLab4ProfileTHR(DbgThread(), null)!;
 
-        var xform = cmsCreateTransformTHR(DbgThread(),
-                                          hSWOP,
-                                          TYPE_CMYK_FLT,
-                                          hFOGRA,
-                                          TYPE_CMYK_FLT,
-                                          INTENT_PERCEPTUAL,
-                                          0)!;
+        var xform = cmsCreateTransformTHR(
+            DbgThread(),
+            hSWOP,
+            TYPE_CMYK_FLT,
+            hFOGRA,
+            TYPE_CMYK_FLT,
+            INTENT_PERCEPTUAL,
+            0)!;
 
         var swop_lab =
             cmsCreateTransformTHR(DbgThread(), hSWOP, TYPE_CMYK_FLT, hLab, TYPE_Lab_DBL, INTENT_PERCEPTUAL, 0)!;
@@ -592,13 +602,14 @@ internal static partial class Testbed
         {
             Max = 0;
 
-            xform = cmsCreateTransformTHR(DbgThread(),
-                                          hFOGRA,
-                                          TYPE_CMYK_FLT,
-                                          hSWOP,
-                                          TYPE_CMYK_FLT,
-                                          INTENT_PRESERVE_K_PLANE_PERCEPTUAL,
-                                          0)!;
+            xform = cmsCreateTransformTHR(
+                DbgThread(),
+                hFOGRA,
+                TYPE_CMYK_FLT,
+                hSWOP,
+                TYPE_CMYK_FLT,
+                INTENT_PRESERVE_K_PLANE_PERCEPTUAL,
+                0)!;
 
             for (var i = 0; i <= 100; i++)
             {
@@ -719,7 +730,7 @@ internal static partial class Testbed
     private static string PrintArray<T>(Span<T> values)
     {
         if (values.Length is 0)
-            return string.Empty;
+            return String.Empty;
 
         var sb = new StringBuilder();
         foreach (var v in values)
@@ -751,7 +762,7 @@ internal static partial class Testbed
 
         using (logger.BeginScope("Filling gamut"))
         {
-            if (!@foreach(build, values, string.Format("Failed to add value ({0})", PrintArray(values))))
+            if (!@foreach(build, values, String.Format("Failed to add value ({0})", PrintArray(values))))
             {
                 cmsGBDFree(h);
                 return false;
@@ -770,9 +781,10 @@ internal static partial class Testbed
 
         using (logger.BeginScope("Checking gamut"))
         {
-            if (test is not null && !@foreach(test,
-                                              values,
-                                              string.Format("Gamut check failed with value ({0})", PrintArray(values))))
+            if (test is not null && !@foreach(
+                    test,
+                    values,
+                    String.Format("Gamut check failed with value ({0})", PrintArray(values))))
             {
                 cmsGBDFree(h);
                 return false;
@@ -813,13 +825,14 @@ internal static partial class Testbed
 
         using (logger.BeginScope("RAW/Lab gamut"))
         {
-            rc |= !CheckOneGBD((v) => new CIELab(v[0], v[1], v[2]),
-                               (SteppedRange<int>.CreateInclusive(0, 100, 10),
-                                SteppedRange<int>.CreateInclusive(10, 90, 25)),
-                               (SteppedRange<int>.CreateInclusive(-128, 128, 5),
-                                SteppedRange<int>.CreateInclusive(-120, 120, 25)),
-                               (SteppedRange<int>.CreateInclusive(-128, 128, 5),
-                                SteppedRange<int>.CreateInclusive(-120, 120, 25)));
+            rc |= !CheckOneGBD(
+                      (v) => new(v[0], v[1], v[2]),
+                      (SteppedRange<int>.CreateInclusive(0, 100, 10),
+                       SteppedRange<int>.CreateInclusive(10, 90, 25)),
+                      (SteppedRange<int>.CreateInclusive(-128, 128, 5),
+                       SteppedRange<int>.CreateInclusive(-120, 120, 25)),
+                      (SteppedRange<int>.CreateInclusive(-128, 128, 5),
+                       SteppedRange<int>.CreateInclusive(-120, 120, 25)));
         }
 
         using (logger.BeginScope("sRGB gamut"))
@@ -827,34 +840,37 @@ internal static partial class Testbed
             var hsRGB = cmsCreate_sRGBProfile()!;
             var hLab = cmsCreateLab4Profile(null)!;
 
-            var xform = cmsCreateTransform(hsRGB,
-                                           TYPE_RGB_8,
-                                           hLab,
-                                           TYPE_Lab_DBL,
-                                           INTENT_RELATIVE_COLORIMETRIC,
-                                           cmsFLAGS_NOCACHE)!;
+            var xform = cmsCreateTransform(
+                hsRGB,
+                TYPE_RGB_8,
+                hLab,
+                TYPE_Lab_DBL,
+                INTENT_RELATIVE_COLORIMETRIC,
+                cmsFLAGS_NOCACHE)!;
             cmsCloseProfile(hsRGB);
             cmsCloseProfile(hLab);
 
-            rc |= !CheckOneGBD((v) =>
-                               {
-                                   cmsDoTransform(xform, v, out CIELab Lab, 1);
+            rc |= !CheckOneGBD(
+                      (v) =>
+                      {
+                          cmsDoTransform(xform, v, out CIELab Lab, 1);
 
-                                   return Lab;
-                               },
-                               (SteppedRange<int>.CreateExclusive(0, 256, 5),
-                                SteppedRange<int>.CreateExclusive(10, 200, 10)),
-                               (SteppedRange<int>.CreateExclusive(0, 256, 5),
-                                SteppedRange<int>.CreateExclusive(10, 200, 10)),
-                               (SteppedRange<int>.CreateExclusive(0, 256, 5),
-                                SteppedRange<int>.CreateExclusive(10, 200, 10)));
+                          return Lab;
+                      },
+                      (SteppedRange<int>.CreateExclusive(0, 256, 5),
+                       SteppedRange<int>.CreateExclusive(10, 200, 10)),
+                      (SteppedRange<int>.CreateExclusive(0, 256, 5),
+                       SteppedRange<int>.CreateExclusive(10, 200, 10)),
+                      (SteppedRange<int>.CreateExclusive(0, 256, 5),
+                       SteppedRange<int>.CreateExclusive(10, 200, 10)));
             cmsDeleteTransform(xform);
         }
 
         using (logger.BeginScope("LCh chroma ring"))
         {
-            rc |= !CheckOneGBD(v => new CIELCh(70, 60, v[0]).AsLab,
-                               (SteppedRange<int>.CreateExclusive(0, 360, 1), null));
+            rc |= !CheckOneGBD(
+                      v => new CIELCh(70, 60, v[0]).AsLab,
+                      (SteppedRange<int>.CreateExclusive(0, 360, 1), null));
         }
 
         return !rc;
@@ -862,7 +878,7 @@ internal static partial class Testbed
 
     internal static bool CheckMD5()
     {
-        bool rc = false;
+        var rc = false;
 
         using (logger.BeginScope("TestProfiles.test1"))
             rc |= !check(cmsOpenProfileFromMem(TestProfiles.test1)!);
@@ -995,9 +1011,7 @@ internal static partial class Testbed
         if (!IsGoodVal("Float RGB->XYZ", @in[0], @out[0], FLOAT_PRECISION) ||
             !IsGoodVal("Float RGB->XYZ", @in[1], @out[1], FLOAT_PRECISION) ||
             !IsGoodVal("Float RGB->XYZ", @in[2], @out[2], FLOAT_PRECISION))
-        {
             return false;
-        }
 
         // XYZ to XYZ
         input = IdentityMatrixProfile(Signature.Colorspace.XYZ);
@@ -1012,18 +1026,17 @@ internal static partial class Testbed
         if (!IsGoodVal("Float XYZ->XYZ", @in[0], @out[0], FLOAT_PRECISION) ||
             !IsGoodVal("Float XYZ->XYZ", @in[1], @out[1], FLOAT_PRECISION) ||
             !IsGoodVal("Float XYZ->XYZ", @in[2], @out[2], FLOAT_PRECISION))
-        {
             return true;
-        }
 
         input = IdentityMatrixProfile(Signature.Colorspace.XYZ);
 
-        xform = cmsCreateTransform(input,
-                                   TYPE_XYZA_FLT,
-                                   xyzProfile,
-                                   TYPE_XYZA_FLT,
-                                   INTENT_RELATIVE_COLORIMETRIC,
-                                   cmsFLAGS_COPY_ALPHA)!;
+        xform = cmsCreateTransform(
+            input,
+            TYPE_XYZA_FLT,
+            xyzProfile,
+            TYPE_XYZA_FLT,
+            INTENT_RELATIVE_COLORIMETRIC,
+            cmsFLAGS_COPY_ALPHA)!;
         cmsCloseProfile(input);
 
         cmsDoTransform(xform, @in, @out, 1);
@@ -1034,9 +1047,7 @@ internal static partial class Testbed
             !IsGoodVal("Float XYZA->XYZA", @in[1], @out[1], FLOAT_PRECISION) ||
             !IsGoodVal("Float XYZA->XYZA", @in[2], @out[2], FLOAT_PRECISION) ||
             !IsGoodVal("Float XYZA->XYZA", @in[3], @out[3], FLOAT_PRECISION))
-        {
             return false;
-        }
 
         // XYZ to RGB
         input = IdentityMatrixProfile(Signature.Colorspace.Rgb);
@@ -1051,9 +1062,7 @@ internal static partial class Testbed
         if (!IsGoodVal("Float XYZ->RGB", @in[0], @out[0], FLOAT_PRECISION) ||
             !IsGoodVal("Float XYZ->RGB", @in[1], @out[1], FLOAT_PRECISION) ||
             !IsGoodVal("Float XYZ->RGB", @in[2], @out[2], FLOAT_PRECISION))
-        {
             return false;
-        }
 
         // Now the optimizer should remove a stage
 
@@ -1070,9 +1079,7 @@ internal static partial class Testbed
         if (!IsGoodVal("Float RGB->RGB", @in[0], @out[0], FLOAT_PRECISION) ||
             !IsGoodVal("Float RGB->RGB", @in[1], @out[1], FLOAT_PRECISION) ||
             !IsGoodVal("Float RGB->RGB", @in[2], @out[2], FLOAT_PRECISION))
-        {
             return false;
-        }
 
         cmsCloseProfile(xyzProfile);
 
@@ -1084,18 +1091,20 @@ internal static partial class Testbed
         var hSRGB = cmsCreate_sRGBProfile()!;
         var hLab = cmsCreateLab4Profile(null)!;
 
-        var xform1 = cmsCreateTransform(hSRGB,
-                                        TYPE_RGBA_FLT,
-                                        hLab,
-                                        TYPE_LabA_FLT,
-                                        0,
-                                        cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE)!;
-        var xform2 = cmsCreateTransform(hLab,
-                                        TYPE_LabA_FLT,
-                                        hSRGB,
-                                        TYPE_RGBA_FLT,
-                                        0,
-                                        cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE)!;
+        var xform1 = cmsCreateTransform(
+            hSRGB,
+            TYPE_RGBA_FLT,
+            hLab,
+            TYPE_LabA_FLT,
+            0,
+            cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE)!;
+        var xform2 = cmsCreateTransform(
+            hLab,
+            TYPE_LabA_FLT,
+            hSRGB,
+            TYPE_RGBA_FLT,
+            0,
+            cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE)!;
 
         Span<float> RGBA1 = stackalloc float[4];
         Span<float> RGBA2 = stackalloc float[4];
@@ -1114,9 +1123,7 @@ internal static partial class Testbed
             if (!IsGoodVal("Float RGB->RGB", RGBA1[0], RGBA2[0], FLOAT_PRECISION) ||
                 !IsGoodVal("Float RGB->RGB", RGBA1[1], RGBA2[1], FLOAT_PRECISION) ||
                 !IsGoodVal("Float RGB->RGB", RGBA1[2], RGBA2[2], FLOAT_PRECISION))
-            {
                 return false;
-            }
         }
 
         cmsDeleteTransform(xform1);
@@ -1130,12 +1137,10 @@ internal static partial class Testbed
     private static double Rec709(double L)
     {
         if (L < 0.018)
-        {
             return 4.5 * L;
-        }
         else
         {
-            double a = 1.099 * Math.Pow(L, 0.45);
+            var a = 1.099 * Math.Pow(L, 0.45);
 
             return a - 0.099;
         }
@@ -1158,8 +1163,8 @@ internal static partial class Testbed
         for (var i = 0; i < 256; i++)
         {
             var n = i / 255.0F;
-            var f1 = (ushort)Math.Floor(255.0 * cmsEvalToneCurveFloat(t, n) + 0.5);
-            var f2 = (ushort)Math.Floor(255.0 * Rec709(i / 255.0) + 0.5);
+            var f1 = (ushort)Math.Floor((255.0 * cmsEvalToneCurveFloat(t, n)) + 0.5);
+            var f2 = (ushort)Math.Floor((255.0 * Rec709(i / 255.0)) + 0.5);
 
             if (f1 != f2)
             {
@@ -1238,7 +1243,7 @@ internal static partial class Testbed
 
         for (var i = 0; i < kNumPoints; i++)
         {
-            var x = (float)(0.1 + ((float)i / (kNumPoints - 1) * (0.9 - 0.1)));
+            var x = (float)(0.1 + (((float)i / (kNumPoints - 1)) * (0.9 - 0.1)));
             y[i] = StraightLine(x);
         }
 
@@ -1353,12 +1358,13 @@ internal static partial class Testbed
         Span<float> @in = stackalloc float[10] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         Span<float> @out = stackalloc float[10];
 
-        var xform = cmsCreateTransform(null,
-                                       TYPE_GRAY_FLT,
-                                       null,
-                                       TYPE_GRAY_FLT,
-                                       INTENT_PERCEPTUAL,
-                                       cmsFLAGS_NULLTRANSFORM);
+        var xform = cmsCreateTransform(
+            null,
+            TYPE_GRAY_FLT,
+            null,
+            TYPE_GRAY_FLT,
+            INTENT_PERCEPTUAL,
+            cmsFLAGS_NULLTRANSFORM);
 
         if (xform is null)
         {
@@ -1372,9 +1378,7 @@ internal static partial class Testbed
         for (var i = 0; i < 10; i++)
         {
             if (!IsGoodVal("float nullxform", @in[i], @out[i], 0.001))
-            {
                 return false;
-            }
         }
 
         return true;
@@ -1497,7 +1501,7 @@ internal static partial class Testbed
             0xff,
             0xff,
             1,
-            0
+            0,
         };
 
         // Our buffer3 is formed by 4 RGBA16 lines, each line is 2 pixels wide plus a padding of two bytes
@@ -1538,7 +1542,7 @@ internal static partial class Testbed
             0xffff,
             0xffff,
             0x0101,
-            0
+            0,
         };
         var buf3AsBytes = MemoryMarshal.Cast<ushort, byte>(buf3);
 
@@ -1622,12 +1626,13 @@ internal static partial class Testbed
         var aboveRGB = Create_AboveRGB()!;
         var sRGB = cmsCreate_sRGBProfile()!;
 
-        var transform = cmsCreateTransform(sRGB,
-                                           TYPE_RGB_8_PLANAR,
-                                           aboveRGB,
-                                           TYPE_RGB_8_PLANAR,
-                                           INTENT_PERCEPTUAL,
-                                           0)!;
+        var transform = cmsCreateTransform(
+            sRGB,
+            TYPE_RGB_8_PLANAR,
+            aboveRGB,
+            TYPE_RGB_8_PLANAR,
+            INTENT_PERCEPTUAL,
+            0)!;
 
         cmsDeleteTransform(transform);
         cmsCloseProfile(aboveRGB);
@@ -1661,12 +1666,13 @@ internal static partial class Testbed
         var input_profile = Create_AboveRGB()!;
         var output_profile = cmsCreate_sRGBProfile()!;
 
-        var tr = cmsCreateTransform(input_profile,
-                                    TYPE_RGBA_8,
-                                    output_profile,
-                                    TYPE_RGBA_16_SE,
-                                    INTENT_RELATIVE_COLORIMETRIC,
-                                    cmsFLAGS_COPY_ALPHA)!;
+        var tr = cmsCreateTransform(
+            input_profile,
+            TYPE_RGBA_8,
+            output_profile,
+            TYPE_RGBA_16_SE,
+            INTENT_RELATIVE_COLORIMETRIC,
+            cmsFLAGS_COPY_ALPHA)!;
 
         ReadOnlySpan<byte> rgba = stackalloc byte[4] { 40, 41, 41, 0xfa };
         Span<ushort> @out = stackalloc ushort[4];
@@ -1708,12 +1714,13 @@ internal static partial class Testbed
 
         Context.Shared.SetLoggerFactory(BuildNullLogger());
 
-        var hTransform = cmsCreateTransform(srcProfile,
-                                            srcFormat,
-                                            dstProfile,
-                                            TYPE_BGR_8,
-                                            intent,
-                                            flags)!;
+        var hTransform = cmsCreateTransform(
+            srcProfile,
+            srcFormat,
+            dstProfile,
+            TYPE_BGR_8,
+            intent,
+            flags)!;
         cmsCloseProfile(srcProfile);
         cmsCloseProfile(dstProfile);
 
@@ -1750,16 +1757,17 @@ internal static partial class Testbed
         var hnd2 = Create_AboveRGB()!;
 
         var profile_null = cmsCreateNULLProfileTHR(DbgThread())!;
-        var transform = cmsCreateProofingTransformTHR(DbgThread(),
-                                                      hnd1,
-                                                      TYPE_RGB_FLT,
-                                                      profile_null,
-                                                      TYPE_GRAY_FLT,
-                                                      hnd2,
-                                                      INTENT_ABSOLUTE_COLORIMETRIC,
-                                                      INTENT_ABSOLUTE_COLORIMETRIC,
-                                                      cmsFLAGS_GAMUTCHECK |
-                                                      cmsFLAGS_SOFTPROOFING)!;
+        var transform = cmsCreateProofingTransformTHR(
+            DbgThread(),
+            hnd1,
+            TYPE_RGB_FLT,
+            profile_null,
+            TYPE_GRAY_FLT,
+            hnd2,
+            INTENT_ABSOLUTE_COLORIMETRIC,
+            INTENT_ABSOLUTE_COLORIMETRIC,
+            cmsFLAGS_GAMUTCHECK |
+            cmsFLAGS_SOFTPROOFING)!;
 
         cmsCloseProfile(hnd1);
         cmsCloseProfile(hnd2);
@@ -1777,9 +1785,10 @@ internal static partial class Testbed
     {
         var context = new Context();
         var white = new CIExyY(0.31271, 0.32902, 1.0);
-        var primaries = new CIExyYTRIPLE(new(0.640, 0.330, 1.0),
-                                         new(0.300, 0.600, 1.0),
-                                         new(0.150, 0.060, 1.0));
+        var primaries = new CIExyYTRIPLE(
+            new(0.640, 0.330, 1.0),
+            new(0.300, 0.600, 1.0),
+            new(0.150, 0.060, 1.0));
 
         Span<double> parameters = stackalloc double[10] { 2.6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
         var toneCurve = cmsBuildParametricToneCurve(context, 1, parameters)!;
@@ -1814,7 +1823,7 @@ internal static partial class Testbed
         double d2 = a[1] - b[1];
         double d3 = a[2] - b[2];
 
-        return Math.Sqrt(d1 * d1 + d2 * d2 + d3 * d3);
+        return Math.Sqrt((d1 * d1) + (d2 * d2) + (d3 * d3));
     }
 
     internal static bool Check_sRGB_Rountrips()
@@ -1921,18 +1930,20 @@ internal static partial class Testbed
 
         var TYPE_LABA_F32 = FLOAT_SH(1) | COLORSPACE_SH(PT_MCH3) | EXTRA_SH(1) | CHANNELS_SH(3) | BYTES_SH(4);
 
-        var hBack = cmsCreateTransform(labProfile,
-                                       TYPE_LABA_F32,
-                                       rgbProfile,
-                                       TYPE_RGB_16,
-                                       INTENT_RELATIVE_COLORIMETRIC,
-                                       0)!;
-        var hForth = cmsCreateTransform(rgbProfile,
-                                        TYPE_RGB_16,
-                                        labProfile,
-                                        TYPE_LABA_F32,
-                                        INTENT_RELATIVE_COLORIMETRIC,
-                                        0)!;
+        var hBack = cmsCreateTransform(
+            labProfile,
+            TYPE_LABA_F32,
+            rgbProfile,
+            TYPE_RGB_16,
+            INTENT_RELATIVE_COLORIMETRIC,
+            0)!;
+        var hForth = cmsCreateTransform(
+            rgbProfile,
+            TYPE_RGB_16,
+            labProfile,
+            TYPE_LABA_F32,
+            INTENT_RELATIVE_COLORIMETRIC,
+            0)!;
 
         cmsCloseProfile(labProfile);
         cmsCloseProfile(rgbProfile);
@@ -1956,9 +1967,10 @@ internal static partial class Testbed
     private static Profile? createRgbGamma(double g)
     {
         var D65 = new CIExyY(0.3127, 0.3290, 1.0);
-        var Rec709Primaries = new CIExyYTRIPLE(new(0.6400, 0.3300, 1.0),
-                                               new(0.3000, 0.6000, 1.0),
-                                               new(0.1500, 0.0600, 1.0));
+        var Rec709Primaries = new CIExyYTRIPLE(
+            new(0.6400, 0.3300, 1.0),
+            new(0.3000, 0.6000, 1.0),
+            new(0.1500, 0.0600, 1.0));
         var Gamma = new ToneCurve[3];
 
         Gamma[0] = Gamma[1] = Gamma[2] = cmsBuildGamma(null, g)!;

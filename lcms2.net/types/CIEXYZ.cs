@@ -66,7 +66,7 @@ public struct CIEXYZ(double x, double y, double z)
             return NaN;
 
         return new(XYZ2float(xyz[0]), XYZ2float(xyz[1]), XYZ2float(xyz[2]));
-}
+    }
 
     public readonly CIELab AsLab(CIEXYZ? WhitePoint = null)
     {

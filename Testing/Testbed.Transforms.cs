@@ -323,13 +323,12 @@ internal static partial class Testbed
             {
                 for (var b = 0; b < 65536; b += 1111)
                 {
-                    if (!CheckOneLab(xform,
-                                     (L * 100.0) / 65535.0,
-                                     (a / 257.0) - 128,
-                                     (b / 257.0) - 128))
-                    {
+                    if (!CheckOneLab(
+                            xform,
+                            (L * 100.0) / 65535.0,
+                            (a / 257.0) - 128,
+                            (b / 257.0) - 128))
                         return false;
-                    }
                 }
             }
         }
@@ -341,13 +340,14 @@ internal static partial class Testbed
     {
         using (logger.BeginScope("{txt}", txt))
         {
-            var xform = cmsCreateTransformTHR(DbgThread(),
-                                              hLab1,
-                                              TYPE_Lab_DBL,
-                                              hLab2,
-                                              TYPE_Lab_DBL,
-                                              INTENT_RELATIVE_COLORIMETRIC,
-                                              0)!;
+            var xform = cmsCreateTransformTHR(
+                DbgThread(),
+                hLab1,
+                TYPE_Lab_DBL,
+                hLab2,
+                TYPE_Lab_DBL,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
             cmsCloseProfile(hLab1);
             cmsCloseProfile(hLab2);
 
@@ -358,18 +358,22 @@ internal static partial class Testbed
     }
 
     internal static bool CheckFloatLabTransforms() =>
-        OneTrivialLab(cmsCreateLab4ProfileTHR(DbgThread(), null)!,
-                      cmsCreateLab4ProfileTHR(DbgThread(), null)!,
-                      "Lab4/Lab4") &&
-        OneTrivialLab(cmsCreateLab2ProfileTHR(DbgThread(), null)!,
-                      cmsCreateLab2ProfileTHR(DbgThread(), null)!,
-                      "Lab2/Lab2") &&
-        OneTrivialLab(cmsCreateLab4ProfileTHR(DbgThread(), null)!,
-                      cmsCreateLab2ProfileTHR(DbgThread(), null)!,
-                      "Lab4/Lab2") &&
-        OneTrivialLab(cmsCreateLab2ProfileTHR(DbgThread(), null)!,
-                      cmsCreateLab4ProfileTHR(DbgThread(), null)!,
-                      "Lab2/Lab4");
+        OneTrivialLab(
+            cmsCreateLab4ProfileTHR(DbgThread(), null)!,
+            cmsCreateLab4ProfileTHR(DbgThread(), null)!,
+            "Lab4/Lab4") &&
+        OneTrivialLab(
+            cmsCreateLab2ProfileTHR(DbgThread(), null)!,
+            cmsCreateLab2ProfileTHR(DbgThread(), null)!,
+            "Lab2/Lab2") &&
+        OneTrivialLab(
+            cmsCreateLab4ProfileTHR(DbgThread(), null)!,
+            cmsCreateLab2ProfileTHR(DbgThread(), null)!,
+            "Lab4/Lab2") &&
+        OneTrivialLab(
+            cmsCreateLab2ProfileTHR(DbgThread(), null)!,
+            cmsCreateLab4ProfileTHR(DbgThread(), null)!,
+            "Lab2/Lab4");
 
     internal static bool CheckEncodedLabTransforms()
     {
@@ -382,13 +386,14 @@ internal static partial class Testbed
         var hLab1 = cmsCreateLab4ProfileTHR(DbgThread(), null)!;
         var hLab2 = cmsCreateLab4ProfileTHR(DbgThread(), null)!;
 
-        var xform = cmsCreateTransformTHR(DbgThread(),
-                                          hLab1,
-                                          TYPE_Lab_16,
-                                          hLab2,
-                                          TYPE_Lab_DBL,
-                                          INTENT_RELATIVE_COLORIMETRIC,
-                                          0);
+        var xform = cmsCreateTransformTHR(
+            DbgThread(),
+            hLab1,
+            TYPE_Lab_16,
+            hLab2,
+            TYPE_Lab_DBL,
+            INTENT_RELATIVE_COLORIMETRIC,
+            0);
         cmsCloseProfile(hLab1);
         cmsCloseProfile(hLab2);
 
@@ -417,13 +422,14 @@ internal static partial class Testbed
         hLab1 = cmsCreateLab2ProfileTHR(DbgThread(), null)!;
         hLab2 = cmsCreateLab4ProfileTHR(DbgThread(), null)!;
 
-        xform = cmsCreateTransformTHR(DbgThread(),
-                                      hLab1,
-                                      TYPE_LabV2_16,
-                                      hLab2,
-                                      TYPE_Lab_DBL,
-                                      INTENT_RELATIVE_COLORIMETRIC,
-                                      0)!;
+        xform = cmsCreateTransformTHR(
+            DbgThread(),
+            hLab1,
+            TYPE_LabV2_16,
+            hLab2,
+            TYPE_Lab_DBL,
+            INTENT_RELATIVE_COLORIMETRIC,
+            0)!;
         cmsCloseProfile(hLab1);
         cmsCloseProfile(hLab2);
 
@@ -441,13 +447,14 @@ internal static partial class Testbed
         hLab2 = cmsCreateLab2ProfileTHR(DbgThread(), null)!;
         hLab1 = cmsCreateLab4ProfileTHR(DbgThread(), null)!;
 
-        xform = cmsCreateTransformTHR(DbgThread(),
-                                      hLab1,
-                                      TYPE_Lab_DBL,
-                                      hLab2,
-                                      TYPE_LabV2_16,
-                                      INTENT_RELATIVE_COLORIMETRIC,
-                                      0)!;
+        xform = cmsCreateTransformTHR(
+            DbgThread(),
+            hLab1,
+            TYPE_Lab_DBL,
+            hLab2,
+            TYPE_LabV2_16,
+            INTENT_RELATIVE_COLORIMETRIC,
+            0)!;
         cmsCloseProfile(hLab1);
         cmsCloseProfile(hLab2);
 
@@ -460,22 +467,21 @@ internal static partial class Testbed
         if (In[0] is not 0xFF00 ||
             In[1] is not 0x8000 ||
             In[2] is not 0X8000)
-        {
             return false;
-        }
 
         cmsDeleteTransform(xform);
 
         hLab2 = cmsCreateLab4ProfileTHR(DbgThread(), null)!;
         hLab1 = cmsCreateLab4ProfileTHR(DbgThread(), null)!;
 
-        xform = cmsCreateTransformTHR(DbgThread(),
-                                      hLab1,
-                                      TYPE_Lab_DBL,
-                                      hLab2,
-                                      TYPE_LabV2_16,
-                                      INTENT_RELATIVE_COLORIMETRIC,
-                                      0)!;
+        xform = cmsCreateTransformTHR(
+            DbgThread(),
+            hLab1,
+            TYPE_Lab_DBL,
+            hLab2,
+            TYPE_LabV2_16,
+            INTENT_RELATIVE_COLORIMETRIC,
+            0)!;
         cmsCloseProfile(hLab1);
         cmsCloseProfile(hLab2);
 
@@ -488,9 +494,7 @@ internal static partial class Testbed
         if (In[0] is not 0xFF00 ||
             In[1] is not 0x8000 ||
             In[2] is not 0X8000)
-        {
             return false;
-        }
 
         cmsDeleteTransform(xform);
 
@@ -518,13 +522,14 @@ internal static partial class Testbed
         using (logger.BeginScope("V4"))
         {
             var h4 = cmsOpenProfileFromFileTHR(DbgThread(), "abstractv4.icc", "r")!;
-            xform = cmsCreateTransformTHR(DbgThread(),
-                                          h4,
-                                          TYPE_Lab_DBL,
-                                          h4,
-                                          TYPE_Lab_DBL,
-                                          INTENT_RELATIVE_COLORIMETRIC,
-                                          0)!;
+            xform = cmsCreateTransformTHR(
+                DbgThread(),
+                h4,
+                TYPE_Lab_DBL,
+                h4,
+                TYPE_Lab_DBL,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
 
             rc &= CheckSeveralLab(xform);
 
@@ -537,13 +542,14 @@ internal static partial class Testbed
         using (logger.BeginScope("V2"))
         {
             var h2 = cmsOpenProfileFromFileTHR(DbgThread(), "abstractv2.icc", "r");
-            xform = cmsCreateTransformTHR(DbgThread(),
-                                          h2,
-                                          TYPE_Lab_DBL,
-                                          h2,
-                                          TYPE_Lab_DBL,
-                                          INTENT_RELATIVE_COLORIMETRIC,
-                                          0)!;
+            xform = cmsCreateTransformTHR(
+                DbgThread(),
+                h2,
+                TYPE_Lab_DBL,
+                h2,
+                TYPE_Lab_DBL,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
 
             rc &= CheckSeveralLab(xform);
 
@@ -557,13 +563,14 @@ internal static partial class Testbed
         {
             var h2 = cmsOpenProfileFromFileTHR(DbgThread(), "abstractv2.icc", "r")!;
             var h4 = cmsOpenProfileFromFileTHR(DbgThread(), "abstractv4.icc", "r")!;
-            xform = cmsCreateTransformTHR(DbgThread(),
-                                          h4,
-                                          TYPE_Lab_DBL,
-                                          h2,
-                                          TYPE_Lab_DBL,
-                                          INTENT_RELATIVE_COLORIMETRIC,
-                                          0)!;
+            xform = cmsCreateTransformTHR(
+                DbgThread(),
+                h4,
+                TYPE_Lab_DBL,
+                h2,
+                TYPE_Lab_DBL,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
 
             rc &= CheckSeveralLab(xform);
 
@@ -578,13 +585,14 @@ internal static partial class Testbed
         {
             var h2 = cmsOpenProfileFromFileTHR(DbgThread(), "abstractv2.icc", "r")!;
             var h4 = cmsOpenProfileFromFileTHR(DbgThread(), "abstractv4.icc", "r")!;
-            xform = cmsCreateTransformTHR(DbgThread(),
-                                          h2,
-                                          TYPE_Lab_DBL,
-                                          h4,
-                                          TYPE_Lab_DBL,
-                                          INTENT_RELATIVE_COLORIMETRIC,
-                                          0)!;
+            xform = cmsCreateTransformTHR(
+                DbgThread(),
+                h2,
+                TYPE_Lab_DBL,
+                h4,
+                TYPE_Lab_DBL,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
 
             rc &= CheckSeveralLab(xform);
 
@@ -605,13 +613,14 @@ internal static partial class Testbed
         using (logger.BeginScope("\"Above\""))
         {
             var hAbove = Create_AboveRGB()!;
-            var xform = cmsCreateTransformTHR(DbgThread(),
-                                              hAbove,
-                                              TYPE_RGB_FLT,
-                                              hAbove,
-                                              TYPE_RGB_FLT,
-                                              INTENT_RELATIVE_COLORIMETRIC,
-                                              0)!;
+            var xform = cmsCreateTransformTHR(
+                DbgThread(),
+                hAbove,
+                TYPE_RGB_FLT,
+                hAbove,
+                TYPE_RGB_FLT,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
             cmsCloseProfile(hAbove);
             rc1 = CheckFloatLinearXFORM(xform, 3);
             cmsDeleteTransform(xform);
@@ -620,13 +629,14 @@ internal static partial class Testbed
         using (logger.BeginScope("sRGB"))
         {
             var hSRGB = cmsCreate_sRGBProfileTHR(DbgThread())!;
-            var xform = cmsCreateTransformTHR(DbgThread(),
-                                              hSRGB,
-                                              TYPE_RGB_FLT,
-                                              hSRGB,
-                                              TYPE_RGB_FLT,
-                                              INTENT_RELATIVE_COLORIMETRIC,
-                                              0)!;
+            var xform = cmsCreateTransformTHR(
+                DbgThread(),
+                hSRGB,
+                TYPE_RGB_FLT,
+                hSRGB,
+                TYPE_RGB_FLT,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
             cmsCloseProfile(hSRGB);
             rc2 = CheckFloatLinearXFORM(xform, 3);
             cmsDeleteTransform(xform);
@@ -641,13 +651,14 @@ internal static partial class Testbed
         using (logger.BeginScope("\"Above\""))
         {
             var hAbove = Create_AboveRGB()!;
-            var xform = cmsCreateTransformTHR(DbgThread(),
-                                              hAbove,
-                                              TYPE_RGB_16,
-                                              hAbove,
-                                              TYPE_RGB_16,
-                                              INTENT_RELATIVE_COLORIMETRIC,
-                                              0)!;
+            var xform = cmsCreateTransformTHR(
+                DbgThread(),
+                hAbove,
+                TYPE_RGB_16,
+                hAbove,
+                TYPE_RGB_16,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
             cmsCloseProfile(hAbove);
             rc1 = Check16linearXFORM(xform, 3);
             cmsDeleteTransform(xform);
@@ -656,13 +667,14 @@ internal static partial class Testbed
         using (logger.BeginScope("sRGB"))
         {
             var hSRGB = cmsCreate_sRGBProfileTHR(DbgThread())!;
-            var xform = cmsCreateTransformTHR(DbgThread(),
-                                              hSRGB,
-                                              TYPE_RGB_16,
-                                              hSRGB,
-                                              TYPE_RGB_16,
-                                              INTENT_RELATIVE_COLORIMETRIC,
-                                              0)!;
+            var xform = cmsCreateTransformTHR(
+                DbgThread(),
+                hSRGB,
+                TYPE_RGB_16,
+                hSRGB,
+                TYPE_RGB_16,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
             cmsCloseProfile(hSRGB);
             rc2 = Check16linearXFORM(xform, 3);
             cmsDeleteTransform(xform);
@@ -677,13 +689,14 @@ internal static partial class Testbed
         using (logger.BeginScope("\"Above\""))
         {
             var hAbove = Create_AboveRGB()!;
-            var xform = cmsCreateTransformTHR(DbgThread(),
-                                              hAbove,
-                                              TYPE_RGB_8,
-                                              hAbove,
-                                              TYPE_RGB_8,
-                                              INTENT_RELATIVE_COLORIMETRIC,
-                                              0)!;
+            var xform = cmsCreateTransformTHR(
+                DbgThread(),
+                hAbove,
+                TYPE_RGB_8,
+                hAbove,
+                TYPE_RGB_8,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
             cmsCloseProfile(hAbove);
             rc1 = Check8linearXFORM(xform, 3);
             cmsDeleteTransform(xform);
@@ -692,13 +705,14 @@ internal static partial class Testbed
         using (logger.BeginScope("sRGB"))
         {
             var hSRGB = cmsCreate_sRGBProfileTHR(DbgThread())!;
-            var xform = cmsCreateTransformTHR(DbgThread(),
-                                              hSRGB,
-                                              TYPE_RGB_8,
-                                              hSRGB,
-                                              TYPE_RGB_8,
-                                              INTENT_RELATIVE_COLORIMETRIC,
-                                              0)!;
+            var xform = cmsCreateTransformTHR(
+                DbgThread(),
+                hSRGB,
+                TYPE_RGB_8,
+                hSRGB,
+                TYPE_RGB_8,
+                INTENT_RELATIVE_COLORIMETRIC,
+                0)!;
             cmsCloseProfile(hSRGB);
             rc2 = Check8linearXFORM(xform, 3);
             cmsDeleteTransform(xform);
@@ -716,12 +730,13 @@ internal static partial class Testbed
         if (hXYZ is null)
             return false;
 
-        var hTransform = cmsCreateTransform(hProfile,
-                                            TYPE_RGB_DBL,
-                                            hXYZ,
-                                            TYPE_XYZ_DBL,
-                                            intent,
-                                            cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE);
+        var hTransform = cmsCreateTransform(
+            hProfile,
+            TYPE_RGB_DBL,
+            hXYZ,
+            TYPE_XYZ_DBL,
+            intent,
+            cmsFLAGS_NOCACHE | cmsFLAGS_NOOPTIMIZE);
         cmsCloseProfile(hXYZ);
         if (hTransform is null)
             return false;
@@ -744,9 +759,10 @@ internal static partial class Testbed
         if (!result)
             return false;
 
-        var tripxyY = new CIExyYTRIPLE(tripXYZ.Red.As_xyY,
-                                       tripXYZ.Green.As_xyY,
-                                       tripXYZ.Blue.As_xyY);
+        var tripxyY = new CIExyYTRIPLE(
+            tripXYZ.Red.As_xyY,
+            tripXYZ.Green.As_xyY,
+            tripXYZ.Blue.As_xyY);
 
         /* valus were taken from
         http://en.wikipedia.org/wiki/RGB_color_spaces#Specifications */

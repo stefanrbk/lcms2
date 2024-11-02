@@ -32,7 +32,7 @@ internal static partial class Testbed
 {
     public static bool CheckTemp2CHRM()
     {
-        double max = 0.0;
+        var max = 0.0;
 
         for (var j = 4000; j < 25000; j++)
         {

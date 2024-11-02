@@ -55,9 +55,10 @@ public static partial class Lcms2
         var yb = Primrs.Blue.y;
 
         // Build Primaries matrix
-        var Primaries = new MAT3(x: new(xr, xg, xb),
-                                 y: new(yr, yg, yb),
-                                 z: new(1 - xr - yr, 1 - xg - yg, 1 - xb - yb));
+        var Primaries = new MAT3(
+            new(xr, xg, xb),
+            new(yr, yg, yb),
+            new(1 - xr - yr, 1 - xg - yg, 1 - xb - yb));
 
         // Result = Primaries ^ (-1) inverse matrix
         var Result = Primaries.Inverse;
@@ -70,9 +71,10 @@ public static partial class Lcms2
         var Coef = Result.Eval(WhitePoint);
 
         // Give us the Coefs, then I build transformation matrix
-        r = new MAT3(x: new(Coef.X * xr, Coef.Y * xg, Coef.Z * xb),
-                     y: new(Coef.X * yr, Coef.Y * yg, Coef.Z * yb),
-                     z: new(Coef.X * (1.0 - xr - yr), Coef.Y * (1.0 - xg - yg), Coef.Z * (1.0 - xb - yb)));
+        r = new(
+            new(Coef.X * xr, Coef.Y * xg, Coef.Z * xb),
+            new(Coef.X * yr, Coef.Y * yg, Coef.Z * yb),
+            new(Coef.X * (1.0 - xr - yr), Coef.Y * (1.0 - xg - yg), Coef.Z * (1.0 - xb - yb)));
 
         return _cmsAdaptMatrixToD50(ref r, WhitePt);
     }

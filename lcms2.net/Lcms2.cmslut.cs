@@ -24,11 +24,11 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+
+using lcms2.state;
+using lcms2.types;
 
 namespace lcms2;
 
@@ -53,85 +53,121 @@ public static partial class Lcms2
     private static void FromFloatTo16(ReadOnlySpan<float> In, Span<ushort> Out, uint n)
     {
         for (var i = 0; i < n; i++)
-        {
             Out[i] = _cmsQuickSaturateWord(In[i] * 65535.0f);
-        }
     }
 
     private static void From16ToFloat(ReadOnlySpan<ushort> In, Span<float> Out, uint n)
     {
         for (var i = 0; i < n; i++)
-        {
             Out[i] = In[i] / 65535.0f;
-        }
     }
 
-    public static bool cmsPipelineCheckAndRetrieveStages(
-        Pipeline Lut, Signature sig1, [NotNullWhen(true)] out Stage? out1) =>
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1) =>
         cmsPipelineCheckAndRetrieveStages(
-            Lut, sig1, out out1,
-                 default, out var _,
-                 default, out var _,
-                 default, out var _,
-                 default, out var _);
+            Lut,
+            sig1,
+            out out1,
+            default,
+            out var _,
+            default,
+            out var _,
+            default,
+            out var _,
+            default,
+            out var _);
 
-    public static bool cmsPipelineCheckAndRetrieveStages(
-        Pipeline Lut, Signature sig1, [NotNullWhen(true)] out Stage? out1,
-                      Signature sig2, [NotNullWhen(true)] out Stage? out2) =>
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1,
+                                                         Signature sig2,
+                                                         [NotNullWhen(true)] out Stage? out2) =>
         cmsPipelineCheckAndRetrieveStages(
-            Lut, sig1, out out1,
-                 sig2, out out2,
-                 default, out var _,
-                 default, out var _,
-                 default, out var _);
+            Lut,
+            sig1,
+            out out1,
+            sig2,
+            out out2,
+            default,
+            out var _,
+            default,
+            out var _,
+            default,
+            out var _);
 
-    public static bool cmsPipelineCheckAndRetrieveStages(
-        Pipeline Lut, Signature sig1, [NotNullWhen(true)] out Stage? out1,
-                      Signature sig2, [NotNullWhen(true)] out Stage? out2,
-                      Signature sig3, [NotNullWhen(true)] out Stage? out3) =>
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1,
+                                                         Signature sig2,
+                                                         [NotNullWhen(true)] out Stage? out2,
+                                                         Signature sig3,
+                                                         [NotNullWhen(true)] out Stage? out3) =>
         cmsPipelineCheckAndRetrieveStages(
-            Lut, sig1, out out1,
-                 sig2, out out2,
-                 sig3, out out3,
-                 default, out var _,
-                 default, out var _);
+            Lut,
+            sig1,
+            out out1,
+            sig2,
+            out out2,
+            sig3,
+            out out3,
+            default,
+            out var _,
+            default,
+            out var _);
 
-    public static bool cmsPipelineCheckAndRetrieveStages(
-        Pipeline Lut, Signature sig1, [NotNullWhen(true)] out Stage? out1,
-                      Signature sig2, [NotNullWhen(true)] out Stage? out2,
-                      Signature sig3, [NotNullWhen(true)] out Stage? out3,
-                      Signature sig4, [NotNullWhen(true)] out Stage? out4) =>
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1,
+                                                         Signature sig2,
+                                                         [NotNullWhen(true)] out Stage? out2,
+                                                         Signature sig3,
+                                                         [NotNullWhen(true)] out Stage? out3,
+                                                         Signature sig4,
+                                                         [NotNullWhen(true)] out Stage? out4) =>
         cmsPipelineCheckAndRetrieveStages(
-            Lut, sig1, out out1,
-                 sig2, out out2,
-                 sig3, out out3,
-                 sig4, out out4,
-                 default, out var _);
+            Lut,
+            sig1,
+            out out1,
+            sig2,
+            out out2,
+            sig3,
+            out out3,
+            sig4,
+            out out4,
+            default,
+            out var _);
 
-    public static bool cmsPipelineCheckAndRetrieveStages(
-        Pipeline Lut, Signature sig1, [NotNullWhen(true)] out Stage? out1,
-                      Signature sig2, [NotNullWhen(true)] out Stage? out2,
-                      Signature sig3, [NotNullWhen(true)] out Stage? out3,
-                      Signature sig4, [NotNullWhen(true)] out Stage? out4,
-                      Signature sig5, [NotNullWhen(true)] out Stage? out5)
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1,
+                                                         Signature sig2,
+                                                         [NotNullWhen(true)] out Stage? out2,
+                                                         Signature sig3,
+                                                         [NotNullWhen(true)] out Stage? out3,
+                                                         Signature sig4,
+                                                         [NotNullWhen(true)] out Stage? out4,
+                                                         Signature sig5,
+                                                         [NotNullWhen(true)] out Stage? out5)
     {
         out1 = out2 = out3 = out4 = out5 = null!;
 
         var n = (uint)sig2 is 0
-            ? 1
-            : (uint)sig3 is 0
-                ? 2
-                : (uint)sig4 is 0
-                    ? 3
-                    : (uint)sig5 is 0
-                        ? 4
-                        : 5;
+                    ? 1
+                    : (uint)sig3 is 0
+                        ? 2
+                        : (uint)sig4 is 0
+                            ? 3
+                            : (uint)sig5 is 0
+                                ? 4
+                                : 5;
 
         Span<Signature> args = stackalloc Signature[] { sig1, sig2, sig3, sig4, sig5 };
         args = args[..n];
 
         // Make sure same number of elements
-        if (cmsPipelineStageCount(Lut) != n) return false;
+        if (cmsPipelineStageCount(Lut) != n)
+            return false;
 
         // Iterate across asked types
         var mpe = Lut.Elements;
@@ -139,7 +175,8 @@ public static partial class Lcms2
         {
             // Get asked type.
             var Type = args[i];
-            if (mpe?.Type != Type) return false;
+            if (mpe?.Type != Type)
+                return false;
             mpe = mpe.Next;
         }
 
@@ -165,10 +202,10 @@ public static partial class Lcms2
     }
 
     internal static Span<ToneCurve> _cmsStageGetPtrToCurveSet(Stage mpe) =>
-        (mpe.Data is StageToneCurvesData Data)
-            ? (Data is not null)
-                ? Data.TheCurves.AsSpan(..(int)Data.nCurves)
-                : null
+        mpe.Data is StageToneCurvesData Data
+            ? Data is not null
+                  ? Data.TheCurves.AsSpan(..(int)Data.nCurves)
+                  : null
             : null;
 
     private static void EvaluateCurves(ReadOnlySpan<float> In, Span<float> Out, Stage mpe)
@@ -177,9 +214,7 @@ public static partial class Lcms2
             return;
 
         for (var i = 0; i < Data.nCurves; i++)
-        {
             Out[i] = cmsEvalToneCurveFloat(Data.TheCurves[i], In[i]);
-        }
     }
 
     private static void CurveSetElemTypeFree(Stage mpe)
@@ -195,9 +230,7 @@ public static partial class Lcms2
             for (var i = 0; i < Data.nCurves; i++)
             {
                 if (Data.TheCurves[i] is not null)
-                {
                     cmsFreeToneCurve(Data.TheCurves[i]);
-                }
             }
         }
 
@@ -220,7 +253,8 @@ public static partial class Lcms2
         {
             // Duplicate each curve. It may fail.
             NewElem.TheCurves[i] = cmsDupToneCurve(Data.TheCurves[i])!;
-            if (NewElem.TheCurves[i] is null) goto Error;
+            if (NewElem.TheCurves[i] is null)
+                goto Error;
         }
 
         return NewElem;
@@ -232,8 +266,17 @@ public static partial class Lcms2
 
     public static Stage? cmsStageAllocToneCurves(Context? ContextID, uint nChannels, ReadOnlySpan<ToneCurve> Curves)
     {
-        var NewMPE = new Stage(ContextID, Signature.Stage.CurveSetElem, nChannels, nChannels, EvaluateCurves, CurveSetDup, CurveSetElemTypeFree, null);
-        if (NewMPE is null) return null;
+        var NewMPE = new Stage(
+            ContextID,
+            Signature.Stage.CurveSetElem,
+            nChannels,
+            nChannels,
+            EvaluateCurves,
+            CurveSetDup,
+            CurveSetElemTypeFree,
+            null);
+        if (NewMPE is null)
+            return null;
 
         var NewElem = new StageToneCurvesData(ContextID, nChannels);
         //if (NewElem is null)
@@ -255,8 +298,8 @@ public static partial class Lcms2
         for (var i = 0; i < nChannels; i++)
         {
             NewElem.TheCurves[i] = !Curves.IsEmpty
-                ? cmsDupToneCurve(Curves[i])!
-                : cmsBuildGamma(ContextID, 1.0)!;
+                                       ? cmsDupToneCurve(Curves[i])!
+                                       : cmsBuildGamma(ContextID, 1.0)!;
 
             if (NewElem.TheCurves[i] is null)
             {
@@ -272,7 +315,8 @@ public static partial class Lcms2
     {
         var mpe = cmsStageAllocToneCurves(ContextID, nChannels, null);
 
-        if (mpe is null) return null;
+        if (mpe is null)
+            return null;
         mpe.Implements = Signature.Stage.IdentityElem;
         return mpe;
     }
@@ -307,8 +351,8 @@ public static partial class Lcms2
         var sz = (int)(mpe.InputChannels * mpe.OutputChannels);
 
         var NewElem = Data.Offset is not null
-            ? new StageMatrixData(Data.Double.AsSpan()[..sz], Data.Offset.AsSpan()[..(int)mpe.OutputChannels]/*, pool*/)
-            : new StageMatrixData(Data.Double.AsSpan()[..sz], default/*, pool*/);
+                          ? new(Data.Double.AsSpan()[..sz], Data.Offset.AsSpan()[..(int)mpe.OutputChannels] /*, pool*/)
+                          : new StageMatrixData(Data.Double.AsSpan()[..sz], default /*, pool*/);
 
         //if (NewElem is null) return null;
 
@@ -334,8 +378,8 @@ public static partial class Lcms2
     {
         //var pool = Context.GetPool<double>(ContextID);
 
-        var mat = Matrix.AsArray(/*pool*/);
-        var off = Offset.AsArray(/*pool*/);
+        var mat = Matrix.AsArray( /*pool*/);
+        var off = Offset.AsArray( /*pool*/);
 
         var result = cmsStageAllocMatrix(ContextID, Rows, Cols, mat, off);
 
@@ -345,11 +389,15 @@ public static partial class Lcms2
         return result;
     }
 
-    public static Stage? cmsStageAllocMatrix(Context? ContextID, uint Rows, uint Cols, MAT3 Matrix, ReadOnlySpan<double> Offset)
+    public static Stage? cmsStageAllocMatrix(Context? ContextID,
+                                             uint Rows,
+                                             uint Cols,
+                                             MAT3 Matrix,
+                                             ReadOnlySpan<double> Offset)
     {
         //var pool = Context.GetPool<double>(ContextID);
 
-        var mat = Matrix.AsArray(/*pool*/);
+        var mat = Matrix.AsArray( /*pool*/);
 
         var result = cmsStageAllocMatrix(ContextID, Rows, Cols, mat, Offset);
 
@@ -358,25 +406,42 @@ public static partial class Lcms2
         return result;
     }
 
-    public static Stage? cmsStageAllocMatrix(Context? ContextID, uint Rows, uint Cols, ReadOnlySpan<double> Matrix, ReadOnlySpan<double> Offset)
+    public static Stage? cmsStageAllocMatrix(Context? ContextID,
+                                             uint Rows,
+                                             uint Cols,
+                                             ReadOnlySpan<double> Matrix,
+                                             ReadOnlySpan<double> Offset)
     {
         var n = (int)(Rows * Cols);
 
         // Check for overflow
-        if (n is 0) return null;
-        if (n >= uint.MaxValue / Cols) return null;
-        if (n >= uint.MaxValue / Rows) return null;
-        if (n < Rows || n < Cols) return null;
+        if (n is 0)
+            return null;
+        if (n >= UInt32.MaxValue / Cols)
+            return null;
+        if (n >= UInt32.MaxValue / Rows)
+            return null;
+        if (n < Rows || n < Cols)
+            return null;
 
-        var NewMPE = new Stage(ContextID, Signature.Stage.MatrixElem, Cols, Rows, EvaluateMatrix, MatrixElemDup, MatrixElemTypeFree, null);
-        if (NewMPE is null) return null;
+        var NewMPE = new Stage(
+            ContextID,
+            Signature.Stage.MatrixElem,
+            Cols,
+            Rows,
+            EvaluateMatrix,
+            MatrixElemDup,
+            MatrixElemTypeFree,
+            null);
+        if (NewMPE is null)
+            return null;
 
         //var NewElem = new StageMatrixData();
         //if (NewElem is null) goto Error;
         //var pool = Context.GetPool<double>(ContextID);
         var NewElem = Offset.Length >= Rows
-            ? new StageMatrixData(Matrix, Offset[..(int)Rows]/*, pool*/)
-            : new StageMatrixData(Matrix, default/*, pool*/);
+                          ? new(Matrix, Offset[..(int)Rows] /*, pool*/)
+                          : new StageMatrixData(Matrix, default /*, pool*/);
 
         NewMPE.Data = NewElem;
 
@@ -435,16 +500,19 @@ public static partial class Lcms2
         for (rv = 1; b > 0; b--)
         {
             var dim = Dims[(int)b - 1];
-            if (dim <= 1) return 0;  // Error
+            if (dim <= 1)
+                return 0;  // Error
 
             rv *= dim;
 
             // Check for overflow
-            if (rv > uint.MaxValue / dim) return 0;
+            if (rv > UInt32.MaxValue / dim)
+                return 0;
         }
 
         // Again, prevent overflow
-        if (rv > uint.MaxValue / 15) return 0;
+        if (rv > UInt32.MaxValue / 15)
+            return 0;
 
         return rv;
     }
@@ -455,10 +523,7 @@ public static partial class Lcms2
         {
             //var pool = Context.GetPool<float>(mpe.ContextID);
 
-            var NewElem = new StageCLutData<float>
-            {
-                nEntries = DataF.nEntries
-            };
+            var NewElem = new StageCLutData<float> { nEntries = DataF.nEntries };
 
             //if (NewElem is null) return null;
 
@@ -472,26 +537,25 @@ public static partial class Lcms2
                 DataF.TFloat.CopyTo(NewElem.TFloat);
             }
 
-            var @params = InterpParams<float>.Create(mpe.ContextID,
-                                                     DataF.Params.nSamples,
-                                                     DataF.Params.nInputs,
-                                                     DataF.Params.nOutputs,
-                                                     NewElem.Tab,
-                                                     (LerpFlag)DataF.Params.dwFlags)!;
+            var @params = InterpParams<float>.Create(
+                mpe.ContextID,
+                DataF.Params.nSamples,
+                DataF.Params.nInputs,
+                DataF.Params.nOutputs,
+                NewElem.Tab,
+                (LerpFlag)DataF.Params.dwFlags)!;
             if (@params is not null)
             {
                 NewElem.Params = @params;
                 return NewElem;
             }
         }
+
         if (mpe.Data is StageCLutData<ushort> Data)
         {
             //var pool = Context.GetPool<ushort>(mpe.ContextID);
 
-            var NewElem = new StageCLutData<ushort>
-            {
-                nEntries = Data.nEntries
-            };
+            var NewElem = new StageCLutData<ushort> { nEntries = Data.nEntries };
 
             if (Data.Tab is not null)
             {
@@ -503,12 +567,13 @@ public static partial class Lcms2
                 Data.TUshort.CopyTo(NewElem.TUshort);
             }
 
-            var @params = InterpParams<ushort>.Create(mpe.ContextID,
-                                                      Data.Params.nSamples,
-                                                      Data.Params.nInputs,
-                                                      Data.Params.nOutputs,
-                                                      NewElem.Tab,
-                                                      (LerpFlag)Data.Params.dwFlags)!;
+            var @params = InterpParams<ushort>.Create(
+                mpe.ContextID,
+                Data.Params.nSamples,
+                Data.Params.nInputs,
+                Data.Params.nOutputs,
+                NewElem.Tab,
+                (LerpFlag)Data.Params.dwFlags)!;
             if (@params is not null)
             {
                 NewElem.Params = @params;
@@ -546,25 +611,36 @@ public static partial class Lcms2
         }
     }
 
-    public static Stage? cmsStageAllocCLut16bitGranular(
-        Context? ContextID,
-        ReadOnlySpan<uint> clutPoints,
-        uint inputChan,
-        uint outputChan,
-        ReadOnlySpan<ushort> Table)
+    public static Stage? cmsStageAllocCLut16bitGranular(Context? ContextID,
+                                                        ReadOnlySpan<uint> clutPoints,
+                                                        uint inputChan,
+                                                        uint outputChan,
+                                                        ReadOnlySpan<ushort> Table)
     {
         _cmsAssert(clutPoints);
 
         if (inputChan > MAX_INPUT_DIMENSIONS)
         {
-            LogError(ContextID, ErrorCodes.Range, $"Too many input channels ({inputChan} channels, max={MAX_INPUT_DIMENSIONS})");
+            LogError(
+                ContextID,
+                ErrorCodes.Range,
+                $"Too many input channels ({inputChan} channels, max={MAX_INPUT_DIMENSIONS})");
 
             return null;
         }
 
-        var NewMPE = new Stage(ContextID, Signature.Stage.CLutElem, inputChan, outputChan, EvaluateCLUTfloatIn16, CLUTElemDup, CLutElemTypeFree, null);
+        var NewMPE = new Stage(
+            ContextID,
+            Signature.Stage.CLutElem,
+            inputChan,
+            outputChan,
+            EvaluateCLUTfloatIn16,
+            CLUTElemDup,
+            CLutElemTypeFree,
+            null);
 
-        if (NewMPE is null) return null;
+        if (NewMPE is null)
+            return null;
 
         var NewElem = new StageCLutData<ushort>();
         if (NewElem is null)
@@ -596,12 +672,16 @@ public static partial class Lcms2
         if (!Table.IsEmpty)
         {
             for (var i = 0; i < n; i++)
-            {
                 NewElem.TUshort[i] = Table[i];
-            }
         }
 
-        NewElem.Params = InterpParams<ushort>.Create(ContextID, clutPoints, inputChan, outputChan, NewElem.Tab, LerpFlag.Ushort);
+        NewElem.Params = InterpParams<ushort>.Create(
+            ContextID,
+            clutPoints,
+            inputChan,
+            outputChan,
+            NewElem.Tab,
+            LerpFlag.Ushort);
         if (NewElem.Params is null)
         {
             cmsStageFree(NewMPE);
@@ -611,12 +691,11 @@ public static partial class Lcms2
         return NewMPE;
     }
 
-    public static Stage? cmsStageAllocCLut16bit(
-        Context? ContextID,
-        uint nGridPoints,
-        uint inputChan,
-        uint outputChan,
-        ReadOnlySpan<ushort> Table)
+    public static Stage? cmsStageAllocCLut16bit(Context? ContextID,
+                                                uint nGridPoints,
+                                                uint inputChan,
+                                                uint outputChan,
+                                                ReadOnlySpan<ushort> Table)
     {
         Span<uint> Dimensions = stackalloc uint[MAX_INPUT_DIMENSIONS];
 
@@ -627,12 +706,11 @@ public static partial class Lcms2
         return cmsStageAllocCLut16bitGranular(ContextID, Dimensions, inputChan, outputChan, Table);
     }
 
-    public static Stage? cmsStageAllocCLutFloat(
-        Context? ContextID,
-        uint nGridPoints,
-        uint inputChan,
-        uint outputChan,
-        ReadOnlySpan<float> Table)
+    public static Stage? cmsStageAllocCLutFloat(Context? ContextID,
+                                                uint nGridPoints,
+                                                uint inputChan,
+                                                uint outputChan,
+                                                ReadOnlySpan<float> Table)
     {
         Span<uint> Dimensions = stackalloc uint[MAX_INPUT_DIMENSIONS];
 
@@ -643,18 +721,20 @@ public static partial class Lcms2
         return cmsStageAllocCLutFloatGranular(ContextID, Dimensions, inputChan, outputChan, Table);
     }
 
-    public static Stage? cmsStageAllocCLutFloatGranular(
-        Context? ContextID,
-        ReadOnlySpan<uint> clutPoints,
-        uint inputChan,
-        uint outputChan,
-        ReadOnlySpan<float> Table)
+    public static Stage? cmsStageAllocCLutFloatGranular(Context? ContextID,
+                                                        ReadOnlySpan<uint> clutPoints,
+                                                        uint inputChan,
+                                                        uint outputChan,
+                                                        ReadOnlySpan<float> Table)
     {
         _cmsAssert(clutPoints);
 
         if (inputChan > MAX_INPUT_DIMENSIONS)
         {
-            LogError(ContextID, ErrorCodes.Range, $"Too many input channels ({inputChan} channels, max={MAX_INPUT_DIMENSIONS})");
+            LogError(
+                ContextID,
+                ErrorCodes.Range,
+                $"Too many input channels ({inputChan} channels, max={MAX_INPUT_DIMENSIONS})");
             return null;
         }
 
@@ -667,7 +747,8 @@ public static partial class Lcms2
             CLUTElemDup,
             CLutElemTypeFree,
             null);
-        if (NewMPE is null) return null;
+        if (NewMPE is null)
+            return null;
 
         var NewElem = new StageCLutData<float>();
         if (NewElem is null)
@@ -699,12 +780,16 @@ public static partial class Lcms2
         if (!Table.IsEmpty)
         {
             for (var i = 0; i < n; i++)
-            {
                 NewElem.TFloat[i] = Table[i];
-            }
         }
 
-        NewElem.Params = InterpParams<float>.Create(ContextID, clutPoints, inputChan, outputChan, NewElem.Tab, LerpFlag.Float);
+        NewElem.Params = InterpParams<float>.Create(
+            ContextID,
+            clutPoints,
+            inputChan,
+            outputChan,
+            NewElem.Tab,
+            LerpFlag.Float);
         if (NewElem.Params is null)
         {
             cmsStageFree(NewMPE);
@@ -733,7 +818,8 @@ public static partial class Lcms2
             Dimensions[i] = 2;
 
         var mpe = cmsStageAllocCLut16bitGranular(ContextID, Dimensions, nChan, nChan, null);
-        if (mpe is null) return null;
+        if (mpe is null)
+            return null;
 
         if (!cmsStageSampleCLut16bit(mpe, IdentitySampler, new Box<int>((int)nChan), 0))
         {
@@ -764,13 +850,18 @@ public static partial class Lcms2
         var nInputs = clut.Params.nInputs;
         var nOutputs = clut.Params.nOutputs;
 
-        if (nInputs <= 0) return false;
-        if (nOutputs <= 0) return false;
-        if (nInputs > MAX_INPUT_DIMENSIONS) return false;
-        if (nOutputs >= MAX_STAGE_CHANNELS) return false;
+        if (nInputs <= 0)
+            return false;
+        if (nOutputs <= 0)
+            return false;
+        if (nInputs > MAX_INPUT_DIMENSIONS)
+            return false;
+        if (nOutputs >= MAX_STAGE_CHANNELS)
+            return false;
 
         var nTotalPoints = CubeSize(nSamples, nInputs);
-        if (nTotalPoints is 0) return false;
+        if (nTotalPoints is 0)
+            return false;
 
         var index = 0;
         for (var i = 0; i < (int)nTotalPoints; i++)
@@ -821,13 +912,18 @@ public static partial class Lcms2
         var nInputs = clut.Params.nInputs;
         var nOutputs = clut.Params.nOutputs;
 
-        if (nInputs <= 0) return false;
-        if (nOutputs <= 0) return false;
-        if (nInputs > MAX_INPUT_DIMENSIONS) return false;
-        if (nOutputs >= MAX_STAGE_CHANNELS) return false;
+        if (nInputs <= 0)
+            return false;
+        if (nOutputs <= 0)
+            return false;
+        if (nInputs > MAX_INPUT_DIMENSIONS)
+            return false;
+        if (nOutputs >= MAX_STAGE_CHANNELS)
+            return false;
 
         var nTotalPoints = CubeSize(nSamples, nInputs);
-        if (nTotalPoints is 0) return false;
+        if (nTotalPoints is 0)
+            return false;
 
         var index = 0;
         for (var i = 0; i < (int)nTotalPoints; i++)
@@ -870,10 +966,12 @@ public static partial class Lcms2
     {
         Span<ushort> In = stackalloc ushort[cmsMAXCHANNELS];
 
-        if (nInputs >= cmsMAXCHANNELS) return false;
+        if (nInputs >= cmsMAXCHANNELS)
+            return false;
 
         var nTotalPoints = CubeSize(clutPoints, nInputs);
-        if (nTotalPoints is 0) return false;
+        if (nTotalPoints is 0)
+            return false;
 
         for (var i = 0; i < (int)nTotalPoints; i++)
         {
@@ -886,20 +984,26 @@ public static partial class Lcms2
                 In[t] = _cmsQuantizeVal(Colorant, clutPoints[t]);
             }
 
-            if (!Sampler(In, null, Cargo)) return false;
+            if (!Sampler(In, null, Cargo))
+                return false;
         }
 
         return true;
     }
 
-    public static bool cmsSliceSpaceFloat(uint nInputs, ReadOnlySpan<uint> clutPoints, SAMPLERFLOAT Sampler, object? Cargo)
+    public static bool cmsSliceSpaceFloat(uint nInputs,
+                                          ReadOnlySpan<uint> clutPoints,
+                                          SAMPLERFLOAT Sampler,
+                                          object? Cargo)
     {
         Span<float> In = stackalloc float[cmsMAXCHANNELS];
 
-        if (nInputs >= cmsMAXCHANNELS) return false;
+        if (nInputs >= cmsMAXCHANNELS)
+            return false;
 
         var nTotalPoints = CubeSize(clutPoints, nInputs);
-        if (nTotalPoints is 0) return false;
+        if (nTotalPoints is 0)
+            return false;
 
         for (var i = 0; i < (int)nTotalPoints; i++)
         {
@@ -912,7 +1016,8 @@ public static partial class Lcms2
                 In[t] = (float)(_cmsQuantizeVal(Colorant, clutPoints[t]) / 65535.0);
             }
 
-            if (!Sampler(In, null, Cargo)) return false;
+            if (!Sampler(In, null, Cargo))
+                return false;
         }
 
         return true;
@@ -940,7 +1045,7 @@ public static partial class Lcms2
     }
 
     internal static Stage? _cmsStageAllocLab2XYZ(Context? ContextID) =>
-        new Stage(ContextID, Signature.Stage.Lab2XYZElem, 3, 3, EvaluateLab2XYZ, null, null, null);
+        new(ContextID, Signature.Stage.Lab2XYZElem, 3, 3, EvaluateLab2XYZ, null, null, null);
 
     internal static Stage? _cmsStageAllocLabV2ToV4curves(Context? ContextID)
     {
@@ -964,9 +1069,7 @@ public static partial class Lcms2
             // We need to map * (0xffff / 0xff00), that's same as (257 / 256)
             // So we can use 258-entry tables to do the trick (i / 257) * (255 * 257) * (257 / 256);
             for (var i = 0; i < 257; i++)
-            {
                 LabTable[j].Table16![i] = (ushort)(((i * 0xffff) + 0x80) >> 8);
-            }
 
             LabTable[j].Table16![257] = 0xffff;
         }
@@ -975,57 +1078,47 @@ public static partial class Lcms2
         cmsFreeToneCurveTriple(LabTable);
         //ReturnArray(pool, LabTable);
 
-        if (mpe is null) return null;
+        if (mpe is null)
+            return null;
         mpe.Implements = Signature.Stage.LabV2toV4Elem;
         return mpe;
     }
 
     internal static Stage? _cmsStageAllocLabV2ToV4(Context? ContextID)
     {
-        ReadOnlySpan<double> V2ToV4 = stackalloc double[] {
-            65535.0 / 65280.0, 0, 0,
-            0, 65535.0 / 65280.0, 0,
-            0, 0, 65535.0 / 65280.0
-        };
+        ReadOnlySpan<double> V2ToV4 =
+            stackalloc double[] { 65535.0 / 65280.0, 0, 0, 0, 65535.0 / 65280.0, 0, 0, 0, 65535.0 / 65280.0 };
 
         var mpe = cmsStageAllocMatrix(ContextID, 3, 3, V2ToV4, null);
 
-        if (mpe is null) return mpe;
+        if (mpe is null)
+            return mpe;
         mpe.Implements = Signature.Stage.LabV2toV4Elem;
         return mpe;
     }
 
     internal static Stage? _cmsStageAllocLabV4ToV2(Context? ContextID)
     {
-        ReadOnlySpan<double> V4ToV2 = stackalloc double[] {
-            65280.0 / 65535.0, 0, 0,
-            0, 65280.0 / 65535.0, 0,
-            0, 0, 65280.0 / 65535.0
-        };
+        ReadOnlySpan<double> V4ToV2 =
+            stackalloc double[] { 65280.0 / 65535.0, 0, 0, 0, 65280.0 / 65535.0, 0, 0, 0, 65280.0 / 65535.0 };
 
         var mpe = cmsStageAllocMatrix(ContextID, 3, 3, V4ToV2, null);
 
-        if (mpe is null) return mpe;
+        if (mpe is null)
+            return mpe;
         mpe.Implements = Signature.Stage.LabV4toV2Elem;
         return mpe;
     }
 
     internal static Stage? _cmsStageNormalizeFromLabFloat(Context? ContextID)
     {
-        ReadOnlySpan<double> a1 = stackalloc double[] {
-            1.0 / 100.0, 0, 0,
-            0, 1.0 / 255.0, 0,
-            0, 0, 1.0 / 255.0
-        };
-        ReadOnlySpan<double> o1 = stackalloc double[] {
-            0,
-            128.0 / 255.0,
-            128.0 / 255.0
-        };
+        ReadOnlySpan<double> a1 = stackalloc double[] { 1.0 / 100.0, 0, 0, 0, 1.0 / 255.0, 0, 0, 0, 1.0 / 255.0 };
+        ReadOnlySpan<double> o1 = stackalloc double[] { 0, 128.0 / 255.0, 128.0 / 255.0 };
 
         var mpe = cmsStageAllocMatrix(ContextID, 3, 3, a1, o1);
 
-        if (mpe is null) return mpe;
+        if (mpe is null)
+            return mpe;
         mpe.Implements = Signature.Stage.Lab2FloatPCS;
         return mpe;
     }
@@ -1033,35 +1126,24 @@ public static partial class Lcms2
     internal static Stage? _cmsStageNormalizeFromXyzFloat(Context? ContextID)
     {
         const double n = 32768.0 / 65535.0;
-        ReadOnlySpan<double> a1 = stackalloc double[9]
-        {
-            n, 0, 0,
-            0, n, 0,
-            0, 0, n,
-        };
+        ReadOnlySpan<double> a1 = stackalloc double[9] { n, 0, 0, 0, n, 0, 0, 0, n };
 
         var mpe = cmsStageAllocMatrix(ContextID, 3, 3, a1, null);
 
-        if (mpe is null) return mpe;
+        if (mpe is null)
+            return mpe;
         mpe.Implements = Signature.Stage.XYZ2FloatPCS;
         return mpe;
     }
 
     internal static Stage? _cmsStageNormalizeToLabFloat(Context? ContextID)
     {
-        ReadOnlySpan<double> a1 = stackalloc double[9] {
-            100.0, 0, 0,
-            0, 255.0, 0,
-            0, 0, 255.0
-        };
-        ReadOnlySpan<double> o1 = stackalloc double[3] {
-            0,
-            -128.0,
-            -128.0
-        };
+        ReadOnlySpan<double> a1 = stackalloc double[9] { 100.0, 0, 0, 0, 255.0, 0, 0, 0, 255.0 };
+        ReadOnlySpan<double> o1 = stackalloc double[3] { 0, -128.0, -128.0 };
 
         var mpe = cmsStageAllocMatrix(ContextID, 3, 3, a1, o1);
-        if (mpe is null) return mpe;
+        if (mpe is null)
+            return mpe;
         mpe.Implements = Signature.Stage.FloatPCS2Lab;
         return mpe;
     }
@@ -1069,15 +1151,11 @@ public static partial class Lcms2
     internal static Stage? _cmsStageNormalizeToXYZFloat(Context? ContextID)
     {
         const double n = 65535.0 / 32768;
-        ReadOnlySpan<double> a1 = stackalloc double[9]
-        {
-            n, 0, 0,
-            0, n, 0,
-            0, 0, n,
-        };
+        ReadOnlySpan<double> a1 = stackalloc double[9] { n, 0, 0, 0, n, 0, 0, 0, n };
 
         var mpe = cmsStageAllocMatrix(ContextID, 3, 3, a1, null);
-        if (mpe is null) return mpe;
+        if (mpe is null)
+            return mpe;
         mpe.Implements = Signature.Stage.FloatPCS2XYZ;
         return mpe;
     }
@@ -1092,7 +1170,7 @@ public static partial class Lcms2
     }
 
     internal static Stage? _cmsStageClipNegatives(Context? ContextID, uint nChannels) =>
-        new Stage(ContextID, Signature.Stage.ClipNegativesElem, nChannels, nChannels, Clipper, null, null, null);
+        new(ContextID, Signature.Stage.ClipNegativesElem, nChannels, nChannels, Clipper, null, null, null);
 
     private static void EvaluateXYZ2Lab(ReadOnlySpan<float> In, Span<float> Out, Stage _)
     {
@@ -1114,7 +1192,7 @@ public static partial class Lcms2
     }
 
     internal static Stage? _cmsStageAllocXYZ2Lab(Context? ContextID) =>
-        new Stage(ContextID, Signature.Stage.XYZ2LabElem, 3, 3, EvaluateXYZ2Lab, null, null, null);
+        new(ContextID, Signature.Stage.XYZ2LabElem, 3, 3, EvaluateXYZ2Lab, null, null, null);
 
     internal static Stage? _cmsStageAllocLabPrelin(Context? ContextID)
     {
@@ -1166,7 +1244,7 @@ public static partial class Lcms2
         {
             //if (NewMPE is null) return null;
 
-            Implements = mpe.Implements
+            Implements = mpe.Implements,
         };
 
         if (mpe.DupElemPtr is not null)
@@ -1180,9 +1258,7 @@ public static partial class Lcms2
             }
         }
         else
-        {
             NewMPE.Data = null;
-        }
 
         return NewMPE;
     }
@@ -1197,7 +1273,8 @@ public static partial class Lcms2
         var First = cmsPipelineGetPtrToFirstStage(lut);
         var Last = cmsPipelineGetPtrToLastStage(lut);
 
-        if (First is null || Last is null) return false;
+        if (First is null || Last is null)
+            return false;
 
         lut.InputChannels = First.InputChannels;
         lut.OutputChannels = Last.OutputChannels;
@@ -1220,15 +1297,16 @@ public static partial class Lcms2
 
     internal static void _LUTeval16(ReadOnlySpan<ushort> In, Span<ushort> Out, object? D)
     {
-        if (D is not Pipeline lut) return;
+        if (D is not Pipeline lut)
+            return;
         Span<float> Storage = stackalloc float[2 * MAX_STAGE_CHANNELS];
         var Phase = 0;
 
         From16ToFloat(In, Storage[(Phase * MAX_STAGE_CHANNELS)..], lut.InputChannels);
 
         for (var mpe = lut.Elements;
-            mpe is not null;
-            mpe = mpe.Next)
+             mpe is not null;
+             mpe = mpe.Next)
         {
             var NextPhase = Phase ^ 1;
             mpe.EvalPtr(Storage[(Phase * MAX_STAGE_CHANNELS)..], Storage[(NextPhase * MAX_STAGE_CHANNELS)..], mpe);
@@ -1240,15 +1318,16 @@ public static partial class Lcms2
 
     internal static void _LUTevalFloat(ReadOnlySpan<float> In, Span<float> Out, object? D)
     {
-        if (D is not Pipeline lut) return;
+        if (D is not Pipeline lut)
+            return;
         Span<float> Storage = stackalloc float[2 * MAX_STAGE_CHANNELS];
         var Phase = 0;
 
         memmove(Storage[(Phase * MAX_STAGE_CHANNELS)..], In, lut.InputChannels);
 
         for (var mpe = lut.Elements;
-            mpe is not null;
-            mpe = mpe.Next)
+             mpe is not null;
+             mpe = mpe.Next)
         {
             var NextPhase = Phase ^ 1;
             mpe.EvalPtr(Storage[(Phase * MAX_STAGE_CHANNELS)..], Storage[(NextPhase * MAX_STAGE_CHANNELS)..], mpe);
@@ -1262,7 +1341,8 @@ public static partial class Lcms2
     {
         // A value of zero in channels is allowed as a placeholder
         if (InputChannels >= cmsMAXCHANNELS ||
-            OutputChannels >= cmsMAXCHANNELS) { return null; }
+            OutputChannels >= cmsMAXCHANNELS)
+            return null;
 
         var NewLUT = new Pipeline(ContextID, InputChannels, OutputChannels, _LUTeval16, _LUTevalFloat);
         //if (NewLUT is null) return null;
@@ -1308,11 +1388,12 @@ public static partial class Lcms2
     {
         Stage? Next;
 
-        if (lut is null) return;
+        if (lut is null)
+            return;
 
         for (var mpe = lut.Elements;
-            mpe is not null;
-            mpe = Next)
+             mpe is not null;
+             mpe = Next)
         {
             Next = mpe.Next;
             cmsStageFree(mpe);
@@ -1341,10 +1422,12 @@ public static partial class Lcms2
         Stage? NewMPE, Anterior = null, mpe;
         var First = true;
 
-        if (lut is null) return null;
+        if (lut is null)
+            return null;
 
         NewLUT = cmsPipelineAlloc(lut.ContextID, lut.InputChannels, lut.OutputChannels);
-        if (NewLUT is null) return null;
+        if (NewLUT is null)
+            return null;
 
         for (mpe = lut.Elements; mpe is not null; mpe = mpe.Next)
         {
@@ -1405,7 +1488,8 @@ public static partial class Lcms2
 
             case StageLoc.AtEnd:
 
-                if (lut.Elements is null) { lut.Elements = mpe; }
+                if (lut.Elements is null)
+                    lut.Elements = mpe;
                 else
                 {
                     for (pt = lut.Elements; pt is not null; pt = pt.Next)
@@ -1414,6 +1498,7 @@ public static partial class Lcms2
                     Anterior!.Next = mpe;
                     mpe.Next = null;
                 }
+
                 break;
 
             default:
@@ -1445,20 +1530,20 @@ public static partial class Lcms2
         switch (loc)
         {
             case StageLoc.AtBegin:
-                {
-                    Stage? elem = lut.Elements;
+            {
+                var elem = lut.Elements;
 
-                    lut.Elements = elem!.Next;
-                    elem.Next = null;
-                    Unlinked = elem;
-                }
+                lut.Elements = elem!.Next;
+                elem.Next = null;
+                Unlinked = elem;
+            }
                 break;
 
             case StageLoc.AtEnd:
                 Anterior = Last = null;
                 for (pt = lut.Elements;
-                    pt is not null;
-                    pt = pt.Next)
+                     pt is not null;
+                     pt = pt.Next)
                 {
                     Anterior = Last;
                     Last = pt;
@@ -1567,9 +1652,9 @@ public static partial class Lcms2
     // Increment with reflexion on boundary
     private static void IncDelta(ref float Val)
     {
-        Val += Val < (1.0 - JACOBIAN_EPSILON)
-            ? JACOBIAN_EPSILON
-            : -JACOBIAN_EPSILON;
+        Val += Val < 1.0 - JACOBIAN_EPSILON
+                   ? JACOBIAN_EPSILON
+                   : -JACOBIAN_EPSILON;
     }
 
     // Euclidean distance between two vectors of n elements each one
@@ -1596,11 +1681,10 @@ public static partial class Lcms2
     // Result: The obtained CMYK
     // Hint:   Location where begin the search
 
-    public static bool cmsPipelineEvalReverseFloat(
-        ReadOnlySpan<float> Target,
-        Span<float> Result,
-        ReadOnlySpan<float> Hint,
-        Pipeline lut)
+    public static bool cmsPipelineEvalReverseFloat(ReadOnlySpan<float> Target,
+                                                   Span<float> Result,
+                                                   ReadOnlySpan<float> Hint,
+                                                   Pipeline lut)
     {
         int i, j;
         double error, LastError = 1E20;
@@ -1612,8 +1696,10 @@ public static partial class Lcms2
         MAT3 Jacobian = new();
 
         // Only 3->3 and 4->3 are supported
-        if (lut.InputChannels is not 3 and not 4) return false;
-        if (lut.OutputChannels is not 3) return false;
+        if (lut.InputChannels is not 3 and not 4)
+            return false;
+        if (lut.OutputChannels is not 3)
+            return false;
 
         // Take the hint as starting point if specified
         if (Hint.IsEmpty)
@@ -1629,9 +1715,9 @@ public static partial class Lcms2
         }
 
         // If Lut is 4-dimensions, then grab target[3], which is fixed
-        x[3] = (lut.InputChannels is 4)
-            ? Target[3]
-            : 0; // To keep lint happy
+        x[3] = lut.InputChannels is 4
+                   ? Target[3]
+                   : 0; // To keep lint happy
 
         // Iterate
         for (i = 0; i < INVERSION_MAX_ITERATIONS; i++)
@@ -1677,15 +1763,24 @@ public static partial class Lcms2
             // Some clipping....
             for (j = 0; j < 3; j++)
             {
-                if (x[j] < 0) x[j] = 0;
-                else
-                    if (x[j] > 1.0) x[j] = 1.0f;
+                if (x[j] < 0)
+                    x[j] = 0;
+                else if (x[j] > 1.0)
+                    x[j] = 1.0f;
             }
         }
 
         return true;
 
-        static void Slope(Pipeline lut, Span<float> fx, Span<float> x, Span<float> xd, Span<float> fxd, int j, ref double j0, ref double j1, ref double j2)
+        static void Slope(Pipeline lut,
+                          Span<float> fx,
+                          Span<float> x,
+                          Span<float> xd,
+                          Span<float> fxd,
+                          int j,
+                          ref double j0,
+                          ref double j1,
+                          ref double j2)
         {
             xd[0] = x[0];
             xd[1] = x[1];
