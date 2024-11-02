@@ -31,16 +31,15 @@ namespace lcms2;
 
 public static partial class Lcms2
 {
-    internal static Transform? _cmsChain2Lab(
-        Context? ContextID,
-        uint nProfiles,
-        uint InputFormat,
-        uint OutputFormat,
-        ReadOnlySpan<uint> Intents,
-        in Profile[] Profiles,
-        ReadOnlySpan<bool> BPC,
-        ReadOnlySpan<double> AdaptationStates,
-        uint dwFlags)
+    internal static Transform? _cmsChain2Lab(Context? ContextID,
+                                             uint nProfiles,
+                                             uint InputFormat,
+                                             uint OutputFormat,
+                                             ReadOnlySpan<uint> Intents,
+                                             in Profile[] Profiles,
+                                             ReadOnlySpan<bool> BPC,
+                                             ReadOnlySpan<double> AdaptationStates,
+                                             uint dwFlags)
     {
         var ProfileList = new Profile[256];
         Span<bool> BPCList = stackalloc bool[256];
@@ -49,11 +48,13 @@ public static partial class Lcms2
 
         // This is a rather big number and there is no need of dynamic memory
         // since we are adding a profile, 254 + 1 = 255 and this is the limit
-        if (nProfiles > 254) return null;
+        if (nProfiles > 254)
+            return null;
 
         // The output space
         var hLab = cmsCreateLab4ProfileTHR(ContextID, null);
-        if (hLab is null) return null;
+        if (hLab is null)
+            return null;
 
         // Create a copy of parameters
         for (var i = 0; i < nProfiles; i++)
@@ -71,30 +72,47 @@ public static partial class Lcms2
         IntentList[(int)nProfiles] = INTENT_RELATIVE_COLORIMETRIC;
 
         // Create the transform
-        var xform = cmsCreateExtendedTransform(
-            ContextID, nProfiles + 1, ProfileList, BPCList, IntentList, AdaptationList, null, 0, InputFormat, OutputFormat, dwFlags);
+        var xform = cmsCreateExtendedTransform(ContextID,
+                                               nProfiles + 1,
+                                               ProfileList,
+                                               BPCList,
+                                               IntentList,
+                                               AdaptationList,
+                                               null,
+                                               0,
+                                               InputFormat,
+                                               OutputFormat,
+                                               dwFlags);
 
         cmsCloseProfile(hLab);
         return xform;
     }
 
-    private static ToneCurve? ComputeKToLstar(
-        Context? ContextID,
-        uint nPoints,
-        uint nProfiles,
-        ReadOnlySpan<uint> Intents,
-        in Profile[] Profiles,
-        ReadOnlySpan<bool> BPC,
-        ReadOnlySpan<double> AdaptationStates,
-        uint dwFlags)
+    private static ToneCurve? ComputeKToLstar(Context? ContextID,
+                                              uint nPoints,
+                                              uint nProfiles,
+                                              ReadOnlySpan<uint> Intents,
+                                              in Profile[] Profiles,
+                                              ReadOnlySpan<bool> BPC,
+                                              ReadOnlySpan<double> AdaptationStates,
+                                              uint dwFlags)
     {
         Span<float> cmyk = stackalloc float[4];
         Span<CIELab> Lab = stackalloc CIELab[1];
 
         ToneCurve? @out = null;
 
-        var xform = _cmsChain2Lab(ContextID, nProfiles, TYPE_CMYK_FLT, TYPE_Lab_DBL, Intents, Profiles, BPC, AdaptationStates, dwFlags);
-        if (xform is null) return null;
+        var xform = _cmsChain2Lab(ContextID,
+                                  nProfiles,
+                                  TYPE_CMYK_FLT,
+                                  TYPE_Lab_DBL,
+                                  Intents,
+                                  Profiles,
+                                  BPC,
+                                  AdaptationStates,
+                                  dwFlags);
+        if (xform is null)
+            return null;
 
         //var SampledPoints = _cmsCalloc<float>(ContextID, nPoints);
         //if (SampledPoints is null) goto Error;
@@ -121,15 +139,14 @@ public static partial class Lcms2
         return @out;
     }
 
-    internal static ToneCurve? _cmsBuildKToneCurve(
-        Context? ContextID,
-        uint nPoints,
-        uint nProfiles,
-        ReadOnlySpan<uint> Intents,
-        in Profile[] Profiles,
-        ReadOnlySpan<bool> BPC,
-        ReadOnlySpan<double> AdaptationStates,
-        uint dwFlags)
+    internal static ToneCurve? _cmsBuildKToneCurve(Context? ContextID,
+                                                   uint nPoints,
+                                                   uint nProfiles,
+                                                   ReadOnlySpan<uint> Intents,
+                                                   in Profile[] Profiles,
+                                                   ReadOnlySpan<bool> BPC,
+                                                   ReadOnlySpan<double> AdaptationStates,
+                                                   uint dwFlags)
     {
         // Make sure CMYK -> CMYK
         if (cmsGetColorSpace(Profiles[0]) != Signature.Colorspace.Cmyk ||
@@ -139,15 +156,23 @@ public static partial class Lcms2
         }
 
         // Make sure last is an output profile
-        if (cmsGetDeviceClass(Profiles[nProfiles - 1]) != Signature.ProfileClass.Output) return null;
+        if (cmsGetDeviceClass(Profiles[nProfiles - 1]) != Signature.ProfileClass.Output)
+            return null;
 
         // Create individual curves. BPC works also as each K to L* is
         // computed as a BPC to zero black point in case of L*
         var @in = ComputeKToLstar(ContextID, nPoints, nProfiles - 1, Intents, Profiles, BPC, AdaptationStates, dwFlags);
-        if (@in is null) return null;
+        if (@in is null)
+            return null;
 
-        var @out = ComputeKToLstar(
-            ContextID, nPoints, 1, Intents[(int)(nProfiles - 1)..], Profiles[((int)nProfiles - 1)..], BPC[(int)(nProfiles - 1)..], AdaptationStates[(int)(nProfiles - 1)..], dwFlags);
+        var @out = ComputeKToLstar(ContextID,
+                                   nPoints,
+                                   1,
+                                   Intents[(int)(nProfiles - 1)..],
+                                   Profiles[((int)nProfiles - 1)..],
+                                   BPC[(int)(nProfiles - 1)..],
+                                   AdaptationStates[(int)(nProfiles - 1)..],
+                                   dwFlags);
 
         if (@out is null)
         {
@@ -160,10 +185,12 @@ public static partial class Lcms2
         var KTone = cmsJoinToneCurve(ContextID, @in, @out, nPoints);
 
         // Get rid of compontents
-        cmsFreeToneCurve(@in); cmsFreeToneCurve(@out);
+        cmsFreeToneCurve(@in);
+        cmsFreeToneCurve(@out);
 
         // Something went wrong...
-        if (KTone is null) return null;
+        if (KTone is null)
+            return null;
 
         // Make sure it is monotonic
         if (!cmsIsToneCurveMonotonic(KTone))
@@ -214,10 +241,10 @@ public static partial class Lcms2
         cmsDoTransform(t.Value.hReverse, Proof2, LabOut[1..], 1);
 
         // Take difference of direct value
-        var dE1 = cmsDeltaE(LabIn[0], LabOut[0]);
+        var dE1 = DeltaE.De76(LabIn[0], LabOut[0]);
 
         // Take difference of converted value
-        var dE2 = cmsDeltaE(LabIn[1], LabOut[1]);
+        var dE2 = DeltaE.De76(LabIn[1], LabOut[1]);
 
         // if dE1 is small and dE2 is small, value is likely to be in gamut
         if (dE1 < t.Value.Threshold && dE2 < t.Value.Threshold)
@@ -244,7 +271,9 @@ public static partial class Lcms2
                     // so take error ratio
                     ErrorRatio = (dE2 is 0) ? dE1 : dE1 / dE2;
 
-                    Out[0] = (ushort)((ErrorRatio > t.Value.Threshold) ? (ushort)_cmsQuickFloor((ErrorRatio - t.Value.Threshold) + 0.5) : 0);
+                    Out[0] = (ushort)((ErrorRatio > t.Value.Threshold)
+                                          ? (ushort)_cmsQuickFloor((ErrorRatio - t.Value.Threshold) + 0.5)
+                                          : 0);
                 }
             }
         }
@@ -252,14 +281,13 @@ public static partial class Lcms2
         return true;
     }
 
-    internal static Pipeline? _cmsCreateGamutCheckPipeline(
-        Context? ContextID,
-        Profile[] Profiles,
-        ReadOnlySpan<bool> BPC,
-        ReadOnlySpan<uint> Intents,
-        ReadOnlySpan<double> AdaptationStates,
-        uint nGamutPCSposition,
-        Profile hGamut)
+    internal static Pipeline? _cmsCreateGamutCheckPipeline(Context? ContextID,
+                                                           Profile[] Profiles,
+                                                           ReadOnlySpan<bool> BPC,
+                                                           ReadOnlySpan<uint> Intents,
+                                                           ReadOnlySpan<double> AdaptationStates,
+                                                           uint nGamutPCSposition,
+                                                           Profile hGamut)
     {
         var ProfileList = new Profile[256];
         Span<bool> BPCList = stackalloc bool[256];
@@ -277,7 +305,8 @@ public static partial class Lcms2
         }
 
         var hLab = cmsCreateLab4ProfileTHR(ContextID, null);
-        if (hLab is null) return null;
+        if (hLab is null)
+            return null;
 
         // The figure of merit. On matrix-shaper profiles, should be almost zero as
         // the conversion is pretty exact. On LUT based profiles, different resolutions
@@ -307,17 +336,36 @@ public static partial class Lcms2
         var dwFormat = CHANNELS_SH(nChannels) | BYTES_SH(2);
 
         // 16 bits to Lab double
-        Chain.hInput = cmsCreateExtendedTransform(
-            ContextID, nGamutPCSposition + 1, ProfileList, BPCList, IntentList, AdaptationList, null, 0, dwFormat, TYPE_Lab_DBL, cmsFLAGS_NOCACHE);
+        Chain.hInput = cmsCreateExtendedTransform(ContextID,
+                                                  nGamutPCSposition + 1,
+                                                  ProfileList,
+                                                  BPCList,
+                                                  IntentList,
+                                                  AdaptationList,
+                                                  null,
+                                                  0,
+                                                  dwFormat,
+                                                  TYPE_Lab_DBL,
+                                                  cmsFLAGS_NOCACHE);
 
         // Does create the forward step. Lab double to device
         dwFormat = CHANNELS_SH(nChannels) | BYTES_SH(2);
-        Chain.hForward = cmsCreateTransformTHR(
-            ContextID, hLab, TYPE_Lab_DBL, hGamut, dwFormat, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_NOCACHE);
+        Chain.hForward = cmsCreateTransformTHR(ContextID,
+                                               hLab,
+                                               TYPE_Lab_DBL,
+                                               hGamut,
+                                               dwFormat,
+                                               INTENT_RELATIVE_COLORIMETRIC,
+                                               cmsFLAGS_NOCACHE);
 
         // Does create the backwards step
-        Chain.hReverse = cmsCreateTransformTHR(
-            ContextID, hGamut, dwFormat, hLab, TYPE_Lab_DBL, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_NOCACHE);
+        Chain.hReverse = cmsCreateTransformTHR(ContextID,
+                                               hGamut,
+                                               dwFormat,
+                                               hLab,
+                                               TYPE_Lab_DBL,
+                                               INTENT_RELATIVE_COLORIMETRIC,
+                                               cmsFLAGS_NOCACHE);
 
         // All ok?
         if (Chain.hInput is not null && Chain.hForward is not null && Chain.hReverse is not null)
@@ -346,10 +394,14 @@ public static partial class Lcms2
         }
 
         // Free all needed stuff.
-        if (Chain.hInput is not null) cmsDeleteTransform(Chain.hInput);
-        if (Chain.hForward is not null) cmsDeleteTransform(Chain.hForward);
-        if (Chain.hReverse is not null) cmsDeleteTransform(Chain.hReverse);
-        if (hLab is not null) cmsCloseProfile(hLab);
+        if (Chain.hInput is not null)
+            cmsDeleteTransform(Chain.hInput);
+        if (Chain.hForward is not null)
+            cmsDeleteTransform(Chain.hForward);
+        if (Chain.hReverse is not null)
+            cmsDeleteTransform(Chain.hReverse);
+        if (hLab is not null)
+            cmsCloseProfile(hLab);
 
         // And return computed hull
         return Gamut;
@@ -410,22 +462,31 @@ public static partial class Lcms2
         var dwFormatter = cmsFormatterForColorspaceOfProfile(Profile, 4, true);
 
         // Unsupported color space?
-        if (dwFormatter is 0) return 0;
+        if (dwFormatter is 0)
+            return 0;
 
         bp.Value.nOutputChans = (uint)T_CHANNELS(dwFormatter);
         bp.Value.MaxTAC = 0;  // Initial TAC is 0
 
         // for safety
-        if (bp.Value.nOutputChans >= cmsMAXCHANNELS) return 0;
+        if (bp.Value.nOutputChans >= cmsMAXCHANNELS)
+            return 0;
 
         var hLab = cmsCreateLab4ProfileTHR(ContextID, null);
-        if (hLab is null) return 0;
+        if (hLab is null)
+            return 0;
         // Setup a roundtrip on perceptual intent in output profile for TAC estimation
-        bp.Value.hRoundTrip = cmsCreateTransformTHR(
-            ContextID, hLab, TYPE_Lab_16, Profile, dwFormatter, INTENT_PERCEPTUAL, cmsFLAGS_NOOPTIMIZE | cmsFLAGS_NOCACHE)!;
+        bp.Value.hRoundTrip = cmsCreateTransformTHR(ContextID,
+                                                    hLab,
+                                                    TYPE_Lab_16,
+                                                    Profile,
+                                                    dwFormatter,
+                                                    INTENT_PERCEPTUAL,
+                                                    cmsFLAGS_NOOPTIMIZE | cmsFLAGS_NOCACHE)!;
 
         cmsCloseProfile(hLab);
-        if (bp.Value.hRoundTrip is null) return 0;
+        if (bp.Value.hRoundTrip is null)
+            return 0;
 
         // For L* we only need black and white. For C* we need many points
         GridPoints[0] = 6;
@@ -482,22 +543,22 @@ public static partial class Lcms2
 
             // There are 4 zones;
             (Lab.a, Lab.b) = h switch
-            {
-                (>= 0 and < 45) or (>= 315 and <= 360) =>
-                    // clip by amax
-                    (amax, amax * slope),
-                >= 45 and < 135 =>
-                    // clip by bmax
-                    (bmax / slope, bmax),
-                >= 135 and < 255 =>
-                    // clip by amin
-                    (amin, amin * slope),
-                >= 255 and < 315 =>
-                    // clip by bmin
-                    (bmin / slope, bmin),
-                _ =>
-                    (double.NaN, double.NaN),
-            };
+                             {
+                                 (>= 0 and < 45) or (>= 315 and <= 360) =>
+                                     // clip by amax
+                                     (amax, amax * slope),
+                                 >= 45 and < 135 =>
+                                     // clip by bmax
+                                     (bmax / slope, bmax),
+                                 >= 135 and < 255 =>
+                                     // clip by amin
+                                     (amin, amin * slope),
+                                 >= 255 and < 315 =>
+                                     // clip by bmin
+                                     (bmin / slope, bmin),
+                                 _ =>
+                                     (double.NaN, double.NaN),
+                             };
 
             if (double.IsNaN(Lab.a))
             {
@@ -540,7 +601,13 @@ public static partial class Lcms2
         var hXYZ = cmsCreateXYZProfileTHR(ContextID);
         if (hXYZ is null)
             return -1;
-        var xform = cmsCreateTransformTHR(ContextID, Profile, TYPE_RGB_16, hXYZ, TYPE_XYZ_DBL, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_NOOPTIMIZE);
+        var xform = cmsCreateTransformTHR(ContextID,
+                                          Profile,
+                                          TYPE_RGB_16,
+                                          hXYZ,
+                                          TYPE_XYZ_DBL,
+                                          INTENT_RELATIVE_COLORIMETRIC,
+                                          cmsFLAGS_NOOPTIMIZE);
 
         if (xform is null)  // If not RGB or forward direction is not supported, regret with the previous error
         {

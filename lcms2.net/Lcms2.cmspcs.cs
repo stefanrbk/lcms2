@@ -42,26 +42,6 @@ public static partial class Lcms2
     private static readonly ushort[] GrayWhite = new ushort[4] { 0xFFFF, 0, 0, 0 };
 
 
-    public static double cmsDeltaE(CIELab Lab1, CIELab Lab2) =>
-        // See DeltaE.De76()
-        DeltaE.De76(Lab1, Lab2);
-
-    public static double cmsCIE94DeltaE(CIELab Lab1, CIELab Lab2) =>
-        // See DeltaE.CIE94()
-        DeltaE.CIE94(Lab1, Lab2);
-
-    public static double cmsBFDdeltaE(CIELab Lab1, CIELab Lab2) =>
-        // See DeltaE.BFD()
-        DeltaE.BFD(Lab1, Lab2);
-
-    public static double cmsCMCdeltaE(CIELab Lab1, CIELab Lab2, double l, double c) =>
-        // See DeltaE.CMC()
-        DeltaE.CMC(Lab1, Lab2, l, c);
-
-    public static double cmsCIE2000DeltaE(CIELab Lab1, CIELab Lab2, double Kl, double Kc, double Kh) =>
-        // See DeltaE.CIE2000
-        DeltaE.CIE2000(Lab1, Lab2, Kl, Kc, Kh);
-
     internal static uint _cmsReasonableGridpointsByColorspace(Signature Colorspace, uint dwFlags)
     {
         // Already specified?
@@ -74,34 +54,37 @@ public static partial class Lcms2
         if ((dwFlags & cmsFLAGS_HIGHRESPRECALC) is not 0)
         {
             return nChannles switch
-            {
-                > 4 => 6,
-                4 => 33,
-                _ => 17
-            };
+                   {
+                       > 4 => 6,
+                       4   => 33,
+                       _   => 17
+                   };
         }
 
         // LowResPrecalc is lower resolution
         if ((dwFlags & cmsFLAGS_LOWRESPRECALC) is not 0)
         {
             return nChannles switch
-            {
-                > 4 => 7,
-                4 => 23,
-                _ => 49
-            };
+                   {
+                       > 4 => 7,
+                       4   => 23,
+                       _   => 49
+                   };
         }
 
         // Default values
         return nChannles switch
-        {
-            > 4 => 7,
-            4 => 17,
-            _ => 33,
-        };
+               {
+                   > 4 => 7,
+                   4   => 17,
+                   _   => 33,
+               };
     }
 
-    internal static bool _cmsEndPointsBySpace(Signature Space, out ushort[] White, out ushort[] Black, out uint nOutputs)
+    internal static bool _cmsEndPointsBySpace(Signature Space,
+                                              out ushort[] White,
+                                              out ushort[] Black,
+                                              out uint nOutputs)
     {
         // Only most common spaces
         if (Space == Signature.Colorspace.Gray)
@@ -160,36 +143,36 @@ public static partial class Lcms2
         OutNotation switch
         {
             1 or
-            PT_GRAY => Signature.Colorspace.Gray,
+                PT_GRAY => Signature.Colorspace.Gray,
             2 or
-            PT_RGB => Signature.Colorspace.Rgb,
-            PT_CMY => Signature.Colorspace.Cmy,
-            PT_CMYK => Signature.Colorspace.Cmyk,
+                PT_RGB => Signature.Colorspace.Rgb,
+            PT_CMY   => Signature.Colorspace.Cmy,
+            PT_CMYK  => Signature.Colorspace.Cmyk,
             PT_YCbCr => Signature.Colorspace.YCbCr,
-            PT_YUV => Signature.Colorspace.Luv,
-            PT_XYZ => Signature.Colorspace.XYZ,
+            PT_YUV   => Signature.Colorspace.Luv,
+            PT_XYZ   => Signature.Colorspace.XYZ,
             PT_Lab or
-            PT_LabV2 => Signature.Colorspace.Lab,
-            PT_YUVK => Signature.Colorspace.LuvK,
-            PT_HSV => Signature.Colorspace.Hsv,
-            PT_HLS => Signature.Colorspace.Hls,
-            PT_Yxy => Signature.Colorspace.Yxy,
-            PT_MCH1 => Signature.Colorspace.MCH1,
-            PT_MCH2 => Signature.Colorspace.MCH2,
-            PT_MCH3 => Signature.Colorspace.MCH3,
-            PT_MCH4 => Signature.Colorspace.MCH4,
-            PT_MCH5 => Signature.Colorspace.MCH5,
-            PT_MCH6 => Signature.Colorspace.MCH6,
-            PT_MCH7 => Signature.Colorspace.MCH7,
-            PT_MCH8 => Signature.Colorspace.MCH8,
-            PT_MCH9 => Signature.Colorspace.MCH9,
+                PT_LabV2 => Signature.Colorspace.Lab,
+            PT_YUVK  => Signature.Colorspace.LuvK,
+            PT_HSV   => Signature.Colorspace.Hsv,
+            PT_HLS   => Signature.Colorspace.Hls,
+            PT_Yxy   => Signature.Colorspace.Yxy,
+            PT_MCH1  => Signature.Colorspace.MCH1,
+            PT_MCH2  => Signature.Colorspace.MCH2,
+            PT_MCH3  => Signature.Colorspace.MCH3,
+            PT_MCH4  => Signature.Colorspace.MCH4,
+            PT_MCH5  => Signature.Colorspace.MCH5,
+            PT_MCH6  => Signature.Colorspace.MCH6,
+            PT_MCH7  => Signature.Colorspace.MCH7,
+            PT_MCH8  => Signature.Colorspace.MCH8,
+            PT_MCH9  => Signature.Colorspace.MCH9,
             PT_MCH10 => Signature.Colorspace.MCHA,
             PT_MCH11 => Signature.Colorspace.MCHB,
             PT_MCH12 => Signature.Colorspace.MCHC,
             PT_MCH13 => Signature.Colorspace.MCHD,
             PT_MCH14 => Signature.Colorspace.MCHE,
             PT_MCH15 => Signature.Colorspace.MCHF,
-            _ => default
+            _        => default
         };
 
     internal static int _cmsLCMScolorSpace(Signature ProfileSpace)

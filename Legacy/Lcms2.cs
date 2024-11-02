@@ -517,5 +517,29 @@ public class Lcms2
 
     #endregion PCS Encoding/Decoding
 
+    #region DeltaE metrics
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double cmsDeltaE(CIELab Lab1, CIELab Lab2) =>
+        DeltaE.De76(Lab1, Lab2);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double cmsCIE94DeltaE(CIELab Lab1, CIELab Lab2) =>
+        DeltaE.CIE94(Lab1, Lab2);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double cmsBFDdeltaE(CIELab Lab1, CIELab Lab2) =>
+        DeltaE.BFD(Lab1, Lab2);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double cmsCMCdeltaE(CIELab Lab1, CIELab Lab2, double l, double c) =>
+        DeltaE.CMC(Lab1, Lab2, l, c);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double cmsCIE2000DeltaE(CIELab Lab1, CIELab Lab2, double Kl, double Kc, double Kh) =>
+        DeltaE.CIE2000(Lab1, Lab2, Kl, Kc, Kh);
+
+    #endregion DeltaE metrics
+
     #endregion cms* Functions
 }

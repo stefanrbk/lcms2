@@ -19,58 +19,100 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Diagnostics;
+
 using lcms2.state;
 using lcms2.types;
 
 using Microsoft.Extensions.Logging;
 
-using System;
-using System.Diagnostics;
-
 namespace lcms2.FastFloatPlugin.testbed;
+
 internal static partial class Testbed
 {
     [DebuggerDisplay("[r: {r}, g: {g}, b: {b}]")]
-    internal struct Scanline_rgb8bits(byte r, byte g, byte b) { public byte r = r, g = g, b = b; }
+    internal struct Scanline_rgb8bits(byte r, byte g, byte b)
+    {
+        public byte r = r, g = g, b = b;
+    }
 
     [DebuggerDisplay("[r: {r}, g: {g}, b: {b}, a: {a}]")]
-    internal struct Scanline_rgba8bits(byte r, byte g, byte b, byte a) { public byte r = r, g = g, b = b, a = a; }
+    internal struct Scanline_rgba8bits(byte r, byte g, byte b, byte a)
+    {
+        public byte r = r, g = g, b = b, a = a;
+    }
 
     [DebuggerDisplay("[c: {c}, m: {m}, y: {y}, k: {k}]")]
-    internal struct Scanline_cmyk8bits(byte c, byte m, byte y, byte k) { public byte c = c, m = m, y = y, k = k; }
+    internal struct Scanline_cmyk8bits(byte c, byte m, byte y, byte k)
+    {
+        public byte c = c, m = m, y = y, k = k;
+    }
 
     [DebuggerDisplay("[r: {r}, g: {g}, b: {b}]")]
-    internal struct Scanline_rgb16bits(ushort r, ushort g, ushort b) { public ushort r = r, g = g, b = b; }
+    internal struct Scanline_rgb16bits(ushort r, ushort g, ushort b)
+    {
+        public ushort r = r, g = g, b = b;
+    }
 
     [DebuggerDisplay("[r: {r}, g: {g}, b: {b}, a: {a}]")]
-    internal struct Scanline_rgba16bits(ushort r, ushort g, ushort b, ushort a) { public ushort r = r, g = g, b = b, a = a; }
+    internal struct Scanline_rgba16bits(ushort r, ushort g, ushort b, ushort a)
+    {
+        public ushort r = r, g = g, b = b, a = a;
+    }
 
     [DebuggerDisplay("[c: {c}, m: {m}, y: {y}, k: {k}]")]
-    internal struct Scanline_cmyk16bits(ushort c, ushort m, ushort y, ushort k) { public ushort c = c, m = m, y = y, k = k; }
+    internal struct Scanline_cmyk16bits(ushort c, ushort m, ushort y, ushort k)
+    {
+        public ushort c = c, m = m, y = y, k = k;
+    }
 
     [DebuggerDisplay("[L: {L}, a: {a}, b: {b}]")]
-    internal struct Scanline_Lab16bits(ushort L, ushort a, ushort b) { public ushort L = L, a = a, b = b; }
+    internal struct Scanline_Lab16bits(ushort L, ushort a, ushort b)
+    {
+        public ushort L = L, a = a, b = b;
+    }
 
     [DebuggerDisplay("[r: {r}, g: {g}, b: {b}]")]
-    internal struct Scanline_rgb15bits(ushort r, ushort g, ushort b) { public ushort r = r, g = g, b = b; }
+    internal struct Scanline_rgb15bits(ushort r, ushort g, ushort b)
+    {
+        public ushort r = r, g = g, b = b;
+    }
 
     [DebuggerDisplay("[r: {r}, g: {g}, b: {b}, a: {a}]")]
-    internal struct Scanline_rgba15bits(ushort r, ushort g, ushort b, ushort a) { public ushort r = r, g = g, b = b, a = a; }
+    internal struct Scanline_rgba15bits(ushort r, ushort g, ushort b, ushort a)
+    {
+        public ushort r = r, g = g, b = b, a = a;
+    }
 
     [DebuggerDisplay("[c: {c}, m: {m}, y: {y}, k: {k}]")]
-    internal struct Scanline_cmyk15bits(ushort c, ushort m, ushort y, ushort k) { public ushort c = c, m = m, y = y, k = k; }
+    internal struct Scanline_cmyk15bits(ushort c, ushort m, ushort y, ushort k)
+    {
+        public ushort c = c, m = m, y = y, k = k;
+    }
 
     [DebuggerDisplay("[r: {r:F6}, g: {g:F6}, b: {b:F6}]")]
-    internal struct Scanline_rgbFloat(float r, float g, float b) { public float r = r, g = g, b = b; }
+    internal struct Scanline_rgbFloat(float r, float g, float b)
+    {
+        public float r = r, g = g, b = b;
+    }
 
     [DebuggerDisplay("[r: {r:F6}, g: {g:F6}, b: {b:F6}, a: {a:F6}]")]
-    internal struct Scanline_rgbaFloat(float r, float g, float b, float a) { public float r = r, g = g, b = b, a = a; }
+    internal struct Scanline_rgbaFloat(float r, float g, float b, float a)
+    {
+        public float r = r, g = g, b = b, a = a;
+    }
 
     [DebuggerDisplay("[c: {c:F6}, m: {m:F6}, y: {y:F6}, k: {k:F6}]")]
-    internal struct Scanline_cmykFloat(float c, float m, float y, float k) { public float c = c, m = m, y = y, k = k; }
+    internal struct Scanline_cmykFloat(float c, float m, float y, float k)
+    {
+        public float c = c, m = m, y = y, k = k;
+    }
 
     [DebuggerDisplay("[L: {L:F6}, a: {a:F6}, b: {b:F6}]")]
-    internal struct Scanline_LabFloat(float L, float a, float b) { public float L = L, a = a, b = b; }
+    internal struct Scanline_LabFloat(float L, float a, float b)
+    {
+        public float L = L, a = a, b = b;
+    }
 
     private static void CheckSingleFormatter15(Context? _, uint Type, string Text)
     {
@@ -160,12 +202,21 @@ internal static partial class Testbed
         }
     }
 
-    private static bool checkSingleComputeIncrements(uint Format, uint planeStride, uint ExpectedChannels, uint ExpectedAlpha, params uint[] args)
+    private static bool checkSingleComputeIncrements(uint Format,
+                                                     uint planeStride,
+                                                     uint ExpectedChannels,
+                                                     uint ExpectedAlpha,
+                                                     params uint[] args)
     {
         Span<uint> ComponentStartingOrder = stackalloc uint[cmsMAXCHANNELS];
         Span<uint> ComponentPointerIncrements = stackalloc uint[cmsMAXCHANNELS];
 
-        _cmsComputeComponentIncrements(Format, planeStride, out var nChannels, out var nAlpha, ComponentStartingOrder, ComponentPointerIncrements);
+        _cmsComputeComponentIncrements(Format,
+                                       planeStride,
+                                       out var nChannels,
+                                       out var nAlpha,
+                                       ComponentStartingOrder,
+                                       ComponentPointerIncrements);
 
         if (nChannels != ExpectedChannels ||
             nAlpha != ExpectedAlpha)
@@ -238,7 +289,6 @@ internal static partial class Testbed
             CHECK(nameof(TYPE_BGRA_FLT), 0, 3, 1, /**/ 8, 4, 0, 12,  /**/ 16, 16, 16, 16);
             CHECK(nameof(TYPE_ABGR_FLT), 0, 3, 1, /**/ 12, 8, 4, 0,  /**/ 16, 16, 16, 16);
 
-
             CHECK(nameof(TYPE_CMYK_8), 0, 4, 0, /**/ 0, 1, 2, 3,     /**/ 4, 4, 4, 4);
             CHECK(nameof(TYPE_CMYKA_8), 0, 4, 1, /**/ 0, 1, 2, 3, 4,  /**/ 5, 5, 5, 5, 5);
             CHECK(nameof(TYPE_ACMYK_8), 0, 4, 1, /**/ 1, 2, 3, 4, 0,  /**/ 5, 5, 5, 5, 5);
@@ -308,6 +358,7 @@ internal static partial class Testbed
                     logger.LogError("Format failed!");
                     return false;
                 }
+
                 return true;
             }
         }
@@ -342,7 +393,8 @@ internal static partial class Testbed
 
     private static void TryAllValues15(Profile profileIn, Profile profileOut, int Intent)
     {
-        var xform15 = cmsCreateTransform(profileIn, TYPE_RGB_15, profileOut, TYPE_RGB_15, (uint)Intent, cmsFLAGS_NOCACHE);
+        var xform15 =
+            cmsCreateTransform(profileIn, TYPE_RGB_15, profileOut, TYPE_RGB_15, (uint)Intent, cmsFLAGS_NOCACHE);
         var xform8 = cmsCreateTransform(profileIn, TYPE_RGB_8, profileOut, TYPE_RGB_8, (uint)Intent, cmsFLAGS_NOCACHE);
 
         cmsCloseProfile(profileIn);
@@ -380,7 +432,6 @@ internal static partial class Testbed
         }
 
 #if NO_THREADS
-
         DoTransforms(0, npixels, xform8, xform15, buffer8in, buffer15in, buffer8out, buffer15out);
         var failed = CompareTransforms(0, npixels, buffer8out, buffer15out);
 
@@ -395,7 +446,9 @@ internal static partial class Testbed
         {
             var offset = (int)o!;
 
-            using (logger.BeginScope("Range {RangeStart}..{RangeEnd}", offset * nPixelsPerThread, (offset + 1) * nPixelsPerThread))
+            using (logger.BeginScope("Range {RangeStart}..{RangeEnd}",
+                                     offset * nPixelsPerThread,
+                                     (offset + 1) * nPixelsPerThread))
             {
                 DoTransforms(offset, nPixelsPerThread, xform8, xform15, buffer8in, buffer15in, buffer8out, buffer15out);
                 return CompareTransforms(offset, nPixelsPerThread, buffer8out, buffer15out);
@@ -435,7 +488,14 @@ internal static partial class Testbed
         if (failed is not 0)
             Fail("{0} failed", failed);
 
-        static void DoTransforms(int offset, int nPixelsPerThread, Transform xform8, Transform xform15, Scanline_rgb8bits[] buffer8In, Scanline_rgb15bits[] buffer15In, Scanline_rgb8bits[] buffer8Out, Scanline_rgb15bits[] buffer15Out)
+        static void DoTransforms(int offset,
+                                 int nPixelsPerThread,
+                                 Transform xform8,
+                                 Transform xform15,
+                                 Scanline_rgb8bits[] buffer8In,
+                                 Scanline_rgb15bits[] buffer15In,
+                                 Scanline_rgb8bits[] buffer8Out,
+                                 Scanline_rgb15bits[] buffer15Out)
         {
             var start = offset * nPixelsPerThread;
             var b8In = buffer8In.AsSpan(start..)[..nPixelsPerThread];
@@ -447,7 +507,10 @@ internal static partial class Testbed
             cmsDoTransform(xform8, b8In, b8Out, (uint)nPixelsPerThread);
         }
 
-        static int CompareTransforms(int offset, int nPixelsPerThread, Scanline_rgb8bits[] buffer8out, Scanline_rgb15bits[] buffer15out)
+        static int CompareTransforms(int offset,
+                                     int nPixelsPerThread,
+                                     Scanline_rgb8bits[] buffer8out,
+                                     Scanline_rgb15bits[] buffer15out)
         {
             // Let's compare results
             var start = offset * nPixelsPerThread;
@@ -464,12 +527,12 @@ internal static partial class Testbed
                     if (failed++ is 0)
                     {
                         logger.LogError("Conversion first failed at ({r8} {g8} {b8}) != ({r15} {g15} {b15})",
-                            buffer8out[j].r,
-                            buffer8out[j].g,
-                            buffer8out[j].b,
-                            FROM_15_TO_8(buffer15out[j].r),
-                            FROM_15_TO_8(buffer15out[j].g),
-                            FROM_15_TO_8(buffer15out[j].b));
+                                        buffer8out[j].r,
+                                        buffer8out[j].g,
+                                        buffer8out[j].b,
+                                        FROM_15_TO_8(buffer15out[j].r),
+                                        FROM_15_TO_8(buffer15out[j].g),
+                                        FROM_15_TO_8(buffer15out[j].b));
                     }
                 }
             }
@@ -490,7 +553,9 @@ internal static partial class Testbed
 #if DEBUG
             timer.Restart();
 #endif
-            TryAllValues15(cmsOpenProfileFromMem(TestProfiles.test5)!, cmsOpenProfileFromMem(TestProfiles.test3)!, INTENT_PERCEPTUAL);
+            TryAllValues15(cmsOpenProfileFromMem(TestProfiles.test5)!,
+                           cmsOpenProfileFromMem(TestProfiles.test3)!,
+                           INTENT_PERCEPTUAL);
             trace("Passed");
 #if DEBUG
             timer.Stop();
@@ -503,7 +568,9 @@ internal static partial class Testbed
 #if DEBUG
             timer.Restart();
 #endif
-            TryAllValues15(cmsOpenProfileFromMem(TestProfiles.test0)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL);
+            TryAllValues15(cmsOpenProfileFromMem(TestProfiles.test0)!,
+                           cmsOpenProfileFromMem(TestProfiles.test0)!,
+                           INTENT_PERCEPTUAL);
             trace("Passed");
 #if DEBUG
             timer.Stop();
@@ -516,7 +583,9 @@ internal static partial class Testbed
 #if DEBUG
             timer.Restart();
 #endif
-            TryAllValues15(cmsOpenProfileFromMem(TestProfiles.test5)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL);
+            TryAllValues15(cmsOpenProfileFromMem(TestProfiles.test5)!,
+                           cmsOpenProfileFromMem(TestProfiles.test0)!,
+                           INTENT_PERCEPTUAL);
             trace("Passed");
 #if DEBUG
             timer.Stop();
@@ -532,8 +601,20 @@ internal static partial class Testbed
         var Raw = new Context();
         var Plugin = new Context(cmsFastFloatExtensions());
 
-        var xformRaw = cmsCreateTransformTHR(Raw, profileIn, TYPE_RGBA_16, profileOut, TYPE_RGBA_16, (uint)Intent, cmsFLAGS_NOCACHE | cmsFLAGS_COPY_ALPHA);
-        var xformPlugin = cmsCreateTransformTHR(Plugin, profileIn, TYPE_RGBA_16, profileOut, TYPE_RGBA_16, (uint)Intent, cmsFLAGS_NOCACHE | cmsFLAGS_COPY_ALPHA);
+        var xformRaw = cmsCreateTransformTHR(Raw,
+                                             profileIn,
+                                             TYPE_RGBA_16,
+                                             profileOut,
+                                             TYPE_RGBA_16,
+                                             (uint)Intent,
+                                             cmsFLAGS_NOCACHE | cmsFLAGS_COPY_ALPHA);
+        var xformPlugin = cmsCreateTransformTHR(Plugin,
+                                                profileIn,
+                                                TYPE_RGBA_16,
+                                                profileOut,
+                                                TYPE_RGBA_16,
+                                                (uint)Intent,
+                                                cmsFLAGS_NOCACHE | cmsFLAGS_COPY_ALPHA);
 
         cmsCloseProfile(profileIn);
         cmsCloseProfile(profileOut);
@@ -566,7 +647,6 @@ internal static partial class Testbed
         }
 
 #if NO_THREADS
-
         DoTransforms(0, npixels, xformRaw, xformPlugin, bufferIn, bufferRawOut, bufferPluginOut);
         var failed = CompareTransforms(0, npixels, bufferRawOut, bufferPluginOut);
 
@@ -580,7 +660,9 @@ internal static partial class Testbed
         {
             var offset = (int)o!;
 
-            using (logger.BeginScope("Range {RangeStart}..{RangeEnd}", offset * nPixelsPerThread, (offset + 1) * nPixelsPerThread))
+            using (logger.BeginScope("Range {RangeStart}..{RangeEnd}",
+                                     offset * nPixelsPerThread,
+                                     (offset + 1) * nPixelsPerThread))
             {
                 DoTransforms(offset, nPixelsPerThread, xformRaw, xformPlugin, bufferIn, bufferRawOut, bufferPluginOut);
                 return CompareTransforms(offset, nPixelsPerThread, bufferRawOut, bufferPluginOut);
@@ -612,7 +694,6 @@ internal static partial class Testbed
             failed = CompareTransforms(0, npixels, bufferIn, bufferPluginOut);
         }
 
-
 #endif
 
         cmsDeleteTransform(xformRaw);
@@ -621,7 +702,13 @@ internal static partial class Testbed
         if (failed is not 0)
             Fail("{0} failed", failed);
 
-        static void DoTransforms(int offset, int nPixelsPerThread, Transform xformRaw, Transform xformPlugin, Scanline_rgba16bits[] bufferIn, Scanline_rgba16bits[] bufferRawOut, Scanline_rgba16bits[] bufferPluginOut)
+        static void DoTransforms(int offset,
+                                 int nPixelsPerThread,
+                                 Transform xformRaw,
+                                 Transform xformPlugin,
+                                 Scanline_rgba16bits[] bufferIn,
+                                 Scanline_rgba16bits[] bufferRawOut,
+                                 Scanline_rgba16bits[] bufferPluginOut)
         {
             var start = offset * nPixelsPerThread;
             var bIn = bufferIn.AsSpan(start..)[..nPixelsPerThread];
@@ -632,7 +719,10 @@ internal static partial class Testbed
             cmsDoTransform(xformPlugin, bIn, bPluginOut, (uint)nPixelsPerThread);
         }
 
-        static int CompareTransforms(int offset, int nPixelsPerThread, Scanline_rgba16bits[] bufferRawOut, Scanline_rgba16bits[] bufferPluginOut)
+        static int CompareTransforms(int offset,
+                                     int nPixelsPerThread,
+                                     Scanline_rgba16bits[] bufferRawOut,
+                                     Scanline_rgba16bits[] bufferPluginOut)
         {
             // Lets compare results
             var start = offset * nPixelsPerThread;
@@ -648,7 +738,8 @@ internal static partial class Testbed
                 {
                     if (failed++ is 0)
                     {
-                        logger.LogError("Conversion first failed at ({rRaw} {gRaw} {bRaw} {aRaw}) != ({rPlugin} {gPlugin} {bPlugin} {aPlugin})",
+                        logger.LogError(
+                            "Conversion first failed at ({rRaw} {gRaw} {bRaw} {aRaw}) != ({rPlugin} {gPlugin} {bPlugin} {aPlugin})",
                             bufferRawOut[j].r,
                             bufferRawOut[j].g,
                             bufferRawOut[j].b,
@@ -673,7 +764,9 @@ internal static partial class Testbed
 #if DEBUG
             var timer = Stopwatch.StartNew();
 #endif
-            TryAllValues16(cmsOpenProfileFromMem(TestProfiles.test5)!, cmsOpenProfileFromMem(TestProfiles.test3)!, INTENT_PERCEPTUAL);
+            TryAllValues16(cmsOpenProfileFromMem(TestProfiles.test5)!,
+                           cmsOpenProfileFromMem(TestProfiles.test3)!,
+                           INTENT_PERCEPTUAL);
             trace("Passed");
 #if DEBUG
             timer.Stop();
@@ -687,12 +780,14 @@ internal static partial class Testbed
     private class sub
     {
         public uint Int { get; set; }
+
         public float subnormal
         {
             get => BitConverter.UInt32BitsToSingle(Int);
             set => Int = BitConverter.SingleToUInt32Bits(value);
         }
     }
+
     private static void CheckUncommonValues(Profile profileIn, Profile profileOut, int Intent)
     {
         var sub_pos = new sub();
@@ -702,7 +797,8 @@ internal static partial class Testbed
 
         var Plugin = new Context(cmsFastFloatExtensions());
 
-        var xformPlugin = cmsCreateTransformTHR(Plugin, profileIn, TYPE_RGB_FLT, profileOut, TYPE_RGB_FLT, (uint)Intent, 0);
+        var xformPlugin =
+            cmsCreateTransformTHR(Plugin, profileIn, TYPE_RGB_FLT, profileOut, TYPE_RGB_FLT, (uint)Intent, 0);
 
         sub_pos.Int = 0x00000002;
         sub_neg.Int = 0x80000002;
@@ -752,9 +848,7 @@ internal static partial class Testbed
     {
         Span<ushort> lab16 = stackalloc ushort[3]
         {
-            FROM_8_TO_16(lab8[0]),
-            FROM_8_TO_16(lab8[1]),
-            FROM_8_TO_16(lab8[2])
+            FROM_8_TO_16(lab8[0]), FROM_8_TO_16(lab8[1]), FROM_8_TO_16(lab8[2])
         };
 
         return lab16.LabEncodedToFloat();
@@ -770,7 +864,8 @@ internal static partial class Testbed
             var hsRGB = cmsCreate_sRGBProfile()!;
             var hLab = cmsCreateLab4Profile(null)!;
 
-            var xform_plugin = cmsCreateTransformTHR(Plugin, hsRGB, TYPE_RGB_8, hLab, TYPE_Lab_8, INTENT_PERCEPTUAL, 0)!;
+            var xform_plugin =
+                cmsCreateTransformTHR(Plugin, hsRGB, TYPE_RGB_8, hLab, TYPE_Lab_8, INTENT_PERCEPTUAL, 0)!;
             var xform = cmsCreateTransformTHR(Raw, hsRGB, TYPE_RGB_8, hLab, TYPE_Lab_8, INTENT_PERCEPTUAL, 0)!;
 
             Span<byte> rgb = stackalloc byte[3];
@@ -786,7 +881,9 @@ internal static partial class Testbed
                 {
                     for (var b = 0; b < 256; b += 5)
                     {
-                        rgb[0] = (byte)r; rgb[1] = (byte)g; rgb[2] = (byte)b;
+                        rgb[0] = (byte)r;
+                        rgb[1] = (byte)g;
+                        rgb[2] = (byte)b;
 
                         cmsDoTransform(xform_plugin, rgb, lab1, 1);
                         cmsDoTransform(xform, rgb, lab2, 1);
@@ -794,21 +891,27 @@ internal static partial class Testbed
                         var Lab1 = lab8toLab(lab1);
                         var Lab2 = lab8toLab(lab2);
 
-                        err = cmsDeltaE(Lab1, Lab2);
+                        err = DeltaE.De76(Lab1, Lab2);
                         if (err > maxErr)
                             maxErr = err;
 
                         if (err > 0.1)
                         {
                             trace("Error on lab encoded ({0}, {1}, {2}) <> ({3}, {4}, {5})",
-                                Lab1.L, Lab1.a, Lab1.b, Lab2.L, Lab2.a, Lab2.b);
+                                  Lab1.L,
+                                  Lab1.a,
+                                  Lab1.b,
+                                  Lab2.L,
+                                  Lab2.a,
+                                  Lab2.b);
                         }
                     }
                 }
             }
 
             cmsDeleteTransform(xform);
-            cmsCloseProfile(hsRGB); cmsCloseProfile(hLab);
+            cmsCloseProfile(hsRGB);
+            cmsCloseProfile(hLab);
 
             if (maxErr > 0.1)
                 Fail("Failed");
@@ -827,7 +930,8 @@ internal static partial class Testbed
             var hsRGB = cmsCreate_sRGBProfile()!;
             var hLab = cmsCreateLab4Profile(null)!;
 
-            var xform_plugin = cmsCreateTransformTHR(Plugin, hsRGB, TYPE_RGB_8, hLab, TYPE_Lab_DBL, INTENT_PERCEPTUAL, 0)!;
+            var xform_plugin =
+                cmsCreateTransformTHR(Plugin, hsRGB, TYPE_RGB_8, hLab, TYPE_Lab_DBL, INTENT_PERCEPTUAL, 0)!;
             var xform = cmsCreateTransformTHR(Raw, hsRGB, TYPE_RGB_8, hLab, TYPE_Lab_DBL, INTENT_PERCEPTUAL, 0)!;
 
             Span<byte> rgb = stackalloc byte[3];
@@ -841,26 +945,34 @@ internal static partial class Testbed
                 {
                     for (var b = 0; b < 256; b += 10)
                     {
-                        rgb[0] = (byte)r; rgb[1] = (byte)g; rgb[2] = (byte)b;
+                        rgb[0] = (byte)r;
+                        rgb[1] = (byte)g;
+                        rgb[2] = (byte)b;
 
                         cmsDoTransform(xform_plugin, rgb, out CIELab Lab1, 1);
                         cmsDoTransform(xform, rgb, out CIELab Lab2, 1);
 
-                        err = cmsDeltaE(Lab1, Lab2);
+                        err = DeltaE.De76(Lab1, Lab2);
                         if (err > maxErr)
                             maxErr = err;
 
                         if (err > 0.1)
                         {
                             trace("Error on lab encoded ({0}, {1}, {2}) <> ({3}, {4}, {5})",
-                                Lab1.L, Lab1.a, Lab1.b, Lab2.L, Lab2.a, Lab2.b);
+                                  Lab1.L,
+                                  Lab1.a,
+                                  Lab1.b,
+                                  Lab2.L,
+                                  Lab2.a,
+                                  Lab2.b);
                         }
                     }
                 }
             }
 
             cmsDeleteTransform(xform);
-            cmsCloseProfile(hsRGB); cmsCloseProfile(hLab);
+            cmsCloseProfile(hsRGB);
+            cmsCloseProfile(hLab);
 
             if (maxErr > 0.1)
                 Fail("Failed");
@@ -877,8 +989,20 @@ internal static partial class Testbed
         var Raw = new Context();
         var Plugin = new Context(cmsFastFloatExtensions());
 
-        var xformRaw = cmsCreateTransformTHR(Raw, profileIn, TYPE_RGB_FLT, profileOut, TYPE_RGB_FLT, (uint)Intent, cmsFLAGS_NOCACHE);
-        var xformPlugin = cmsCreateTransformTHR(Plugin, profileIn, TYPE_RGB_FLT, profileOut, TYPE_RGB_FLT, (uint)Intent, cmsFLAGS_NOCACHE);
+        var xformRaw = cmsCreateTransformTHR(Raw,
+                                             profileIn,
+                                             TYPE_RGB_FLT,
+                                             profileOut,
+                                             TYPE_RGB_FLT,
+                                             (uint)Intent,
+                                             cmsFLAGS_NOCACHE);
+        var xformPlugin = cmsCreateTransformTHR(Plugin,
+                                                profileIn,
+                                                TYPE_RGB_FLT,
+                                                profileOut,
+                                                TYPE_RGB_FLT,
+                                                (uint)Intent,
+                                                cmsFLAGS_NOCACHE);
 
         cmsCloseProfile(profileIn);
         cmsCloseProfile(profileOut);
@@ -918,7 +1042,9 @@ internal static partial class Testbed
         {
             var offset = (int)o!;
 
-            using (logger.BeginScope("Range {RangeStart}..{RangeEnd}", offset * nPixelsPerThread, (offset + 1) * nPixelsPerThread))
+            using (logger.BeginScope("Range {RangeStart}..{RangeEnd}",
+                                     offset * nPixelsPerThread,
+                                     (offset + 1) * nPixelsPerThread))
             {
                 DoTransforms(offset, nPixelsPerThread, xformRaw, xformPlugin, bufferIn, bufferRawOut, bufferPluginOut);
                 return CompareTransforms(offset, nPixelsPerThread, bufferRawOut, bufferPluginOut);
@@ -957,7 +1083,13 @@ internal static partial class Testbed
             Fail("{0} failed", failed);
         trace("Passed");
 
-        static void DoTransforms(int offset, int nPixelsPerThread, Transform xformRaw, Transform xformPlugin, Scanline_rgbFloat[] bufferIn, Scanline_rgbFloat[] bufferRawOut, Scanline_rgbFloat[] bufferPluginOut)
+        static void DoTransforms(int offset,
+                                 int nPixelsPerThread,
+                                 Transform xformRaw,
+                                 Transform xformPlugin,
+                                 Scanline_rgbFloat[] bufferIn,
+                                 Scanline_rgbFloat[] bufferRawOut,
+                                 Scanline_rgbFloat[] bufferPluginOut)
         {
             var start = offset * nPixelsPerThread;
             var bIn = bufferIn.AsSpan(start..)[..nPixelsPerThread];
@@ -968,7 +1100,10 @@ internal static partial class Testbed
             cmsDoTransform(xformPlugin, bIn, bPluginOut, (uint)nPixelsPerThread);
         }
 
-        static int CompareTransforms(int offset, int nPixelsPerThread, Scanline_rgbFloat[] bufferRawOut, Scanline_rgbFloat[] bufferPluginOut)
+        static int CompareTransforms(int offset,
+                                     int nPixelsPerThread,
+                                     Scanline_rgbFloat[] bufferRawOut,
+                                     Scanline_rgbFloat[] bufferPluginOut)
         {
             // Lets compare results
             var start = offset * nPixelsPerThread;
@@ -983,7 +1118,8 @@ internal static partial class Testbed
                 {
                     if (failed++ is 0)
                     {
-                        logger.LogError("Conversion first failed at position [{j}]: ({rRaw} {gRaw} {bRaw}) != ({rPlugin} {gPlugin} {bPlugin})",
+                        logger.LogError(
+                            "Conversion first failed at position [{j}]: ({rRaw} {gRaw} {bRaw}) != ({rPlugin} {gPlugin} {bPlugin})",
                             j,
                             bufferRawOut[j].r,
                             bufferRawOut[j].g,
@@ -1005,8 +1141,15 @@ internal static partial class Testbed
         var Plugin = new Context(cmsFastFloatExtensions());
         var flags = cmsFLAGS_NOCACHE | (copyAlpha ? cmsFLAGS_COPY_ALPHA : 0);
 
-        var xformRaw = cmsCreateTransformTHR(Raw, profileIn, TYPE_RGBA_FLT, profileOut, TYPE_RGBA_FLT, (uint)Intent, flags);
-        var xformPlugin = cmsCreateTransformTHR(Plugin, profileIn, TYPE_RGBA_FLT, profileOut, TYPE_RGBA_FLT, (uint)Intent, flags);
+        var xformRaw =
+            cmsCreateTransformTHR(Raw, profileIn, TYPE_RGBA_FLT, profileOut, TYPE_RGBA_FLT, (uint)Intent, flags);
+        var xformPlugin = cmsCreateTransformTHR(Plugin,
+                                                profileIn,
+                                                TYPE_RGBA_FLT,
+                                                profileOut,
+                                                TYPE_RGBA_FLT,
+                                                (uint)Intent,
+                                                flags);
 
         cmsCloseProfile(profileIn);
         cmsCloseProfile(profileOut);
@@ -1047,7 +1190,9 @@ internal static partial class Testbed
         {
             var offset = (int)o!;
 
-            using (logger.BeginScope("Range {RangeStart}..{RangeEnd}", offset * nPixelsPerThread, (offset + 1) * nPixelsPerThread))
+            using (logger.BeginScope("Range {RangeStart}..{RangeEnd}",
+                                     offset * nPixelsPerThread,
+                                     (offset + 1) * nPixelsPerThread))
             {
                 DoTransforms(offset, nPixelsPerThread, xformRaw, xformPlugin, bufferIn, bufferRawOut, bufferPluginOut);
                 return CompareTransforms(offset, nPixelsPerThread, bufferRawOut, bufferPluginOut);
@@ -1086,7 +1231,13 @@ internal static partial class Testbed
             Fail("{0} failed", failed);
         trace("Passed");
 
-        static void DoTransforms(int offset, int nPixelsPerThread, Transform xformRaw, Transform xformPlugin, Scanline_rgbaFloat[] bufferIn, Scanline_rgbaFloat[] bufferRawOut, Scanline_rgbaFloat[] bufferPluginOut)
+        static void DoTransforms(int offset,
+                                 int nPixelsPerThread,
+                                 Transform xformRaw,
+                                 Transform xformPlugin,
+                                 Scanline_rgbaFloat[] bufferIn,
+                                 Scanline_rgbaFloat[] bufferRawOut,
+                                 Scanline_rgbaFloat[] bufferPluginOut)
         {
             var start = offset * nPixelsPerThread;
             var bIn = bufferIn.AsSpan(start..)[..nPixelsPerThread];
@@ -1097,7 +1248,10 @@ internal static partial class Testbed
             cmsDoTransform(xformPlugin, bIn, bPluginOut, (uint)nPixelsPerThread);
         }
 
-        static int CompareTransforms(int offset, int nPixelsPerThread, Scanline_rgbaFloat[] bufferRawOut, Scanline_rgbaFloat[] bufferPluginOut)
+        static int CompareTransforms(int offset,
+                                     int nPixelsPerThread,
+                                     Scanline_rgbaFloat[] bufferRawOut,
+                                     Scanline_rgbaFloat[] bufferPluginOut)
         {
             // Lets compare results
             var start = offset * nPixelsPerThread;
@@ -1113,7 +1267,8 @@ internal static partial class Testbed
                 {
                     if (failed++ is 0)
                     {
-                        logger.LogError("Conversion first failed at position [{j}]: ({rRaw} {gRaw} {bRaw} {aRaw}) != ({rPlugin} {gPlugin} {bPlugin} {aPlugin})",
+                        logger.LogError(
+                            "Conversion first failed at position [{j}]: ({rRaw} {gRaw} {bRaw} {aRaw}) != ({rPlugin} {gPlugin} {bPlugin} {aPlugin})",
                             j,
                             bufferRawOut[j].r,
                             bufferRawOut[j].g,
@@ -1141,8 +1296,18 @@ internal static partial class Testbed
             const int npixelsThreaded = 256 * 256;
             const int npixels = npixelsThreaded * 256;
 
-            var xformRaw = cmsCreateTransform(profileIn, TYPE_RGB_16, profileOut, TYPE_RGB_16, (uint)Intent, cmsFLAGS_NOCACHE);
-            var xformPlugin = cmsCreateTransform(profileIn, TYPE_RGB_FLT, profileOut, TYPE_RGB_FLT, (uint)Intent, cmsFLAGS_NOCACHE);
+            var xformRaw = cmsCreateTransform(profileIn,
+                                              TYPE_RGB_16,
+                                              profileOut,
+                                              TYPE_RGB_16,
+                                              (uint)Intent,
+                                              cmsFLAGS_NOCACHE);
+            var xformPlugin = cmsCreateTransform(profileIn,
+                                                 TYPE_RGB_FLT,
+                                                 profileOut,
+                                                 TYPE_RGB_FLT,
+                                                 (uint)Intent,
+                                                 cmsFLAGS_NOCACHE);
 
             cmsCloseProfile(profileIn);
             cmsCloseProfile(profileOut);
@@ -1181,12 +1346,19 @@ internal static partial class Testbed
             for (var i = 0; i < 256; i++)
             {
                 tasks[i] = Task.Factory.StartNew(o =>
-                {
-                    var offset = (int)o!;
+                                                 {
+                                                     var offset = (int)o!;
 
-                    cmsDoTransform(xformRaw, bufferIn16.AsSpan((offset * npixelsThreaded)..), buffer16Out.AsSpan((offset * npixelsThreaded)..), npixelsThreaded);
-                    cmsDoTransform(xformPlugin, bufferIn.AsSpan((offset * npixelsThreaded)..), bufferFloatOut.AsSpan((offset * npixelsThreaded)..), npixelsThreaded);
-                }, i);
+                                                     cmsDoTransform(xformRaw,
+                                                                    bufferIn16.AsSpan((offset * npixelsThreaded)..),
+                                                                    buffer16Out.AsSpan((offset * npixelsThreaded)..),
+                                                                    npixelsThreaded);
+                                                     cmsDoTransform(xformPlugin,
+                                                                    bufferIn.AsSpan((offset * npixelsThreaded)..),
+                                                                    bufferFloatOut.AsSpan((offset * npixelsThreaded)..),
+                                                                    npixelsThreaded);
+                                                 },
+                                                 i);
             }
 
             Task.WaitAll(tasks);
@@ -1278,8 +1450,18 @@ internal static partial class Testbed
             var hsRGB = cmsCreate_sRGBProfile()!;
             var hLab = cmsCreateLab2Profile(null)!;
 
-            var xform = cmsCreateTransform(hsRGB, TYPE_RGB_8, hLab, TYPE_Lab_8, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_NOOPTIMIZE | cmsFLAGS_BLACKPOINTCOMPENSATION)!;
-            var xform2 = cmsCreateTransform(hLab, TYPE_Lab_8, hsRGB, TYPE_RGB_8, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_NOOPTIMIZE | cmsFLAGS_BLACKPOINTCOMPENSATION)!;
+            var xform = cmsCreateTransform(hsRGB,
+                                           TYPE_RGB_8,
+                                           hLab,
+                                           TYPE_Lab_8,
+                                           INTENT_RELATIVE_COLORIMETRIC,
+                                           cmsFLAGS_NOOPTIMIZE | cmsFLAGS_BLACKPOINTCOMPENSATION)!;
+            var xform2 = cmsCreateTransform(hLab,
+                                            TYPE_Lab_8,
+                                            hsRGB,
+                                            TYPE_RGB_8,
+                                            INTENT_RELATIVE_COLORIMETRIC,
+                                            cmsFLAGS_NOOPTIMIZE | cmsFLAGS_BLACKPOINTCOMPENSATION)!;
 
             cmsCloseProfile(hsRGB);
             cmsCloseProfile(hLab);
@@ -1322,8 +1504,12 @@ internal static partial class Testbed
                             !Valid16Float(In[j].b, Out[j].b))
                         {
                             Fail("Conversion failed at ({0}, {1}, {2}) != ({3}, {4}, {5})",
-                                In[j].r, In[j].g, In[j].b,
-                                Out[j].r, Out[j].g, Out[j].b);
+                                 In[j].r,
+                                 In[j].g,
+                                 In[j].b,
+                                 Out[j].r,
+                                 Out[j].g,
+                                 Out[j].b);
                         }
 
                         j++;
@@ -1355,7 +1541,12 @@ internal static partial class Testbed
 
             var hsRGB = cmsCreate_sRGBProfile()!;
 
-            var xform = cmsCreateTransform(hsRGB, TYPE_RGB_FLT, hsRGB, TYPE_RGBA_FLT, INTENT_PERCEPTUAL, cmsFLAGS_COPY_ALPHA);
+            var xform = cmsCreateTransform(hsRGB,
+                                           TYPE_RGB_FLT,
+                                           hsRGB,
+                                           TYPE_RGBA_FLT,
+                                           INTENT_PERCEPTUAL,
+                                           cmsFLAGS_COPY_ALPHA);
             cmsCloseProfile(hsRGB);
 
             if (xform is not null)
@@ -1380,28 +1571,44 @@ internal static partial class Testbed
         using (logger.BeginScope("Crash test"))
         {
             using (logger.BeginScope("Part 1"))
-                TryAllValuesFloatAlpha(cmsOpenProfileFromMem(TestProfiles.test5)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL, false);
+                TryAllValuesFloatAlpha(cmsOpenProfileFromMem(TestProfiles.test5)!,
+                                       cmsOpenProfileFromMem(TestProfiles.test0)!,
+                                       INTENT_PERCEPTUAL,
+                                       false);
 
             using (logger.BeginScope("Part 2"))
-                TryAllValuesFloatAlpha(cmsOpenProfileFromMem(TestProfiles.test5)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL, true);
+                TryAllValuesFloatAlpha(cmsOpenProfileFromMem(TestProfiles.test5)!,
+                                       cmsOpenProfileFromMem(TestProfiles.test0)!,
+                                       INTENT_PERCEPTUAL,
+                                       true);
         }
 
         using (logger.BeginScope("Crash (II) test"))
         {
             using (logger.BeginScope("Part 1"))
-                TryAllValuesFloatAlpha(cmsOpenProfileFromMem(TestProfiles.test0)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL, false);
+                TryAllValuesFloatAlpha(cmsOpenProfileFromMem(TestProfiles.test0)!,
+                                       cmsOpenProfileFromMem(TestProfiles.test0)!,
+                                       INTENT_PERCEPTUAL,
+                                       false);
 
             using (logger.BeginScope("Part 2"))
-                TryAllValuesFloatAlpha(cmsOpenProfileFromMem(TestProfiles.test0)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL, true);
+                TryAllValuesFloatAlpha(cmsOpenProfileFromMem(TestProfiles.test0)!,
+                                       cmsOpenProfileFromMem(TestProfiles.test0)!,
+                                       INTENT_PERCEPTUAL,
+                                       true);
         }
 
         using (logger.BeginScope("Crash (III) test"))
         {
             using (logger.BeginScope("Part 1"))
-                CheckUncommonValues(cmsOpenProfileFromMem(TestProfiles.test5)!, cmsOpenProfileFromMem(TestProfiles.test3)!, INTENT_PERCEPTUAL);
+                CheckUncommonValues(cmsOpenProfileFromMem(TestProfiles.test5)!,
+                                    cmsOpenProfileFromMem(TestProfiles.test3)!,
+                                    INTENT_PERCEPTUAL);
 
             using (logger.BeginScope("Part 2"))
-                CheckUncommonValues(cmsOpenProfileFromMem(TestProfiles.test5)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL);
+                CheckUncommonValues(cmsOpenProfileFromMem(TestProfiles.test5)!,
+                                    cmsOpenProfileFromMem(TestProfiles.test0)!,
+                                    INTENT_PERCEPTUAL);
         }
 
         using (logger.BeginScope("Check conversion to Lab"))
@@ -1411,15 +1618,23 @@ internal static partial class Testbed
         }
 
         using (logger.BeginScope("Check accuracy on Matrix-shaper"))
-            TryAllValuesFloat(cmsOpenProfileFromMem(TestProfiles.test5)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL);
+            TryAllValuesFloat(cmsOpenProfileFromMem(TestProfiles.test5)!,
+                              cmsOpenProfileFromMem(TestProfiles.test0)!,
+                              INTENT_PERCEPTUAL);
 
         using (logger.BeginScope("Check accuracy of CLUT"))
-            TryAllValuesFloatVs16(cmsOpenProfileFromMem(TestProfiles.test5)!, cmsOpenProfileFromMem(TestProfiles.test3)!, INTENT_PERCEPTUAL);
+            TryAllValuesFloatVs16(cmsOpenProfileFromMem(TestProfiles.test5)!,
+                                  cmsOpenProfileFromMem(TestProfiles.test3)!,
+                                  INTENT_PERCEPTUAL);
 
         using (logger.BeginScope("Check accuracy on same profile"))
         {
-            TryAllValuesFloatVs16(cmsOpenProfileFromMem(TestProfiles.test0)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL);
-            TryAllValuesFloat(cmsOpenProfileFromMem(TestProfiles.test0)!, cmsOpenProfileFromMem(TestProfiles.test0)!, INTENT_PERCEPTUAL);
+            TryAllValuesFloatVs16(cmsOpenProfileFromMem(TestProfiles.test0)!,
+                                  cmsOpenProfileFromMem(TestProfiles.test0)!,
+                                  INTENT_PERCEPTUAL);
+            TryAllValuesFloat(cmsOpenProfileFromMem(TestProfiles.test0)!,
+                              cmsOpenProfileFromMem(TestProfiles.test0)!,
+                              INTENT_PERCEPTUAL);
         }
     }
 
@@ -1438,8 +1653,19 @@ internal static partial class Testbed
         var hRGB = cmsOpenProfileFromMem(TestProfiles.test3)!;
         var noPlugin = new Context();
 
-        var hXformNoPlugin = cmsCreateTransformTHR(noPlugin, hLab, TYPE_Lab_FLT, hRGB, TYPE_RGB_FLT, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_NOCACHE)!;
-        var hXformPlugin = cmsCreateTransform(hLab, TYPE_Lab_FLT, hRGB, TYPE_RGB_FLT, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_NOCACHE)!;
+        var hXformNoPlugin = cmsCreateTransformTHR(noPlugin,
+                                                   hLab,
+                                                   TYPE_Lab_FLT,
+                                                   hRGB,
+                                                   TYPE_RGB_FLT,
+                                                   INTENT_RELATIVE_COLORIMETRIC,
+                                                   cmsFLAGS_NOCACHE)!;
+        var hXformPlugin = cmsCreateTransform(hLab,
+                                              TYPE_Lab_FLT,
+                                              hRGB,
+                                              TYPE_RGB_FLT,
+                                              INTENT_RELATIVE_COLORIMETRIC,
+                                              cmsFLAGS_NOCACHE)!;
 
         using (logger.BeginScope("Checking Lab -> RGB"))
         {
@@ -1464,7 +1690,9 @@ internal static partial class Testbed
                 {
                     for (var b = -30; b < +30; b++)
                     {
-                        Lab[0] = L; Lab[1] = a; Lab[2] = b;
+                        Lab[0] = L;
+                        Lab[1] = a;
+                        Lab[2] = b;
                         cmsDoTransform(hXformNoPlugin, Lab, RGB, 1);
                         cmsDoTransform(hXformPlugin, Lab, RGB2, 1);
 
@@ -1496,7 +1724,9 @@ internal static partial class Testbed
                 {
                     for (var b = -100; b < +100; b += 5)
                     {
-                        Lab[0] = L; Lab[1] = a; Lab[2] = b;
+                        Lab[0] = L;
+                        Lab[1] = a;
+                        Lab[2] = b;
                         cmsDoTransform(hXformNoPlugin, Lab, RGB, 1);
                         cmsDoTransform(hXformPlugin, Lab, RGB2, 1);
 
@@ -1524,6 +1754,7 @@ internal static partial class Testbed
                 {
                     logger.LogError(t.Exception, "Multithreading failure");
                 }
+
                 Thread.Sleep(1000);
                 Environment.Exit(1);
             }
@@ -1531,7 +1762,9 @@ internal static partial class Testbed
             var maxInside = tasks[0].Select(t => t.Result).Max();
             var maxOutside = tasks[1].Select(t => t.Result).Max();
 
-            trace("Max distance: Inside gamut {0:F6}, Outside gamut {1:F6}", MathF.Sqrt(maxInside), MathF.Sqrt(maxOutside));
+            trace("Max distance: Inside gamut {0:F6}, Outside gamut {1:F6}",
+                  MathF.Sqrt(maxInside),
+                  MathF.Sqrt(maxOutside));
 #if DEBUG
             timer.Stop();
             LogTimer(timer);
@@ -1553,8 +1786,23 @@ internal static partial class Testbed
             var hRGB2 = cmsOpenProfileFromMem(TestProfiles.test3)!;
             var noPlugin = new Context();
 
-            var xformNoPlugin = cmsCreateProofingTransformTHR(noPlugin, hRGB1, TYPE_RGB_FLT, hRGB1, TYPE_RGB_FLT, hRGB2, INTENT_RELATIVE_COLORIMETRIC, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_GAMUTCHECK | cmsFLAGS_SOFTPROOFING)!;
-            var xformPlugin = cmsCreateProofingTransform(hRGB1, TYPE_RGB_FLT, hRGB1, TYPE_RGB_FLT, hRGB2, INTENT_RELATIVE_COLORIMETRIC, INTENT_RELATIVE_COLORIMETRIC, cmsFLAGS_GAMUTCHECK | cmsFLAGS_SOFTPROOFING)!;
+            var xformNoPlugin = cmsCreateProofingTransformTHR(noPlugin,
+                                                              hRGB1,
+                                                              TYPE_RGB_FLT,
+                                                              hRGB1,
+                                                              TYPE_RGB_FLT,
+                                                              hRGB2,
+                                                              INTENT_RELATIVE_COLORIMETRIC,
+                                                              INTENT_RELATIVE_COLORIMETRIC,
+                                                              cmsFLAGS_GAMUTCHECK | cmsFLAGS_SOFTPROOFING)!;
+            var xformPlugin = cmsCreateProofingTransform(hRGB1,
+                                                         TYPE_RGB_FLT,
+                                                         hRGB1,
+                                                         TYPE_RGB_FLT,
+                                                         hRGB2,
+                                                         INTENT_RELATIVE_COLORIMETRIC,
+                                                         INTENT_RELATIVE_COLORIMETRIC,
+                                                         cmsFLAGS_GAMUTCHECK | cmsFLAGS_SOFTPROOFING)!;
 
             cmsCloseProfile(hRGB1);
             cmsCloseProfile(hRGB2);
@@ -1595,7 +1843,9 @@ internal static partial class Testbed
             {
                 var offset = (int)o!;
 
-                using (logger.BeginScope("Range {RangeStart}..{RangeEnd}", offset * nPixelsPerThread, (offset + 1) * nPixelsPerThread))
+                using (logger.BeginScope("Range {RangeStart}..{RangeEnd}",
+                                         offset * nPixelsPerThread,
+                                         (offset + 1) * nPixelsPerThread))
                 {
                     DoTransforms(offset, nPixelsPerThread, xformNoPlugin, xformPlugin, In, Out1, Out2);
                     return CompareTransforms(offset, nPixelsPerThread, Out1, Out2);
@@ -1643,7 +1893,13 @@ internal static partial class Testbed
 #endif
         }
 
-        static void DoTransforms(int offset, int nPixelsPerThread, Transform xformNoPlugin, Transform xformPlugin, Scanline_rgbFloat[] bufferIn, Scanline_rgbFloat[] bufferOut1, Scanline_rgbFloat[] bufferOut2)
+        static void DoTransforms(int offset,
+                                 int nPixelsPerThread,
+                                 Transform xformNoPlugin,
+                                 Transform xformPlugin,
+                                 Scanline_rgbFloat[] bufferIn,
+                                 Scanline_rgbFloat[] bufferOut1,
+                                 Scanline_rgbFloat[] bufferOut2)
         {
             var start = offset * nPixelsPerThread;
             var bIn = bufferIn.AsSpan(start..)[..nPixelsPerThread];
@@ -1655,7 +1911,10 @@ internal static partial class Testbed
             cmsDoTransform(xformPlugin, bIn, bOut2, (uint)nPixelsPerThread);
         }
 
-        static int CompareTransforms(int offset, int nPixelsPerThread, Scanline_rgbFloat[] bufferOut1, Scanline_rgbFloat[] bufferOut2)
+        static int CompareTransforms(int offset,
+                                     int nPixelsPerThread,
+                                     Scanline_rgbFloat[] bufferOut1,
+                                     Scanline_rgbFloat[] bufferOut2)
         {
             // Let's compare results
             var start = offset * nPixelsPerThread;
@@ -1671,7 +1930,8 @@ internal static partial class Testbed
                 {
                     if (failed++ is 0)
                     {
-                        logger.LogError("Conversion first failed at position [{j}]: ({r1} {g1} {b1}) != ({r2} {g2} {b2})",
+                        logger.LogError(
+                            "Conversion first failed at position [{j}]: ({r1} {g1} {b1}) != ({r2} {g2} {b2})",
                             j,
                             bufferOut1[j].r,
                             bufferOut1[j].g,
@@ -1689,7 +1949,7 @@ internal static partial class Testbed
 
     public static void CheckPremultiplied()
     {
-        ReadOnlySpan<byte> BGRA8 = [255, 192, 160, 128];
+        ReadOnlySpan<byte> BGRA8 = [ 255, 192, 160, 128 ];
         Span<byte> bgrA8_1 = stackalloc byte[4];
         Span<byte> bgrA8_2 = stackalloc byte[4];
 
@@ -1698,8 +1958,19 @@ internal static partial class Testbed
 
         var noPlugin = new Context();
 
-        var xform1 = cmsCreateTransformTHR(noPlugin, srgb1, TYPE_BGRA_8, srgb2, TYPE_BGRA_8_PREMUL, INTENT_PERCEPTUAL, cmsFLAGS_COPY_ALPHA);
-        var xform2 = cmsCreateTransform(srgb1, TYPE_BGRA_8, srgb2, TYPE_BGRA_8_PREMUL, INTENT_PERCEPTUAL, cmsFLAGS_COPY_ALPHA);
+        var xform1 = cmsCreateTransformTHR(noPlugin,
+                                           srgb1,
+                                           TYPE_BGRA_8,
+                                           srgb2,
+                                           TYPE_BGRA_8_PREMUL,
+                                           INTENT_PERCEPTUAL,
+                                           cmsFLAGS_COPY_ALPHA);
+        var xform2 = cmsCreateTransform(srgb1,
+                                        TYPE_BGRA_8,
+                                        srgb2,
+                                        TYPE_BGRA_8_PREMUL,
+                                        INTENT_PERCEPTUAL,
+                                        cmsFLAGS_COPY_ALPHA);
 
         cmsCloseProfile(srgb1);
         cmsCloseProfile(srgb2);
@@ -1714,7 +1985,13 @@ internal static partial class Testbed
         {
             if (bgrA8_1[i] != bgrA8_2[i])
             {
-                Fail("Premultiplied failed at ({0} {1} {2}) != ({3} {4} {5})", bgrA8_1[0], bgrA8_1[1], bgrA8_1[2], bgrA8_2[0], bgrA8_2[1], bgrA8_2[2]);
+                Fail("Premultiplied failed at ({0} {1} {2}) != ({3} {4} {5})",
+                     bgrA8_1[0],
+                     bgrA8_1[1],
+                     bgrA8_1[2],
+                     bgrA8_2[0],
+                     bgrA8_2[1],
+                     bgrA8_2[2]);
             }
         }
     }
