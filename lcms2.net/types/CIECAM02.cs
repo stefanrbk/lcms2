@@ -168,30 +168,28 @@ public class CIECAM02
         e = ((12500.0 / 13.0) * Nc * Ncb) *
             (Double.Cos((clr.h * d2r + 2.0)) + 3.8);
 
-        if (clr.h < 20.14)
+        switch (clr.h)
         {
-            temp = ((clr.h + 122.47) / 1.2) + ((20.14 - clr.h) / 0.8);
-            clr.H = 300 + (100 * ((clr.h + 122.47) / 1.2)) / temp;
-        }
-        else if (clr.h < 90.0)
-        {
-            temp = ((clr.h - 20.14) / 0.8) + ((90.00 - clr.h) / 0.7);
-            clr.H = (100 * ((clr.h - 20.14) / 0.8)) / temp;
-        }
-        else if (clr.h < 164.25)
-        {
-            temp = ((clr.h - 90.00) / 0.7) + ((164.25 - clr.h) / 1.0);
-            clr.H = 100 + ((100 * ((clr.h - 90.00) / 0.7)) / temp);
-        }
-        else if (clr.h < 237.53)
-        {
-            temp = ((clr.h - 164.25) / 1.0) + ((237.53 - clr.h) / 1.2);
-            clr.H = 200 + ((100 * ((clr.h - 164.25) / 1.0)) / temp);
-        }
-        else
-        {
-            temp = ((clr.h - 237.53) / 1.2) + ((360 - clr.h + 20.14) / 0.8);
-            clr.H = 300 + ((100 * ((clr.h - 237.53) / 1.2)) / temp);
+            case < 20.14:
+                temp = ((clr.h + 122.47) / 1.2) + ((20.14 - clr.h) / 0.8);
+                clr.H = 300 + (100 * ((clr.h + 122.47) / 1.2)) / temp;
+                break;
+            case < 90.0:
+                temp = ((clr.h - 20.14) / 0.8) + ((90.00 - clr.h) / 0.7);
+                clr.H = (100 * ((clr.h - 20.14) / 0.8)) / temp;
+                break;
+            case < 164.25:
+                temp = ((clr.h - 90.00) / 0.7) + ((164.25 - clr.h) / 1.0);
+                clr.H = 100 + ((100 * ((clr.h - 90.00) / 0.7)) / temp);
+                break;
+            case < 237.53:
+                temp = ((clr.h - 164.25) / 1.0) + ((237.53 - clr.h) / 1.2);
+                clr.H = 200 + ((100 * ((clr.h - 164.25) / 1.0)) / temp);
+                break;
+            default:
+                temp = ((clr.h - 237.53) / 1.2) + ((360 - clr.h + 20.14) / 0.8);
+                clr.H = 300 + ((100 * ((clr.h - 237.53) / 1.2)) / temp);
+                break;
         }
 
         clr.J = 100.0 * Double.Pow(
