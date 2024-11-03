@@ -575,5 +575,20 @@ public class Lcms2
 
     #endregion Chromatic adaptation
 
+    #region CIECAM02
+
+    public static object cmsCIECAM02Init(Context? _, ViewingConditions pVC) =>
+        new CIECAM02(pVC);
+
+    public static void cmsCIECAM02Done(object hModel) { }
+
+    public static void cmsCIECAM02Forward(object hModel, CIEXYZ pIn, out JCh pOut) =>
+        pOut = (hModel as CIECAM02)?.Forward(pIn) ?? default;
+
+    public static void cmsCIECAM02Reverse(object hModel, JCh pIn, out CIEXYZ pOut) =>
+        pOut = (hModel as CIECAM02)?.Reverse(pIn) ?? default;
+
+    #endregion CIECAM02
+
     #endregion cms* Functions
 }
