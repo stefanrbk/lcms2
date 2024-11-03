@@ -567,5 +567,13 @@ public class Lcms2
 
     #endregion
 
+    #region Chromatic adaptation
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CIEXYZ cmsAdaptToIlluminant(CIEXYZ SourceWhitePt, CIEXYZ Illuminant, CIEXYZ Value) =>
+        CHAD.AdaptToIlluminant(SourceWhitePt, Illuminant, Value).IfNone(CIEXYZ.NaN);
+
+    #endregion Chromatic adaptation
+
     #endregion cms* Functions
 }

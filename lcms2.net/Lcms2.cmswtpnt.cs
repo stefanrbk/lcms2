@@ -78,8 +78,4 @@ public static partial class Lcms2
 
         return _cmsAdaptMatrixToD50(ref r, WhitePt);
     }
-
-    public static CIEXYZ cmsAdaptToIlluminant(CIEXYZ SourceWhitePt, CIEXYZ Illuminant, CIEXYZ Value) =>
-        // See ChAd.AdaptToIlluminant()
-        CHAD.AdaptToIlluminant(SourceWhitePt, Illuminant, Value).IfNone(CIEXYZ.NaN);
 }
