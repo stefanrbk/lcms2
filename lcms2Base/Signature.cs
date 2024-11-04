@@ -28,7 +28,7 @@ using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace lcms2.types;
+namespace lcms2;
 
 public readonly struct Signature : ICloneable, IEquatable<Signature>
 {
