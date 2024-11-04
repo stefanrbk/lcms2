@@ -24,14 +24,11 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.io;
+using System.Diagnostics;
+
 using lcms2.state;
-using lcms2.types;
 
 using Microsoft.Extensions.Logging;
-
-using System.Buffers;
-using System.Diagnostics;
 
 namespace lcms2;
 
@@ -308,46 +305,22 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.ErrorLogger
-            : LogErrorChunk;
+                       ? src.ErrorLogger
+                       : LogErrorChunk;
 
         ctx.ErrorLogger = (LogErrorChunkType)((ICloneable)from).Clone();
     }
 
     internal static ILoggerFactory DefaultLogErrorHandlerFunction()
     {
-        return LoggerFactory.Create(builder =>
-            builder
-                .AddFilter("Microsoft", LogLevel.Warning)
-                .AddFilter("System", LogLevel.Warning)
-                .AddFilter("lcms2", LogLevel.Debug)
-                .SetMinimumLevel(LogLevel.Error)
-                .AddConsole());
-    }
-
-    /// <summary>
-    ///     Utility function to print signatures
-    /// </summary>
-    [DebuggerStepThrough]
-    internal static string _cmsTagSignature2String(Signature sig)
-    {
-        Span<byte> buf = stackalloc byte[4];
-        Span<char> chars = stackalloc char[4];
-
-        // Convert to big endian
-        var be = AdjustEndianess((uint)sig);
-
-        // Get bytes
-        BitConverter.TryWriteBytes(buf, be);
-
-        // Move characters
-        for (var i = 0; i < 4; i++)
-            chars[i] = (char)buf[i];
-
-        // Make sure of terminator
-        //str[4] = 0;
-
-        return new(chars);
+        return LoggerFactory.Create(
+            builder =>
+                builder
+                    .AddFilter("Microsoft", LogLevel.Warning)
+                    .AddFilter("System", LogLevel.Warning)
+                    .AddFilter("lcms2", LogLevel.Debug)
+                    .SetMinimumLevel(LogLevel.Error)
+                    .AddConsole());
     }
 
     [DebuggerStepThrough]
@@ -368,18 +341,12 @@ public static partial class Lcms2
 
     private static readonly MutexPluginChunkType globalMutexPluginChunk = new()
     {
-        CreateFn = defMtxCreate,
-        DestroyFn = defMtxDestroy,
-        LockFn = defMtxLock,
-        UnlockFn = defMtxUnlock,
+        CreateFn = defMtxCreate, DestroyFn = defMtxDestroy, LockFn = defMtxLock, UnlockFn = defMtxUnlock,
     };
 
     private static readonly MutexPluginChunkType MutexChunk = new()
     {
-        CreateFn = defMtxCreate,
-        DestroyFn = defMtxDestroy,
-        LockFn = defMtxLock,
-        UnlockFn = defMtxUnlock,
+        CreateFn = defMtxCreate, DestroyFn = defMtxDestroy, LockFn = defMtxLock, UnlockFn = defMtxUnlock,
     };
 
     /// <summary>
@@ -394,8 +361,8 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.MutexPlugin
-            : MutexChunk;
+                       ? src.MutexPlugin
+                       : MutexChunk;
 
         ctx.MutexPlugin = (MutexPluginChunkType)((ICloneable)from).Clone();
     }
@@ -431,7 +398,9 @@ public static partial class Lcms2
             }
 
             // Factory callback is required
-            if (LegacyPlugin!.CreateMutexPtr is null || LegacyPlugin.DestroyMutexPtr is null || LegacyPlugin.LockMutexPtr is null || LegacyPlugin.UnlockMutexPtr is null) return false;
+            if (LegacyPlugin!.CreateMutexPtr is null || LegacyPlugin.DestroyMutexPtr is null ||
+                LegacyPlugin.LockMutexPtr is null || LegacyPlugin.UnlockMutexPtr is null)
+                return false;
 
             ctx.CreateFn = LegacyPlugin.CreateMutexPtr;
             ctx.DestroyFn = LegacyPlugin.DestroyMutexPtr;
@@ -452,8 +421,8 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.ParallelizationPlugin
-            : ParallelizationChunk;
+                       ? src.ParallelizationPlugin
+                       : ParallelizationChunk;
 
         ctx.ParallelizationPlugin = (ParallelizationPluginChunkType)((ICloneable)from).Clone();
     }
@@ -474,7 +443,8 @@ public static partial class Lcms2
         }
 
         // Callback is required
-        if (Plugin!.SchedulerFn is null) return false;
+        if (Plugin!.SchedulerFn is null)
+            return false;
 
         ctx.MaxWorkers = Plugin.MaxWorkers;
         ctx.WorkerFlags = (int)Plugin.WorkerFlags;

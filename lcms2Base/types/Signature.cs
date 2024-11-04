@@ -24,6 +24,7 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Buffers.Binary;
 using System.Diagnostics;
 
 namespace lcms2.types;
@@ -62,7 +63,20 @@ public readonly partial struct Signature : ICloneable, IEquatable<Signature>
 
     public override string ToString()
     {
-        return _cmsTagSignature2String(this);
+        Span<byte> buf = stackalloc byte[4];
+        Span<char> chars = stackalloc char[4];
+
+        // Convert to big endian
+        var be = BinaryPrimitives.ReverseEndianness(_value);
+
+        // Get bytes
+        BitConverter.TryWriteBytes(buf, be);
+
+        // Move characters
+        for (var i = 0; i < 4; i++)
+            chars[i] = (char)buf[i];
+
+        return new(chars);
     }
 
     public bool Equals(Signature other)
