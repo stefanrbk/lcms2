@@ -51,9 +51,9 @@ public static partial class Lcms2
         if (!cmsMLUsetWide(CopyrightMLU, en, us, copyright))
             goto Error;
 
-        if (!cmsWriteTag(Profile, Signature.Tag.ProfileDescription, DescriptionMLU))
+        if (!cmsWriteTag(Profile, Signatures.Tag.ProfileDescription, DescriptionMLU))
             goto Error;
-        if (!cmsWriteTag(Profile, Signature.Tag.Copyright, CopyrightMLU))
+        if (!cmsWriteTag(Profile, Signatures.Tag.Copyright, CopyrightMLU))
             goto Error;
 
         rc = true;
@@ -114,9 +114,9 @@ public static partial class Lcms2
 
         cmsSetProfileVersion(hICC, 4.4);
 
-        cmsSetDeviceClass(hICC, Signature.ProfileClass.Display);
-        cmsSetColorSpace(hICC, Signature.Colorspace.Rgb);
-        cmsSetPCS(hICC, Signature.Colorspace.XYZ);
+        cmsSetDeviceClass(hICC, Signatures.ProfileClass.Display);
+        cmsSetColorSpace(hICC, Signatures.Colorspace.Rgb);
+        cmsSetPCS(hICC, Signatures.Colorspace.XYZ);
 
         cmsSetHeaderRenderingIntent(hICC, INTENT_PERCEPTUAL);
 
@@ -139,7 +139,7 @@ public static partial class Lcms2
 
         if (WhitePoint is not null)
         {
-            if (!cmsWriteTag(hICC, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50)))
+            if (!cmsWriteTag(hICC, Signatures.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50)))
                 goto Error;
 
             WhitePointXYZ = WhitePoint.Value.AsXYZ;
@@ -147,7 +147,7 @@ public static partial class Lcms2
 
             // This is a V4 tag, but many CMM does read and understand it no matter which version
             chad = CHAD.AsArray( /*pool*/);
-            if (!cmsWriteTag(hICC, Signature.Tag.ChromaticAdaptation, chad))
+            if (!cmsWriteTag(hICC, Signatures.Tag.ChromaticAdaptation, chad))
                 goto Error /*2*/;
             //ReturnArray(pool, chad);
 
@@ -176,11 +176,11 @@ public static partial class Lcms2
                 Colorants.Blue.Y = MColorants.Y.Z;
                 Colorants.Blue.Z = MColorants.Z.Z;
 
-                if (!cmsWriteTag(hICC, Signature.Tag.RedColorant, new Box<CIEXYZ>(Colorants.Red)))
+                if (!cmsWriteTag(hICC, Signatures.Tag.RedColorant, new Box<CIEXYZ>(Colorants.Red)))
                     goto Error;
-                if (!cmsWriteTag(hICC, Signature.Tag.BlueColorant, new Box<CIEXYZ>(Colorants.Blue)))
+                if (!cmsWriteTag(hICC, Signatures.Tag.BlueColorant, new Box<CIEXYZ>(Colorants.Blue)))
                     goto Error;
-                if (!cmsWriteTag(hICC, Signature.Tag.GreenColorant, new Box<CIEXYZ>(Colorants.Green)))
+                if (!cmsWriteTag(hICC, Signatures.Tag.GreenColorant, new Box<CIEXYZ>(Colorants.Green)))
                     goto Error;
             }
         }
@@ -188,34 +188,34 @@ public static partial class Lcms2
         if (!TransferFunction.IsEmpty)
         {
             // Tries to minimize space. Thanks to Richard Hughes for this nice idea
-            if (!cmsWriteTag(hICC, Signature.Tag.RedTRC, TransferFunction[0]))
+            if (!cmsWriteTag(hICC, Signatures.Tag.RedTRC, TransferFunction[0]))
                 goto Error;
 
             if (TransferFunction[1] == TransferFunction[0])
             {
-                if (!cmsLinkTag(hICC, Signature.Tag.GreenTRC, Signature.Tag.RedTRC))
+                if (!cmsLinkTag(hICC, Signatures.Tag.GreenTRC, Signatures.Tag.RedTRC))
                     goto Error;
             }
             else
             {
-                if (!cmsWriteTag(hICC, Signature.Tag.GreenTRC, TransferFunction[1]))
+                if (!cmsWriteTag(hICC, Signatures.Tag.GreenTRC, TransferFunction[1]))
                     goto Error;
             }
 
             if (TransferFunction[2] == TransferFunction[0])
             {
-                if (!cmsLinkTag(hICC, Signature.Tag.BlueTRC, Signature.Tag.RedTRC))
+                if (!cmsLinkTag(hICC, Signatures.Tag.BlueTRC, Signatures.Tag.RedTRC))
                     goto Error;
             }
             else
             {
-                if (!cmsWriteTag(hICC, Signature.Tag.BlueTRC, TransferFunction[2]))
+                if (!cmsWriteTag(hICC, Signatures.Tag.BlueTRC, TransferFunction[2]))
                     goto Error;
             }
         }
 
         if (Primaries is not null &&
-            !cmsWriteTag(hICC, Signature.Tag.Chromaticity, new Box<CIExyYTRIPLE>(Primaries.Value)))
+            !cmsWriteTag(hICC, Signatures.Tag.Chromaticity, new Box<CIExyYTRIPLE>(Primaries.Value)))
             goto Error;
 
         return hICC;
@@ -243,9 +243,9 @@ public static partial class Lcms2
 
         cmsSetProfileVersion(hICC, 4.4);
 
-        cmsSetDeviceClass(hICC, Signature.ProfileClass.Display);
-        cmsSetColorSpace(hICC, Signature.Colorspace.Gray);
-        cmsSetPCS(hICC, Signature.Colorspace.XYZ);
+        cmsSetDeviceClass(hICC, Signatures.ProfileClass.Display);
+        cmsSetColorSpace(hICC, Signatures.Colorspace.Gray);
+        cmsSetPCS(hICC, Signatures.Colorspace.XYZ);
         cmsSetHeaderRenderingIntent(hICC, INTENT_PERCEPTUAL);
 
         // Implement profile using following tags:
@@ -264,11 +264,11 @@ public static partial class Lcms2
         if (WhitePoint is not null)
         {
             tmp = WhitePoint.Value.AsXYZ;
-            if (!cmsWriteTag(hICC, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(tmp)))
+            if (!cmsWriteTag(hICC, Signatures.Tag.MediaWhitePoint, new Box<CIEXYZ>(tmp)))
                 goto Error;
         }
 
-        if (TransferFunction is not null && !cmsWriteTag(hICC, Signature.Tag.GrayTRC, TransferFunction))
+        if (TransferFunction is not null && !cmsWriteTag(hICC, Signatures.Tag.GrayTRC, TransferFunction))
             goto Error;
 
         return hICC;
@@ -292,7 +292,7 @@ public static partial class Lcms2
 
         cmsSetProfileVersion(hICC, 4.4);
 
-        cmsSetDeviceClass(hICC, Signature.ProfileClass.Link);
+        cmsSetDeviceClass(hICC, Signatures.ProfileClass.Link);
         cmsSetColorSpace(hICC, ColorSpace);
         cmsSetPCS(hICC, ColorSpace);
 
@@ -316,7 +316,7 @@ public static partial class Lcms2
         // Create tags
         if (!SetTextTags(hICC, "Linearization built-in"))
             goto Error;
-        if (!cmsWriteTag(hICC, Signature.Tag.AToB0, Pipeline))
+        if (!cmsWriteTag(hICC, Signatures.Tag.AToB0, Pipeline))
             goto Error;
         if (!SetSeqDescTag(hICC, "Linearization built-in"u8))
             goto Error;
@@ -378,7 +378,7 @@ public static partial class Lcms2
 
     public static Profile? cmsCreateInkLimitingDeviceLinkTHR(Context? ContextID, Signature ColorSpace, double Limit)
     {
-        if (ColorSpace != Signature.Colorspace.Cmyk)
+        if (ColorSpace != Signatures.Colorspace.Cmyk)
         {
             LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "InkLimiting: Only CMYK currently supported");
             return null;
@@ -396,7 +396,7 @@ public static partial class Lcms2
 
         cmsSetProfileVersion(hICC, 4.4);
 
-        cmsSetDeviceClass(hICC, Signature.ProfileClass.Link);
+        cmsSetDeviceClass(hICC, Signatures.ProfileClass.Link);
         cmsSetColorSpace(hICC, ColorSpace);
         cmsSetPCS(hICC, ColorSpace);
 
@@ -424,7 +424,7 @@ public static partial class Lcms2
         // Create tags
         if (!SetTextTags(hICC, "ink-limiting built-in"))
             goto Error;
-        if (!cmsWriteTag(hICC, Signature.Tag.AToB0, LUT))
+        if (!cmsWriteTag(hICC, Signatures.Tag.AToB0, LUT))
             goto Error;
         if (!SetSeqDescTag(hICC, "ink-limiting built-in"u8))
             goto Error;
@@ -458,9 +458,9 @@ public static partial class Lcms2
 
         cmsSetProfileVersion(Profile, 2.1);
 
-        cmsSetDeviceClass(Profile, Signature.ProfileClass.Abstract);
-        cmsSetColorSpace(Profile, Signature.Colorspace.Lab);
-        cmsSetPCS(Profile, Signature.Colorspace.Lab);
+        cmsSetDeviceClass(Profile, Signatures.ProfileClass.Abstract);
+        cmsSetColorSpace(Profile, Signatures.Colorspace.Lab);
+        cmsSetPCS(Profile, Signatures.Colorspace.Lab);
 
         if (!SetTextTags(Profile, "Lab identity build-in"))
             goto Error;
@@ -473,7 +473,7 @@ public static partial class Lcms2
         if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCLut(ContextID, 3)))
             goto Error;
 
-        if (!cmsWriteTag(Profile, Signature.Tag.AToB0, LUT))
+        if (!cmsWriteTag(Profile, Signatures.Tag.AToB0, LUT))
             goto Error;
         cmsPipelineFree(LUT);
 
@@ -501,9 +501,9 @@ public static partial class Lcms2
 
         cmsSetProfileVersion(Profile, 4.4);
 
-        cmsSetDeviceClass(Profile, Signature.ProfileClass.Abstract);
-        cmsSetColorSpace(Profile, Signature.Colorspace.Lab);
-        cmsSetPCS(Profile, Signature.Colorspace.Lab);
+        cmsSetDeviceClass(Profile, Signatures.ProfileClass.Abstract);
+        cmsSetColorSpace(Profile, Signatures.Colorspace.Lab);
+        cmsSetPCS(Profile, Signatures.Colorspace.Lab);
 
         if (!SetTextTags(Profile, "Lab identity build-in"))
             goto Error;
@@ -516,7 +516,7 @@ public static partial class Lcms2
         if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCurves(ContextID, 3)))
             goto Error;
 
-        if (!cmsWriteTag(Profile, Signature.Tag.AToB0, LUT))
+        if (!cmsWriteTag(Profile, Signatures.Tag.AToB0, LUT))
             goto Error;
         cmsPipelineFree(LUT);
 
@@ -544,9 +544,9 @@ public static partial class Lcms2
 
         cmsSetProfileVersion(Profile, 4.4);
 
-        cmsSetDeviceClass(Profile, Signature.ProfileClass.Abstract);
-        cmsSetColorSpace(Profile, Signature.Colorspace.XYZ);
-        cmsSetPCS(Profile, Signature.Colorspace.XYZ);
+        cmsSetDeviceClass(Profile, Signatures.ProfileClass.Abstract);
+        cmsSetColorSpace(Profile, Signatures.Colorspace.XYZ);
+        cmsSetPCS(Profile, Signatures.Colorspace.XYZ);
 
         if (!SetTextTags(Profile, "XYZ identity build-in"))
             goto Error;
@@ -559,7 +559,7 @@ public static partial class Lcms2
         if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCurves(ContextID, 3)))
             goto Error;
 
-        if (!cmsWriteTag(Profile, Signature.Tag.AToB0, LUT))
+        if (!cmsWriteTag(Profile, Signatures.Tag.AToB0, LUT))
             goto Error;
         cmsPipelineFree(LUT);
 
@@ -729,9 +729,9 @@ public static partial class Lcms2
 
         cmsSetProfileVersion(hProfile, 4.4);
 
-        cmsSetDeviceClass(hProfile, Signature.ProfileClass.ColorSpace);
-        cmsSetColorSpace(hProfile, Signature.Colorspace.Color3);
-        cmsSetPCS(hProfile, Signature.Colorspace.XYZ);
+        cmsSetDeviceClass(hProfile, Signatures.ProfileClass.ColorSpace);
+        cmsSetColorSpace(hProfile, Signatures.Colorspace.Color3);
+        cmsSetPCS(hProfile, Signatures.Colorspace.XYZ);
 
         cmsSetHeaderRenderingIntent(hProfile, INTENT_RELATIVE_COLORIMETRIC);
 
@@ -749,7 +749,7 @@ public static partial class Lcms2
         if (!cmsPipelineInsertStage(BToA, StageLoc.AtEnd, LMSprime_OkLab))
             goto error;
 
-        if (!cmsWriteTag(hProfile, Signature.Tag.BToA0, BToA))
+        if (!cmsWriteTag(hProfile, Signatures.Tag.BToA0, BToA))
             goto error;
 
         if (!cmsPipelineInsertStage(AToB, StageLoc.AtEnd, OkLab_LMSprime))
@@ -763,7 +763,7 @@ public static partial class Lcms2
         if (!cmsPipelineInsertStage(AToB, StageLoc.AtEnd, XYZPCS))
             goto error;
 
-        if (!cmsWriteTag(hProfile, Signature.Tag.AToB0, AToB))
+        if (!cmsWriteTag(hProfile, Signatures.Tag.AToB0, AToB))
             goto error;
 
         cmsPipelineFree(BToA);
@@ -855,9 +855,9 @@ public static partial class Lcms2
         if (hICC is null)
             return null;
 
-        cmsSetDeviceClass(hICC, Signature.ProfileClass.Abstract);
-        cmsSetColorSpace(hICC, Signature.Colorspace.Lab);
-        cmsSetPCS(hICC, Signature.Colorspace.Lab);
+        cmsSetDeviceClass(hICC, Signatures.ProfileClass.Abstract);
+        cmsSetColorSpace(hICC, Signatures.Colorspace.Lab);
+        cmsSetPCS(hICC, Signatures.Colorspace.Lab);
 
         cmsSetHeaderRenderingIntent(hICC, INTENT_PERCEPTUAL);
 
@@ -885,9 +885,9 @@ public static partial class Lcms2
         if (!SetTextTags(hICC, "BCHS build-in"))
             goto Error;
 
-        if (!cmsWriteTag(hICC, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50)))
+        if (!cmsWriteTag(hICC, Signatures.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50)))
             goto Error;
-        if (!cmsWriteTag(hICC, Signature.Tag.AToB0, Pipeline))
+        if (!cmsWriteTag(hICC, Signatures.Tag.AToB0, Pipeline))
             goto Error;
 
         // Pipeline is already on virtual profile
@@ -930,9 +930,9 @@ public static partial class Lcms2
         if (!SetTextTags(Profile, "NULL profile build-in"))
             goto Error;
 
-        cmsSetDeviceClass(Profile, Signature.ProfileClass.Output);
-        cmsSetColorSpace(Profile, Signature.Colorspace.Gray);
-        cmsSetPCS(Profile, Signature.Colorspace.Lab);
+        cmsSetDeviceClass(Profile, Signatures.ProfileClass.Output);
+        cmsSetColorSpace(Profile, Signatures.Colorspace.Gray);
+        cmsSetPCS(Profile, Signatures.Colorspace.Lab);
 
         // Create a valid ICC 4 structure
         LUT = cmsPipelineAlloc(ContextID, 3, 1);
@@ -955,9 +955,9 @@ public static partial class Lcms2
         if (!cmsPipelineInsertStage(LUT, StageLoc.AtEnd, OutLin))
             goto Error;
 
-        if (!cmsWriteTag(Profile, Signature.Tag.BToA0, LUT))
+        if (!cmsWriteTag(Profile, Signatures.Tag.BToA0, LUT))
             goto Error;
-        if (!cmsWriteTag(Profile, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50)))
+        if (!cmsWriteTag(Profile, Signatures.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50)))
             goto Error;
 
         //ReturnArray(pool, EmptyTab);
@@ -979,17 +979,17 @@ public static partial class Lcms2
         cmsCreateNULLProfileTHR(null);
 
     private static bool IsPCS(Signature ColorSpace) =>
-        ColorSpace == Signature.Colorspace.XYZ ||
-        ColorSpace == Signature.Colorspace.Lab;
+        ColorSpace == Signatures.Colorspace.XYZ ||
+        ColorSpace == Signatures.Colorspace.Lab;
 
     private static void FixColorSpaces(Profile Profile, Signature ColorSpace, Signature PCS, uint dwFlags)
     {
         var (cls, cp, pcs) = ((dwFlags & cmsFLAGS_GUESSDEVICECLASS) is not 0, IsPCS(ColorSpace), IsPCS(PCS)) switch
                              {
-                                 (true, true, true)  => (Signature.ProfileClass.Abstract, ColorSpace, PCS),
-                                 (true, true, false) => (Signature.ProfileClass.Output, PCS, ColorSpace),
-                                 (true, false, true) => (Signature.ProfileClass.Input, ColorSpace, PCS),
-                                 _                   => (Signature.ProfileClass.Link, ColorSpace, PCS),
+                                 (true, true, true)  => (Signatures.ProfileClass.Abstract, ColorSpace, PCS),
+                                 (true, true, false) => (Signatures.ProfileClass.Output, PCS, ColorSpace),
+                                 (true, false, true) => (Signatures.ProfileClass.Input, ColorSpace, PCS),
+                                 _                   => (Signatures.ProfileClass.Link, ColorSpace, PCS),
                              };
 
         cmsSetDeviceClass(Profile, cls);
@@ -1010,9 +1010,9 @@ public static partial class Lcms2
             return null;
 
         // Critical information
-        cmsSetDeviceClass(hICC, Signature.ProfileClass.NamedColor);
+        cmsSetDeviceClass(hICC, Signatures.ProfileClass.NamedColor);
         cmsSetColorSpace(hICC, v.ExitColorSpace);
-        cmsSetPCS(hICC, Signature.Colorspace.Lab);
+        cmsSetPCS(hICC, Signatures.Colorspace.Lab);
 
         // Tag profile with information
         if (!SetTextTags(hICC, "Named color devicelink"))
@@ -1041,7 +1041,7 @@ public static partial class Lcms2
         for (i[0] = 0; i[0] < nColors; i[0]++)
             cmsDoTransform(xform, i, nc2.List[i[0]].DeviceColorant, 1);
 
-        if (!cmsWriteTag(hICC, Signature.Tag.NamedColor2, nc2))
+        if (!cmsWriteTag(hICC, Signatures.Tag.NamedColor2, nc2))
             goto Error;
         cmsFreeNamedColorList(nc2);
 
@@ -1077,67 +1077,67 @@ public static partial class Lcms2
         new(
             false,
             default,
-            Signature.TagType.Lut16,
-            Signature.Stage.MatrixElem,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.CLutElem,
-            Signature.Stage.CurveSetElem),
+            Signatures.TagType.Lut16,
+            Signatures.Stage.MatrixElem,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.CLutElem,
+            Signatures.Stage.CurveSetElem),
         new(
             false,
             default,
-            Signature.TagType.Lut16,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.CLutElem,
-            Signature.Stage.CurveSetElem),
-        new(false, default, Signature.TagType.Lut16, Signature.Stage.CurveSetElem, Signature.Stage.CLutElem),
-        new(true, default, Signature.TagType.LutAtoB, Signature.Stage.CurveSetElem),
+            Signatures.TagType.Lut16,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.CLutElem,
+            Signatures.Stage.CurveSetElem),
+        new(false, default, Signatures.TagType.Lut16, Signatures.Stage.CurveSetElem, Signatures.Stage.CLutElem),
+        new(true, default, Signatures.TagType.LutAtoB, Signatures.Stage.CurveSetElem),
         new(
             true,
-            Signature.Tag.AToB0,
-            Signature.TagType.LutAtoB,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.MatrixElem,
-            Signature.Stage.CurveSetElem),
+            Signatures.Tag.AToB0,
+            Signatures.TagType.LutAtoB,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.MatrixElem,
+            Signatures.Stage.CurveSetElem),
         new(
             true,
-            Signature.Tag.AToB0,
-            Signature.TagType.LutAtoB,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.CLutElem,
-            Signature.Stage.CurveSetElem),
+            Signatures.Tag.AToB0,
+            Signatures.TagType.LutAtoB,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.CLutElem,
+            Signatures.Stage.CurveSetElem),
         new(
             true,
-            Signature.Tag.AToB0,
-            Signature.TagType.LutAtoB,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.CLutElem,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.MatrixElem,
-            Signature.Stage.CurveSetElem),
-        new(true, Signature.Tag.BToA0, Signature.TagType.LutBtoA, Signature.Stage.CurveSetElem),
+            Signatures.Tag.AToB0,
+            Signatures.TagType.LutAtoB,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.CLutElem,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.MatrixElem,
+            Signatures.Stage.CurveSetElem),
+        new(true, Signatures.Tag.BToA0, Signatures.TagType.LutBtoA, Signatures.Stage.CurveSetElem),
         new(
             true,
-            Signature.Tag.BToA0,
-            Signature.TagType.LutBtoA,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.MatrixElem,
-            Signature.Stage.CurveSetElem),
+            Signatures.Tag.BToA0,
+            Signatures.TagType.LutBtoA,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.MatrixElem,
+            Signatures.Stage.CurveSetElem),
         new(
             true,
-            Signature.Tag.BToA0,
-            Signature.TagType.LutBtoA,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.CLutElem,
-            Signature.Stage.CurveSetElem),
+            Signatures.Tag.BToA0,
+            Signatures.TagType.LutBtoA,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.CLutElem,
+            Signatures.Stage.CurveSetElem),
         new(
             true,
-            Signature.Tag.BToA0,
-            Signature.TagType.LutBtoA,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.MatrixElem,
-            Signature.Stage.CurveSetElem,
-            Signature.Stage.CLutElem,
-            Signature.Stage.CurveSetElem),
+            Signatures.Tag.BToA0,
+            Signatures.TagType.LutBtoA,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.MatrixElem,
+            Signatures.Stage.CurveSetElem,
+            Signatures.Stage.CLutElem,
+            Signatures.Stage.CurveSetElem),
     };
 
     private const uint SIZE_OF_ALLOWED_LUT = 11;
@@ -1194,7 +1194,7 @@ public static partial class Lcms2
         // Check if it is a named color transform
         if (mpe is not null)
         {
-            if (cmsStageType(mpe) == Signature.Stage.NamedColorElem)
+            if (cmsStageType(mpe) == Signatures.Stage.NamedColorElem)
                 return CreateNamedColorDevicelink(hTransform);
         }
 
@@ -1204,14 +1204,14 @@ public static partial class Lcms2
             return null;
 
         // Time to fix the Lab2/Lab4 issue.
-        if (xform.EntryColorSpace == Signature.Colorspace.Lab && Version < 4.0)
+        if (xform.EntryColorSpace == Signatures.Colorspace.Lab && Version < 4.0)
         {
             if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocLabV2ToV4curves(ContextID)))
                 goto Error;
         }
 
         // On the output side too. Note that due to V2/V4 PCS encoding on lab we cannot fix white misalignments
-        if (xform.ExitColorSpace == Signature.Colorspace.Lab && Version < 4.0)
+        if (xform.ExitColorSpace == Signatures.Colorspace.Lab && Version < 4.0)
         {
             dwFlags |= cmsFLAGS_NOWHITEONWHITEFIXUP;
             if (!cmsPipelineInsertStage(LUT, StageLoc.AtEnd, _cmsStageAllocLabV4ToV2(ContextID)))
@@ -1238,9 +1238,9 @@ public static partial class Lcms2
 
         var deviceClass = cmsGetDeviceClass(Profile);
 
-        var DestinationTag = (Signature)(deviceClass == Signature.ProfileClass.Output
-                                             ? Signature.Tag.BToA0
-                                             : Signature.Tag.AToB0);
+        var DestinationTag = (Signature)(deviceClass == Signatures.ProfileClass.Output
+                                             ? Signatures.Tag.BToA0
+                                             : Signatures.Tag.AToB0);
 
         // Check if the profile/version can store the result
         var AllowedLUT = (dwFlags & cmsFLAGS_FORCE_CLUT) is 0
@@ -1263,13 +1263,13 @@ public static partial class Lcms2
             // Put identity curves if needed
             var FirstStage = cmsPipelineGetPtrToFirstStage(LUT);
             if (FirstStage is not null &&
-                FirstStage.Type != Signature.Stage.CurveSetElem &&
+                FirstStage.Type != Signatures.Stage.CurveSetElem &&
                 !cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCurves(ContextID, ChansIn)))
                 goto Error;
 
             var LastStage = cmsPipelineGetPtrToLastStage(LUT);
             if (LastStage is not null &&
-                LastStage.Type != Signature.Stage.CurveSetElem &&
+                LastStage.Type != Signatures.Stage.CurveSetElem &&
                 !cmsPipelineInsertStage(LUT, StageLoc.AtEnd, _cmsStageAllocIdentityCurves(ContextID, ChansOut)))
                 goto Error;
 
@@ -1292,22 +1292,22 @@ public static partial class Lcms2
             goto Error;
 
         if ((xform.InputColorant is not null &&
-             !cmsWriteTag(Profile, Signature.Tag.ColorantTable, xform.InputColorant)) ||
+             !cmsWriteTag(Profile, Signatures.Tag.ColorantTable, xform.InputColorant)) ||
             (xform.OutputColorant is not null &&
-             !cmsWriteTag(Profile, Signature.Tag.ColorantTableOut, xform.OutputColorant)) ||
-            (deviceClass == Signature.ProfileClass.Link &&
+             !cmsWriteTag(Profile, Signatures.Tag.ColorantTableOut, xform.OutputColorant)) ||
+            (deviceClass == Signatures.ProfileClass.Link &&
              xform.Sequence is not null && !_cmsWriteProfileSequence(Profile, xform.Sequence)))
             goto Error;
 
         // Set the white point
-        if (deviceClass == Signature.ProfileClass.Input)
+        if (deviceClass == Signatures.ProfileClass.Input)
         {
-            if (!cmsWriteTag(Profile, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(xform.EntryWhitePoint)))
+            if (!cmsWriteTag(Profile, Signatures.Tag.MediaWhitePoint, new Box<CIEXYZ>(xform.EntryWhitePoint)))
                 goto Error;
         }
         else
         {
-            if (!cmsWriteTag(Profile, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(xform.ExitWhitePoint)))
+            if (!cmsWriteTag(Profile, Signatures.Tag.MediaWhitePoint, new Box<CIEXYZ>(xform.ExitWhitePoint)))
                 goto Error;
         }
 

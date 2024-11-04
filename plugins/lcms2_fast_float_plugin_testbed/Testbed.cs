@@ -19,18 +19,19 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+
 using lcms2.state;
 using lcms2.testbed;
 using lcms2.types;
 
 using Microsoft.Extensions.Logging;
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-
 namespace lcms2.FastFloatPlugin.testbed;
+
 internal static partial class Testbed
 {
     public static readonly ILoggerFactory factory = BuildDebugLogger();
@@ -49,21 +50,28 @@ internal static partial class Testbed
 
     public static ILoggerFactory BuildDebugLogger()
     {
-        return LoggerFactory.Create(builder =>
-            builder
+        return LoggerFactory.Create(
+            builder =>
+                builder
 #if DEBUG
-                .SetMinimumLevel(LogLevel.Debug)
+                    .SetMinimumLevel(LogLevel.Debug)
 #else
                 .SetMinimumLevel(LogLevel.Information)
 #endif
-                .AddTestBedFormatter(options => { options.IncludeScopes = true; options.SingleLine = true; }));
+                    .AddTestBedFormatter(
+                        options =>
+                        {
+                            options.IncludeScopes = true;
+                            options.SingleLine = true;
+                        }));
     }
 
     public static ILoggerFactory BuildNullLogger()
     {
-        return LoggerFactory.Create(builder =>
-            builder
-                .SetMinimumLevel(LogLevel.None));
+        return LoggerFactory.Create(
+            builder =>
+                builder
+                    .SetMinimumLevel(LogLevel.None));
     }
 
     [DebuggerStepThrough, MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -123,7 +131,7 @@ internal static partial class Testbed
         var Gamma = cmsBuildGamma(null, 1.1)!;
         var Transfer = new ToneCurve[3] { Gamma, Gamma, Gamma };
 
-        var h = cmsCreateLinearizationDeviceLink(Signature.Colorspace.Rgb, Transfer);
+        var h = cmsCreateLinearizationDeviceLink(Signatures.Colorspace.Rgb, Transfer);
 
         cmsFreeToneCurve(Gamma);
 
@@ -166,19 +174,49 @@ internal static partial class Testbed
 
     private delegate TimeSpan perf_fn(Context? ct, Profile profileIn, Profile profileOut);
 
-    private static TimeSpan Performance(string Title, perf_fn fn, Context? ct, string inICC, Memory<byte> outICC, long sz, TimeSpan prev) =>
+    private static TimeSpan Performance(string Title,
+                                        perf_fn fn,
+                                        Context? ct,
+                                        string inICC,
+                                        Memory<byte> outICC,
+                                        long sz,
+                                        TimeSpan prev) =>
         Performance(Title, fn, ct, loadProfile(inICC), loadProfile(outICC), sz, prev);
 
-    private static TimeSpan Performance(string Title, perf_fn fn, Context? ct, Memory<byte> inICC, string outICC, long sz, TimeSpan prev) =>
+    private static TimeSpan Performance(string Title,
+                                        perf_fn fn,
+                                        Context? ct,
+                                        Memory<byte> inICC,
+                                        string outICC,
+                                        long sz,
+                                        TimeSpan prev) =>
         Performance(Title, fn, ct, loadProfile(inICC), loadProfile(outICC), sz, prev);
 
-    private static TimeSpan Performance(string Title, perf_fn fn, Context? ct, string inICC, string outICC, long sz, TimeSpan prev) =>
+    private static TimeSpan Performance(string Title,
+                                        perf_fn fn,
+                                        Context? ct,
+                                        string inICC,
+                                        string outICC,
+                                        long sz,
+                                        TimeSpan prev) =>
         Performance(Title, fn, ct, loadProfile(inICC), loadProfile(outICC), sz, prev);
 
-    private static TimeSpan Performance(string Title, perf_fn fn, Context? ct, Memory<byte> inICC, Memory<byte> outICC, long sz, TimeSpan prev) =>
+    private static TimeSpan Performance(string Title,
+                                        perf_fn fn,
+                                        Context? ct,
+                                        Memory<byte> inICC,
+                                        Memory<byte> outICC,
+                                        long sz,
+                                        TimeSpan prev) =>
         Performance(Title, fn, ct, loadProfile(inICC), loadProfile(outICC), sz, prev);
 
-    private static TimeSpan Performance(string Title, perf_fn fn, Context? ct, Profile inICC, Profile outICC, long sz, TimeSpan prev)
+    private static TimeSpan Performance(string Title,
+                                        perf_fn fn,
+                                        Context? ct,
+                                        Profile inICC,
+                                        Profile outICC,
+                                        long sz,
+                                        TimeSpan prev)
     {
         using (logger.BeginScope(Title))
         {
@@ -196,7 +234,6 @@ internal static partial class Testbed
                     trace("{1:F2} MPixel/sec. \t{2:F2} MByte/sec. \t(x {3:F1})", Title, nMPix, nMPix * sz, imp);
                 else
                     trace("{1:F2} MPixel/sec. \t{2:F2} MByte/sec.", Title, nMPix, nMPix * sz);
-
             }
             else
             {
@@ -206,5 +243,4 @@ internal static partial class Testbed
             return n;
         }
     }
-
 }

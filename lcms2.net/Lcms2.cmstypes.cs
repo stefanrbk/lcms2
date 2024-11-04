@@ -24,12 +24,12 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
 using lcms2.io;
 using lcms2.state;
 using lcms2.types;
-
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace lcms2;
 
@@ -39,122 +39,417 @@ public static partial class Lcms2
     private const uint cmsMonacoBrokenCurveType = 0x9478EE00;
 
     internal static readonly TagTypeLinkedList supportedMPEtypes = new(
-        new(Signature.Stage.BAcsElem, null, null, null, null, null, 0),
-        new(Signature.Stage.EAcsElem, null, null, null, null, null, 0),
-        new(Signature.Stage.CurveSetElem, Type_MPEcurve_Read, Type_MPEcurve_Write, GenericMPEdup, GenericMPEfree, null, 0),
-        new(Signature.Stage.MatrixElem, Type_MPEmatrix_Read, Type_MPEmatrix_Write, GenericMPEdup, GenericMPEfree, null, 0),
-        new(Signature.Stage.CLutElem, Type_MPEclut_Read, Type_MPEclut_Write, GenericMPEdup, GenericMPEfree, null, 0));
+        new(Signatures.Stage.BAcsElem, null, null, null, null, null, 0),
+        new(Signatures.Stage.EAcsElem, null, null, null, null, null, 0),
+        new(
+            Signatures.Stage.CurveSetElem,
+            Type_MPEcurve_Read,
+            Type_MPEcurve_Write,
+            GenericMPEdup,
+            GenericMPEfree,
+            null,
+            0),
+        new(
+            Signatures.Stage.MatrixElem,
+            Type_MPEmatrix_Read,
+            Type_MPEmatrix_Write,
+            GenericMPEdup,
+            GenericMPEfree,
+            null,
+            0),
+        new(Signatures.Stage.CLutElem, Type_MPEclut_Read, Type_MPEclut_Write, GenericMPEdup, GenericMPEfree, null, 0));
 
     internal static readonly TagTypePluginChunkType MPETypePluginChunk = new();
 
     internal static readonly TagTypePluginChunkType globalMPETypePluginChunk = new();
 
     internal static readonly TagTypeLinkedList supportedTagTypes = new(
-        new(Signature.TagType.Chromaticity, Type_Chromaticity_Read, Type_Chromaticity_Write, Type_Chromaticity_Dup, null, null, 0),
-        new(Signature.TagType.ColorantOrder, Type_ColorantOrderType_Read, Type_ColorantOrderType_Write, Type_ColorantOrderType_Dup, Type_ColorantOrderType_Free, null, 0),
-        new(Signature.TagType.S15Fixed16Array, Type_S15Fixed16_Read, Type_S15Fixed16_Write, Type_S15Fixed16_Dup, Type_S15Fixed16_Free, null, 0),
-        new(Signature.TagType.U16Fixed16Array, Type_U16Fixed16_Read, Type_U16Fixed16_Write, Type_U16Fixed16_Dup, Type_U16Fixed16_Free, null, 0),
-        new(Signature.TagType.Text, Type_Text_Read, Type_Text_Write, Type_Text_Dup, Type_Text_Free, null, 0),
-        new(Signature.TagType.TextDescription, Type_Text_Description_Read, Type_Text_Description_Write, Type_Text_Description_Dup, Type_Text_Description_Free, null, 0),
-        new(Signature.TagType.Curve, Type_Curve_Read, Type_Curve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
-        new(Signature.TagType.ParametricCurve, Type_ParametricCurve_Read, Type_ParametricCurve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
-        new(Signature.TagType.DateTime, Type_DateTime_Read, Type_DateTime_Write, Type_DateTime_Dup, null, null, 0),
-        new(Signature.TagType.Lut8, Type_LUT8_Read, Type_LUT8_Write, Type_LUT8_Dup, Type_LUT8_Free, null, 0),
-        new(Signature.TagType.Lut16, Type_LUT16_Read, Type_LUT16_Write, Type_LUT16_Dup, Type_LUT16_Free, null, 0),
-        new(Signature.TagType.ColorantTable, Type_ColorantTable_Read, Type_ColorantTable_Write, NamedColor_Dup, NamedColor_Free, null, 0),
-        new(Signature.TagType.NamedColor2, Type_NamedColor_Read, Type_NamedColor_Write, NamedColor_Dup, NamedColor_Free, null, 0),
-        new(Signature.TagType.MultiLocalizedUnicode, Type_MLU_Read, Type_MLU_Write, Type_MLU_Dup, Type_MLU_Free, null, 0),
-        new(Signature.TagType.ProfileSequenceDesc, Type_ProfileSequenceDesc_Read, Type_ProfileSequenceDesc_Write, Sequence_Dup, Sequence_Free, null, 0),
-        new(Signature.TagType.Signature, Type_Signature_Read, Type_Signature_Write, Type_Signature_Dup, null, null, 0),
-        new(Signature.TagType.Measurement, Type_Measurement_Read, Type_Measurement_Write, Type_Measurement_Dup, null, null, 0),
-        new(Signature.TagType.Data, Type_Data_Read, Type_Data_Write, Type_Data_Dup, Type_Data_Free, null, 0),
-        new(Signature.TagType.LutAtoB, Type_LUTA2B_Read, Type_LUTA2B_Write, Type_LUTA2B_Dup, Type_LUTA2B_Free, null, 0),
-        new(Signature.TagType.LutBtoA, Type_LUTB2A_Read, Type_LUTB2A_Write, Type_LUTB2A_Dup, Type_LUTB2A_Free, null, 0),
-        new(Signature.TagType.UcrBg, Type_UcrBg_Read, Type_UcrBg_Write, Type_UcrBg_Dup, Type_UcrBg_Free, null, 0),
-        new(Signature.TagType.CrdInfo, Type_CrdInfo_Read, Type_CrdInfo_Write, Type_CrdInfo_Dup, Type_CrdInfo_Free, null, 0),
-        new(Signature.TagType.MultiProcessElement, Type_MPE_Read, Type_MPE_Write, Type_MPE_Dup, Type_MPE_Free, null, 0),
-        new(Signature.TagType.Screening, Type_Screening_Read, Type_Screening_Write, Type_Screening_Dup, Type_Screening_Free, null, 0),
-        new(Signature.TagType.ViewingConditions, Type_ViewingConditions_Read, Type_ViewingConditions_Write, Type_ViewingConditions_Dup, null, null, 0),
-        new(Signature.TagType.XYZ, Type_XYZ_Read, Type_XYZ_Write, Type_XYZ_Dup, null, null, 0),
-        new(Signature.TagType.CorbisBrokenXYZ, Type_XYZ_Read, Type_XYZ_Write, Type_XYZ_Dup, null, null, 0),
-        new(Signature.TagType.MonacoBrokenCurve, Type_Curve_Read, Type_Curve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
-        new(Signature.TagType.ProfileSequenceId, Type_ProfileSequenceId_Read, Type_ProfileSequenceId_Write, Sequence_Dup, Sequence_Free, null, 0),
-        new(Signature.TagType.Dict, Type_Dictionary_Read, Type_Dictionary_Write, Type_Dictionary_Dup, Type_Dictionary_Free, null, 0),
-        new(Signature.TagType.cicp, Type_VideoSignal_Read, Type_VideoSignal_Write, Type_VideoSignal_Dup, null, null, 0),
-        new(Signature.TagType.Vcgt, Type_vcgt_Read, Type_vcgt_Write, Type_vcgt_Dup, Type_vcgt_Free, null, 0),
-        new(Signature.TagType.MHC2, Type_MHC2_Read, Type_MHC2_Write, Type_MHC2_Dup, Type_MHC2_Free, null, 0));
+        new(
+            Signatures.TagType.Chromaticity,
+            Type_Chromaticity_Read,
+            Type_Chromaticity_Write,
+            Type_Chromaticity_Dup,
+            null,
+            null,
+            0),
+        new(
+            Signatures.TagType.ColorantOrder,
+            Type_ColorantOrderType_Read,
+            Type_ColorantOrderType_Write,
+            Type_ColorantOrderType_Dup,
+            Type_ColorantOrderType_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.S15Fixed16Array,
+            Type_S15Fixed16_Read,
+            Type_S15Fixed16_Write,
+            Type_S15Fixed16_Dup,
+            Type_S15Fixed16_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.U16Fixed16Array,
+            Type_U16Fixed16_Read,
+            Type_U16Fixed16_Write,
+            Type_U16Fixed16_Dup,
+            Type_U16Fixed16_Free,
+            null,
+            0),
+        new(Signatures.TagType.Text, Type_Text_Read, Type_Text_Write, Type_Text_Dup, Type_Text_Free, null, 0),
+        new(
+            Signatures.TagType.TextDescription,
+            Type_Text_Description_Read,
+            Type_Text_Description_Write,
+            Type_Text_Description_Dup,
+            Type_Text_Description_Free,
+            null,
+            0),
+        new(Signatures.TagType.Curve, Type_Curve_Read, Type_Curve_Write, ToneCurve_Dup, ToneCurve_Free, null, 0),
+        new(
+            Signatures.TagType.ParametricCurve,
+            Type_ParametricCurve_Read,
+            Type_ParametricCurve_Write,
+            ToneCurve_Dup,
+            ToneCurve_Free,
+            null,
+            0),
+        new(Signatures.TagType.DateTime, Type_DateTime_Read, Type_DateTime_Write, Type_DateTime_Dup, null, null, 0),
+        new(Signatures.TagType.Lut8, Type_LUT8_Read, Type_LUT8_Write, Type_LUT8_Dup, Type_LUT8_Free, null, 0),
+        new(Signatures.TagType.Lut16, Type_LUT16_Read, Type_LUT16_Write, Type_LUT16_Dup, Type_LUT16_Free, null, 0),
+        new(
+            Signatures.TagType.ColorantTable,
+            Type_ColorantTable_Read,
+            Type_ColorantTable_Write,
+            NamedColor_Dup,
+            NamedColor_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.NamedColor2,
+            Type_NamedColor_Read,
+            Type_NamedColor_Write,
+            NamedColor_Dup,
+            NamedColor_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.MultiLocalizedUnicode,
+            Type_MLU_Read,
+            Type_MLU_Write,
+            Type_MLU_Dup,
+            Type_MLU_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.ProfileSequenceDesc,
+            Type_ProfileSequenceDesc_Read,
+            Type_ProfileSequenceDesc_Write,
+            Sequence_Dup,
+            Sequence_Free,
+            null,
+            0),
+        new(Signatures.TagType.Signature, Type_Signature_Read, Type_Signature_Write, Type_Signature_Dup, null, null, 0),
+        new(
+            Signatures.TagType.Measurement,
+            Type_Measurement_Read,
+            Type_Measurement_Write,
+            Type_Measurement_Dup,
+            null,
+            null,
+            0),
+        new(Signatures.TagType.Data, Type_Data_Read, Type_Data_Write, Type_Data_Dup, Type_Data_Free, null, 0),
+        new(
+            Signatures.TagType.LutAtoB,
+            Type_LUTA2B_Read,
+            Type_LUTA2B_Write,
+            Type_LUTA2B_Dup,
+            Type_LUTA2B_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.LutBtoA,
+            Type_LUTB2A_Read,
+            Type_LUTB2A_Write,
+            Type_LUTB2A_Dup,
+            Type_LUTB2A_Free,
+            null,
+            0),
+        new(Signatures.TagType.UcrBg, Type_UcrBg_Read, Type_UcrBg_Write, Type_UcrBg_Dup, Type_UcrBg_Free, null, 0),
+        new(
+            Signatures.TagType.CrdInfo,
+            Type_CrdInfo_Read,
+            Type_CrdInfo_Write,
+            Type_CrdInfo_Dup,
+            Type_CrdInfo_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.MultiProcessElement,
+            Type_MPE_Read,
+            Type_MPE_Write,
+            Type_MPE_Dup,
+            Type_MPE_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.Screening,
+            Type_Screening_Read,
+            Type_Screening_Write,
+            Type_Screening_Dup,
+            Type_Screening_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.ViewingConditions,
+            Type_ViewingConditions_Read,
+            Type_ViewingConditions_Write,
+            Type_ViewingConditions_Dup,
+            null,
+            null,
+            0),
+        new(Signatures.TagType.XYZ, Type_XYZ_Read, Type_XYZ_Write, Type_XYZ_Dup, null, null, 0),
+        new(Signatures.TagType.CorbisBrokenXYZ, Type_XYZ_Read, Type_XYZ_Write, Type_XYZ_Dup, null, null, 0),
+        new(
+            Signatures.TagType.MonacoBrokenCurve,
+            Type_Curve_Read,
+            Type_Curve_Write,
+            ToneCurve_Dup,
+            ToneCurve_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.ProfileSequenceId,
+            Type_ProfileSequenceId_Read,
+            Type_ProfileSequenceId_Write,
+            Sequence_Dup,
+            Sequence_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.Dict,
+            Type_Dictionary_Read,
+            Type_Dictionary_Write,
+            Type_Dictionary_Dup,
+            Type_Dictionary_Free,
+            null,
+            0),
+        new(
+            Signatures.TagType.cicp,
+            Type_VideoSignal_Read,
+            Type_VideoSignal_Write,
+            Type_VideoSignal_Dup,
+            null,
+            null,
+            0),
+        new(Signatures.TagType.Vcgt, Type_vcgt_Read, Type_vcgt_Write, Type_vcgt_Dup, Type_vcgt_Free, null, 0),
+        new(Signatures.TagType.MHC2, Type_MHC2_Read, Type_MHC2_Write, Type_MHC2_Dup, Type_MHC2_Free, null, 0));
 
     internal static readonly TagTypePluginChunkType TagTypePluginChunk = new();
 
     internal static readonly TagTypePluginChunkType globalTagTypePluginChunk = new();
 
     internal static readonly TagLinkedList supportedTags = new(
-        new(Signature.Tag.AToB0, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutAtoB, Signature.TagType.Lut8, }, DecideLUTtypeA2B),
-        new(Signature.Tag.AToB1, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutAtoB, Signature.TagType.Lut8, }, DecideLUTtypeA2B),
-        new(Signature.Tag.AToB2, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutAtoB, Signature.TagType.Lut8, }, DecideLUTtypeA2B),
-        new(Signature.Tag.BToA0, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
-        new(Signature.Tag.BToA1, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
-        new(Signature.Tag.BToA2, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
-        new(Signature.Tag.RedColorant, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, DecideXYZtype),
-        new(Signature.Tag.GreenColorant, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, DecideXYZtype),
-        new(Signature.Tag.BlueColorant, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, DecideXYZtype),
-        new(Signature.Tag.RedTRC, 1, new Signature[] { Signature.TagType.Curve, Signature.TagType.ParametricCurve, Signature.TagType.MonacoBrokenCurve, }, DecideCurveType),
-        new(Signature.Tag.GreenTRC, 1, new Signature[] { Signature.TagType.Curve, Signature.TagType.ParametricCurve, Signature.TagType.MonacoBrokenCurve, }, DecideCurveType),
-        new(Signature.Tag.BlueTRC, 1, new Signature[] { Signature.TagType.Curve, Signature.TagType.ParametricCurve, Signature.TagType.MonacoBrokenCurve, }, DecideCurveType),
-        new(Signature.Tag.CalibrationDateTime, 1, new Signature[] { Signature.TagType.DateTime, }, null),
-        new(Signature.Tag.CharTarget, 1, new Signature[] { Signature.TagType.Text, }, null),
-        new(Signature.Tag.ChromaticAdaptation, 9, new Signature[] { Signature.TagType.S15Fixed16Array, }, null),
-        new(Signature.Tag.Chromaticity, 1, new Signature[] { Signature.TagType.Chromaticity, }, null),
-        new(Signature.Tag.ColorantOrder, 1, new Signature[] { Signature.TagType.ColorantOrder, }, null),
-        new(Signature.Tag.ColorantTable, 1, new Signature[] { Signature.TagType.ColorantTable, }, null),
-        new(Signature.Tag.ColorantTableOut, 1, new Signature[] { Signature.TagType.ColorantTable, }, null),
-        new(Signature.Tag.Copyright, 1, new Signature[] { Signature.TagType.Text, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.TextDescription, }, DecideTextType),
-        new(Signature.Tag.DateTime, 1, new Signature[] { Signature.TagType.DateTime, }, null),
-        new(Signature.Tag.DeviceMfgDesc, 1, new Signature[] { Signature.TagType.TextDescription, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.Text, }, DecideTextDescType),
-        new(Signature.Tag.DeviceModelDesc, 1, new Signature[] { Signature.TagType.TextDescription, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.Text, }, DecideTextDescType),
-        new(Signature.Tag.Gamut, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
-        new(Signature.Tag.GrayTRC, 1, new Signature[] { Signature.TagType.Curve, Signature.TagType.ParametricCurve, }, DecideCurveType),
-        new(Signature.Tag.Luminance, 1, new Signature[] { Signature.TagType.XYZ, }, null),
-        new(Signature.Tag.MediaBlackPoint, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, null),
-        new(Signature.Tag.MediaWhitePoint, 1, new Signature[] { Signature.TagType.XYZ, Signature.TagType.CorbisBrokenXYZ, }, null),
-        new(Signature.Tag.NamedColor2, 1, new Signature[] { Signature.TagType.NamedColor2, }, null),
-        new(Signature.Tag.Preview0, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
-        new(Signature.Tag.Preview1, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
-        new(Signature.Tag.Preview2, 1, new Signature[] { Signature.TagType.Lut16, Signature.TagType.LutBtoA, Signature.TagType.Lut8, }, DecideLUTtypeB2A),
-        new(Signature.Tag.ProfileDescription, 1, new Signature[] { Signature.TagType.TextDescription, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.Text, }, DecideTextDescType),
-        new(Signature.Tag.ProfileSequenceDesc, 1, new Signature[] { Signature.TagType.ProfileSequenceDesc, }, null),
-        new(Signature.Tag.Technology, 1, new Signature[] { Signature.TagType.Signature, }, null),
-        new(Signature.Tag.ColorimetricIntentImageState, 1, new Signature[] { Signature.TagType.Signature, }, null),
-        new(Signature.Tag.PerceptualRenderingIntentGamut, 1, new Signature[] { Signature.TagType.Signature, }, null),
-        new(Signature.Tag.SaturationRenderingIntentGamut, 1, new Signature[] { Signature.TagType.Signature, }, null),
-        new(Signature.Tag.Measurement, 1, new Signature[] { Signature.TagType.Measurement, }, null),
-        new(Signature.Tag.Ps2CRD0, 1, new Signature[] { Signature.TagType.Data, }, null),
-        new(Signature.Tag.Ps2CRD1, 1, new Signature[] { Signature.TagType.Data, }, null),
-        new(Signature.Tag.Ps2CRD2, 1, new Signature[] { Signature.TagType.Data, }, null),
-        new(Signature.Tag.Ps2CRD3, 1, new Signature[] { Signature.TagType.Data, }, null),
-        new(Signature.Tag.Ps2CSA, 1, new Signature[] { Signature.TagType.Data, }, null),
-        new(Signature.Tag.Ps2RenderingIntent, 1, new Signature[] { Signature.TagType.Data, }, null),
-        new(Signature.Tag.ViewingCondDesc, 1, new Signature[] { Signature.TagType.TextDescription, Signature.TagType.MultiLocalizedUnicode, Signature.TagType.Text, }, DecideTextDescType),
-        new(Signature.Tag.UcrBg, 1, new Signature[] { Signature.TagType.UcrBg, }, null),
-        new(Signature.Tag.CrdInfo, 1, new Signature[] { Signature.TagType.CrdInfo, }, null),
-        new(Signature.Tag.DToB0, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
-        new(Signature.Tag.DToB1, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
-        new(Signature.Tag.DToB2, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
-        new(Signature.Tag.DToB3, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
-        new(Signature.Tag.BToD0, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
-        new(Signature.Tag.BToD1, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
-        new(Signature.Tag.BToD2, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
-        new(Signature.Tag.BToD3, 1, new Signature[] { Signature.TagType.MultiProcessElement, }, null),
-        new(Signature.Tag.ScreeningDesc, 1, new Signature[] { Signature.TagType.TextDescription, }, null),
-        new(Signature.Tag.ViewingConditions, 1, new Signature[] { Signature.TagType.ViewingConditions, }, null),
-        new(Signature.Tag.Screening, 1, new Signature[] { Signature.TagType.Screening, }, null),
-        new(Signature.Tag.Vcgt, 1, new Signature[] { Signature.TagType.Vcgt, }, null),
-        new(Signature.Tag.Meta, 1, new Signature[] { Signature.TagType.Dict, }, null),
-        new(Signature.Tag.ProfileSequenceId, 1, new Signature[] { Signature.TagType.ProfileSequenceId, }, null),
-        new(Signature.Tag.ProfileDescriptionML, 1, new Signature[] { Signature.TagType.MultiLocalizedUnicode, }, null),
-        new(Signature.Tag.cicp, 1, new Signature[] { Signature.TagType.cicp }, null),
-        new(Signature.Tag.ArgyllArts, 9, new Signature[] { Signature.TagType.S15Fixed16Array, }, null),
-        new(Signature.Tag.MHC2, 1, new Signature[] { Signature.TagType.MHC2 }, null));
+        new(
+            Signatures.Tag.AToB0,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutAtoB, Signatures.TagType.Lut8, },
+            DecideLUTtypeA2B),
+        new(
+            Signatures.Tag.AToB1,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutAtoB, Signatures.TagType.Lut8, },
+            DecideLUTtypeA2B),
+        new(
+            Signatures.Tag.AToB2,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutAtoB, Signatures.TagType.Lut8, },
+            DecideLUTtypeA2B),
+        new(
+            Signatures.Tag.BToA0,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutBtoA, Signatures.TagType.Lut8, },
+            DecideLUTtypeB2A),
+        new(
+            Signatures.Tag.BToA1,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutBtoA, Signatures.TagType.Lut8, },
+            DecideLUTtypeB2A),
+        new(
+            Signatures.Tag.BToA2,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutBtoA, Signatures.TagType.Lut8, },
+            DecideLUTtypeB2A),
+        new(
+            Signatures.Tag.RedColorant,
+            1,
+            new Signature[] { Signatures.TagType.XYZ, Signatures.TagType.CorbisBrokenXYZ, },
+            DecideXYZtype),
+        new(
+            Signatures.Tag.GreenColorant,
+            1,
+            new Signature[] { Signatures.TagType.XYZ, Signatures.TagType.CorbisBrokenXYZ, },
+            DecideXYZtype),
+        new(
+            Signatures.Tag.BlueColorant,
+            1,
+            new Signature[] { Signatures.TagType.XYZ, Signatures.TagType.CorbisBrokenXYZ, },
+            DecideXYZtype),
+        new(
+            Signatures.Tag.RedTRC,
+            1,
+            new Signature[]
+            {
+                Signatures.TagType.Curve, Signatures.TagType.ParametricCurve, Signatures.TagType.MonacoBrokenCurve,
+            },
+            DecideCurveType),
+        new(
+            Signatures.Tag.GreenTRC,
+            1,
+            new Signature[]
+            {
+                Signatures.TagType.Curve, Signatures.TagType.ParametricCurve, Signatures.TagType.MonacoBrokenCurve,
+            },
+            DecideCurveType),
+        new(
+            Signatures.Tag.BlueTRC,
+            1,
+            new Signature[]
+            {
+                Signatures.TagType.Curve, Signatures.TagType.ParametricCurve, Signatures.TagType.MonacoBrokenCurve,
+            },
+            DecideCurveType),
+        new(Signatures.Tag.CalibrationDateTime, 1, new Signature[] { Signatures.TagType.DateTime, }, null),
+        new(Signatures.Tag.CharTarget, 1, new Signature[] { Signatures.TagType.Text, }, null),
+        new(Signatures.Tag.ChromaticAdaptation, 9, new Signature[] { Signatures.TagType.S15Fixed16Array, }, null),
+        new(Signatures.Tag.Chromaticity, 1, new Signature[] { Signatures.TagType.Chromaticity, }, null),
+        new(Signatures.Tag.ColorantOrder, 1, new Signature[] { Signatures.TagType.ColorantOrder, }, null),
+        new(Signatures.Tag.ColorantTable, 1, new Signature[] { Signatures.TagType.ColorantTable, }, null),
+        new(Signatures.Tag.ColorantTableOut, 1, new Signature[] { Signatures.TagType.ColorantTable, }, null),
+        new(
+            Signatures.Tag.Copyright,
+            1,
+            new Signature[]
+            {
+                Signatures.TagType.Text,
+                Signatures.TagType.MultiLocalizedUnicode,
+                Signatures.TagType.TextDescription,
+            },
+            DecideTextType),
+        new(Signatures.Tag.DateTime, 1, new Signature[] { Signatures.TagType.DateTime, }, null),
+        new(
+            Signatures.Tag.DeviceMfgDesc,
+            1,
+            new Signature[]
+            {
+                Signatures.TagType.TextDescription,
+                Signatures.TagType.MultiLocalizedUnicode,
+                Signatures.TagType.Text,
+            },
+            DecideTextDescType),
+        new(
+            Signatures.Tag.DeviceModelDesc,
+            1,
+            new Signature[]
+            {
+                Signatures.TagType.TextDescription,
+                Signatures.TagType.MultiLocalizedUnicode,
+                Signatures.TagType.Text,
+            },
+            DecideTextDescType),
+        new(
+            Signatures.Tag.Gamut,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutBtoA, Signatures.TagType.Lut8, },
+            DecideLUTtypeB2A),
+        new(
+            Signatures.Tag.GrayTRC,
+            1,
+            new Signature[] { Signatures.TagType.Curve, Signatures.TagType.ParametricCurve, },
+            DecideCurveType),
+        new(Signatures.Tag.Luminance, 1, new Signature[] { Signatures.TagType.XYZ, }, null),
+        new(
+            Signatures.Tag.MediaBlackPoint,
+            1,
+            new Signature[] { Signatures.TagType.XYZ, Signatures.TagType.CorbisBrokenXYZ, },
+            null),
+        new(
+            Signatures.Tag.MediaWhitePoint,
+            1,
+            new Signature[] { Signatures.TagType.XYZ, Signatures.TagType.CorbisBrokenXYZ, },
+            null),
+        new(Signatures.Tag.NamedColor2, 1, new Signature[] { Signatures.TagType.NamedColor2, }, null),
+        new(
+            Signatures.Tag.Preview0,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutBtoA, Signatures.TagType.Lut8, },
+            DecideLUTtypeB2A),
+        new(
+            Signatures.Tag.Preview1,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutBtoA, Signatures.TagType.Lut8, },
+            DecideLUTtypeB2A),
+        new(
+            Signatures.Tag.Preview2,
+            1,
+            new Signature[] { Signatures.TagType.Lut16, Signatures.TagType.LutBtoA, Signatures.TagType.Lut8, },
+            DecideLUTtypeB2A),
+        new(
+            Signatures.Tag.ProfileDescription,
+            1,
+            new Signature[]
+            {
+                Signatures.TagType.TextDescription,
+                Signatures.TagType.MultiLocalizedUnicode,
+                Signatures.TagType.Text,
+            },
+            DecideTextDescType),
+        new(Signatures.Tag.ProfileSequenceDesc, 1, new Signature[] { Signatures.TagType.ProfileSequenceDesc, }, null),
+        new(Signatures.Tag.Technology, 1, new Signature[] { Signatures.TagType.Signature, }, null),
+        new(Signatures.Tag.ColorimetricIntentImageState, 1, new Signature[] { Signatures.TagType.Signature, }, null),
+        new(Signatures.Tag.PerceptualRenderingIntentGamut, 1, new Signature[] { Signatures.TagType.Signature, }, null),
+        new(Signatures.Tag.SaturationRenderingIntentGamut, 1, new Signature[] { Signatures.TagType.Signature, }, null),
+        new(Signatures.Tag.Measurement, 1, new Signature[] { Signatures.TagType.Measurement, }, null),
+        new(Signatures.Tag.Ps2CRD0, 1, new Signature[] { Signatures.TagType.Data, }, null),
+        new(Signatures.Tag.Ps2CRD1, 1, new Signature[] { Signatures.TagType.Data, }, null),
+        new(Signatures.Tag.Ps2CRD2, 1, new Signature[] { Signatures.TagType.Data, }, null),
+        new(Signatures.Tag.Ps2CRD3, 1, new Signature[] { Signatures.TagType.Data, }, null),
+        new(Signatures.Tag.Ps2CSA, 1, new Signature[] { Signatures.TagType.Data, }, null),
+        new(Signatures.Tag.Ps2RenderingIntent, 1, new Signature[] { Signatures.TagType.Data, }, null),
+        new(
+            Signatures.Tag.ViewingCondDesc,
+            1,
+            new Signature[]
+            {
+                Signatures.TagType.TextDescription,
+                Signatures.TagType.MultiLocalizedUnicode,
+                Signatures.TagType.Text,
+            },
+            DecideTextDescType),
+        new(Signatures.Tag.UcrBg, 1, new Signature[] { Signatures.TagType.UcrBg, }, null),
+        new(Signatures.Tag.CrdInfo, 1, new Signature[] { Signatures.TagType.CrdInfo, }, null),
+        new(Signatures.Tag.DToB0, 1, new Signature[] { Signatures.TagType.MultiProcessElement, }, null),
+        new(Signatures.Tag.DToB1, 1, new Signature[] { Signatures.TagType.MultiProcessElement, }, null),
+        new(Signatures.Tag.DToB2, 1, new Signature[] { Signatures.TagType.MultiProcessElement, }, null),
+        new(Signatures.Tag.DToB3, 1, new Signature[] { Signatures.TagType.MultiProcessElement, }, null),
+        new(Signatures.Tag.BToD0, 1, new Signature[] { Signatures.TagType.MultiProcessElement, }, null),
+        new(Signatures.Tag.BToD1, 1, new Signature[] { Signatures.TagType.MultiProcessElement, }, null),
+        new(Signatures.Tag.BToD2, 1, new Signature[] { Signatures.TagType.MultiProcessElement, }, null),
+        new(Signatures.Tag.BToD3, 1, new Signature[] { Signatures.TagType.MultiProcessElement, }, null),
+        new(Signatures.Tag.ScreeningDesc, 1, new Signature[] { Signatures.TagType.TextDescription, }, null),
+        new(Signatures.Tag.ViewingConditions, 1, new Signature[] { Signatures.TagType.ViewingConditions, }, null),
+        new(Signatures.Tag.Screening, 1, new Signature[] { Signatures.TagType.Screening, }, null),
+        new(Signatures.Tag.Vcgt, 1, new Signature[] { Signatures.TagType.Vcgt, }, null),
+        new(Signatures.Tag.Meta, 1, new Signature[] { Signatures.TagType.Dict, }, null),
+        new(Signatures.Tag.ProfileSequenceId, 1, new Signature[] { Signatures.TagType.ProfileSequenceId, }, null),
+        new(
+            Signatures.Tag.ProfileDescriptionML,
+            1,
+            new Signature[] { Signatures.TagType.MultiLocalizedUnicode, },
+            null),
+        new(Signatures.Tag.cicp, 1, new Signature[] { Signatures.TagType.cicp }, null),
+        new(Signatures.Tag.ArgyllArts, 9, new Signature[] { Signatures.TagType.S15Fixed16Array, }, null),
+        new(Signatures.Tag.MHC2, 1, new Signature[] { Signatures.TagType.MHC2 }, null));
 
     internal static readonly TagPluginChunkType TagPluginChunk = new();
 
@@ -163,8 +458,8 @@ public static partial class Lcms2
     private static bool RegisterTypesPlugin(Context? id, PluginBase? Data, Chunks pos)
     {
         var ctx = pos is Chunks.MPEPlugin
-            ? Context.Get(id).MPEPlugin
-            : Context.Get(id).TagTypePlugin;
+                      ? Context.Get(id).MPEPlugin
+                      : Context.Get(id).TagTypePlugin;
 
         // Calling the function with NULL as plug-in would unregister the plug in
         if (Data is null)
@@ -189,14 +484,18 @@ public static partial class Lcms2
         return true;
     }
 
-    private static TagTypeHandler? GetHandler(Signature sig, TagTypeLinkedList? PluginLinkedList, TagTypeLinkedList DefaultLinkedList)
+    private static TagTypeHandler? GetHandler(Signature sig,
+                                              TagTypeLinkedList? PluginLinkedList,
+                                              TagTypeLinkedList DefaultLinkedList)
     {
         if (PluginLinkedList is not null)
             foreach (var pt in PluginLinkedList)
-                if (sig == pt.Signature) return pt;
+                if (sig == pt.Signature)
+                    return pt;
 
         foreach (var pt in DefaultLinkedList)
-            if (sig == pt.Signature) return pt;
+            if (sig == pt.Signature)
+                return pt;
 
         return null;
     }
@@ -210,7 +509,8 @@ public static partial class Lcms2
         n = Math.Min(n, (uint)Array.Length);
 
         for (var i = 0; i < n; i++)
-            if (!io.Write(Array[i])) return false;
+            if (!io.Write(Array[i]))
+                return false;
 
         return true;
     }
@@ -289,25 +589,27 @@ public static partial class Lcms2
         {
             if (!Array.IsEmpty)
             {
-                if (!io.ReadUshort(out var tmp)) return false;
+                if (!io.ReadUshort(out var tmp))
+                    return false;
                 if (i < Array.Length)
                     Array[i] = (char)tmp;
             }
             else
             {
-                if (!io.ReadUshort(out _)) return false;
+                if (!io.ReadUshort(out _))
+                    return false;
             }
         }
+
         return true;
     }
 
-    private static bool ReadPositionTable(
-        TagTypeHandler self,
-        IOHandler io,
-        uint Count,
-        uint BaseOffset,
-        object? Cargo,
-        PositionTableEntryFn ElementFn)
+    private static bool ReadPositionTable(TagTypeHandler self,
+                                          IOHandler io,
+                                          uint Count,
+                                          uint BaseOffset,
+                                          object? Cargo,
+                                          PositionTableEntryFn ElementFn)
     {
         //var pool = Context.GetPool<uint>(self.ContextID);
         var currentPosition = io.TellFunc(io);
@@ -329,8 +631,10 @@ public static partial class Lcms2
 
         for (var i = 0; i < Count; i++)
         {
-            if (!io.ReadUint(out ElementOffsets[i])) goto Error;
-            if (!io.ReadUint(out ElementSizes[i])) goto Error;
+            if (!io.ReadUint(out ElementOffsets[i]))
+                goto Error;
+            if (!io.ReadUint(out ElementSizes[i]))
+                goto Error;
 
             ElementOffsets[i] += BaseOffset;
         }
@@ -338,10 +642,12 @@ public static partial class Lcms2
         // Seek to each element and read it
         for (var i = 0; i < Count; i++)
         {
-            if (!io.SeekFunc(io, ElementOffsets[i])) goto Error;
+            if (!io.SeekFunc(io, ElementOffsets[i]))
+                goto Error;
 
             // This is the reader callback
-            if (!ElementFn(self, io, Cargo, (uint)i, ElementSizes[i])) goto Error;
+            if (!ElementFn(self, io, Cargo, (uint)i, ElementSizes[i]))
+                goto Error;
         }
 
         //Success
@@ -355,14 +661,13 @@ public static partial class Lcms2
         return false;
     }
 
-    private static bool WritePositionTable(
-        TagTypeHandler self,
-        IOHandler io,
-        uint SizeOfTag,
-        uint Count,
-        uint BaseOffset,
-        object? Cargo,
-        PositionTableEntryFn ElementFn)
+    private static bool WritePositionTable(TagTypeHandler self,
+                                           IOHandler io,
+                                           uint SizeOfTag,
+                                           uint Count,
+                                           uint BaseOffset,
+                                           object? Cargo,
+                                           PositionTableEntryFn ElementFn)
     {
         //var pool = Context.GetPool<uint>(self.ContextID);
 
@@ -383,8 +688,10 @@ public static partial class Lcms2
         // Write a fake directory to be filled later on
         for (var i = 0; i < Count; i++)
         {
-            if (!io.Write((uint)0)) goto Error;  // Offset
-            if (!io.Write((uint)0)) goto Error;  // size
+            if (!io.Write((uint)0))
+                goto Error;  // Offset
+            if (!io.Write((uint)0))
+                goto Error;  // size
         }
 
         // Write each element. Keep track of the size as well.
@@ -394,7 +701,8 @@ public static partial class Lcms2
             ElementOffsets[i] = Before - BaseOffset;
 
             // Callback to write...
-            if (!ElementFn(self, io, Cargo, (uint)i, SizeOfTag)) goto Error;
+            if (!ElementFn(self, io, Cargo, (uint)i, SizeOfTag))
+                goto Error;
 
             // Now the size
             ElementSizes[i] = io.TellFunc(io) - Before;
@@ -402,15 +710,19 @@ public static partial class Lcms2
 
         // Write the directory
         var CurrentPos = io.TellFunc(io);
-        if (!io.SeekFunc(io, DirectoryPos)) goto Error;
+        if (!io.SeekFunc(io, DirectoryPos))
+            goto Error;
 
         for (var i = 0; i < Count; i++)
         {
-            if (!io.Write(ElementOffsets[i])) goto Error;
-            if (!io.Write(ElementSizes[i])) goto Error;
+            if (!io.Write(ElementOffsets[i]))
+                goto Error;
+            if (!io.Write(ElementSizes[i]))
+                goto Error;
         }
 
-        if (!io.SeekFunc(io, CurrentPos)) goto Error;
+        if (!io.SeekFunc(io, CurrentPos))
+            goto Error;
 
         //Success
         //if (ElementOffsets is not null) ReturnArray(io.ContextID, ElementOffsets);
@@ -465,13 +777,16 @@ public static partial class Lcms2
     //}
 
     private static Signature DecideXYZtype(double _1, object? _2) =>
-        Signature.TagType.XYZ;
+        Signatures.TagType.XYZ;
 
     #endregion XYZ
 
     #region Chromaticity
 
-    private static Box<CIExyYTRIPLE>? Type_Chromaticity_Read(TagTypeHandler _1, IOHandler io, out uint nItems, uint SizeOfTag)
+    private static Box<CIExyYTRIPLE>? Type_Chromaticity_Read(TagTypeHandler _1,
+                                                             IOHandler io,
+                                                             out uint nItems,
+                                                             uint SizeOfTag)
     {
         CIExyYTRIPLE chrm = new();
 
@@ -479,31 +794,42 @@ public static partial class Lcms2
         //chrm = _cmsMallocZero<CIExyYTRIPLE>(self.ContextID);
         //if (chrm is null) return null;
 
-        if (!io.ReadUshort(out var nChans)) goto Error;
+        if (!io.ReadUshort(out var nChans))
+            goto Error;
 
         // Let's recover from a bug interoduced in early versions of lcms1
         if (nChans is 0 && SizeOfTag is 32)
         {
-            if (!io.ReadUshort(out _)) goto Error;
-            if (!io.ReadUshort(out nChans)) goto Error;
+            if (!io.ReadUshort(out _))
+                goto Error;
+            if (!io.ReadUshort(out nChans))
+                goto Error;
         }
 
-        if (nChans is not 3) goto Error;
+        if (nChans is not 3)
+            goto Error;
 
-        if (!io.ReadUshort(out var Table)) goto Error;
+        if (!io.ReadUshort(out var Table))
+            goto Error;
 
-        if (!io.ReadFixed15_16(out chrm.Red.x)) goto Error;
-        if (!io.ReadFixed15_16(out chrm.Red.y)) goto Error;
+        if (!io.ReadFixed15_16(out chrm.Red.x))
+            goto Error;
+        if (!io.ReadFixed15_16(out chrm.Red.y))
+            goto Error;
 
         chrm.Red.Y = 1.0;
 
-        if (!io.ReadFixed15_16(out chrm.Green.x)) goto Error;
-        if (!io.ReadFixed15_16(out chrm.Green.y)) goto Error;
+        if (!io.ReadFixed15_16(out chrm.Green.x))
+            goto Error;
+        if (!io.ReadFixed15_16(out chrm.Green.y))
+            goto Error;
 
         chrm.Green.Y = 1.0;
 
-        if (!io.ReadFixed15_16(out chrm.Blue.x)) goto Error;
-        if (!io.ReadFixed15_16(out chrm.Blue.y)) goto Error;
+        if (!io.ReadFixed15_16(out chrm.Blue.x))
+            goto Error;
+        if (!io.ReadFixed15_16(out chrm.Blue.y))
+            goto Error;
 
         chrm.Blue.Y = 1.0;
 
@@ -517,8 +843,10 @@ public static partial class Lcms2
 
     private static bool SaveOneChromaticity(double x, double y, IOHandler io)
     {
-        if (!io.Write((uint)DoubleToS15Fixed16(x))) return false;
-        if (!io.Write((uint)DoubleToS15Fixed16(y))) return false;
+        if (!io.Write((uint)DoubleToS15Fixed16(x)))
+            return false;
+        if (!io.Write((uint)DoubleToS15Fixed16(y)))
+            return false;
 
         return true;
     }
@@ -526,14 +854,20 @@ public static partial class Lcms2
     private static bool Type_Chromaticity_Write(TagTypeHandler _1, IOHandler io, object? Ptr, uint _2)
     {
         var chrm = Ptr as Box<CIExyYTRIPLE>;
-        if (chrm is null) return false;
+        if (chrm is null)
+            return false;
 
-        if (!io.Write((ushort)3)) return false;    // nChannels
-        if (!io.Write((ushort)0)) return false;    // Table
+        if (!io.Write((ushort)3))
+            return false;    // nChannels
+        if (!io.Write((ushort)0))
+            return false;    // Table
 
-        if (!SaveOneChromaticity(chrm.Value.Red.x, chrm.Value.Red.y, io)) return false;
-        if (!SaveOneChromaticity(chrm.Value.Green.x, chrm.Value.Green.y, io)) return false;
-        if (!SaveOneChromaticity(chrm.Value.Blue.x, chrm.Value.Blue.y, io)) return false;
+        if (!SaveOneChromaticity(chrm.Value.Red.x, chrm.Value.Red.y, io))
+            return false;
+        if (!SaveOneChromaticity(chrm.Value.Green.x, chrm.Value.Green.y, io))
+            return false;
+        if (!SaveOneChromaticity(chrm.Value.Blue.x, chrm.Value.Blue.y, io))
+            return false;
 
         return true;
     }
@@ -557,8 +891,10 @@ public static partial class Lcms2
     {
         nItems = 0;
 
-        if (!io.ReadUint(out var Count)) return null;
-        if (Count > cmsMAXCHANNELS) return null;
+        if (!io.ReadUint(out var Count))
+            return null;
+        if (Count > cmsMAXCHANNELS)
+            return null;
 
         //var ColorantOrder = GetArray<byte>(self.ContextID, cmsMAXCHANNELS);
         var ColorantOrder = new byte[cmsMAXCHANNELS];
@@ -586,7 +922,8 @@ public static partial class Lcms2
         var Count = 0u;
         // Get the length
         for (var i = 0; i < cmsMAXCHANNELS; i++)
-            if (ColorantOrder[i] is not 0xFF) Count++;
+            if (ColorantOrder[i] is not 0xFF)
+                Count++;
 
         if (!io.Write(Count))
             return false;
@@ -642,7 +979,8 @@ public static partial class Lcms2
             return false;
 
         for (var i = 0; i < nItems; i++)
-            if (!io.Write(Value[i])) return false;
+            if (!io.Write(Value[i]))
+                return false;
 
         return true;
     }
@@ -689,12 +1027,14 @@ public static partial class Lcms2
 
     private static bool Type_U16Fixed16_Write(TagTypeHandler _1, IOHandler io, object? Ptr, uint nItems)
     {
-        if (Ptr is not double[] Value) return false;
+        if (Ptr is not double[] Value)
+            return false;
 
         for (var i = 0; i < nItems; i++)
         {
             var v = (uint)Math.Floor((Value[i] * 65536.0) + 0.5);
-            if (!io.Write(v)) return false;
+            if (!io.Write(v))
+                return false;
         }
 
         return true;
@@ -755,10 +1095,12 @@ public static partial class Lcms2
         nItems = 0;
 
         var mlu = cmsMLUalloc(self.ContextID, 1);
-        if (mlu is null) return null;
+        if (mlu is null)
+            return null;
 
         // We need to store the "\0" at the end, so +1
-        if (SizeOfTag is UInt32.MaxValue) goto Error1;
+        if (SizeOfTag is UInt32.MaxValue)
+            goto Error1;
 
         //Text = _cmsMalloc<byte>(self.ContextID, SizeOfTag + 1);
         //var Text = GetArray<byte>(self.ContextID, SizeOfTag);
@@ -769,23 +1111,26 @@ public static partial class Lcms2
         //if (io.Read(io, tmpText, sizeof(byte), SizeOfTag) != SizeOfTag) goto Error2;
         //new ReadOnlySpan<byte>(tmpText, (int)SizeOfTag).CopyTo(Text);
 
-        if (io.ReadFunc(io, Text, sizeof(byte), SizeOfTag) != SizeOfTag) goto Error2;
+        if (io.ReadFunc(io, Text, sizeof(byte), SizeOfTag) != SizeOfTag)
+            goto Error2;
 
         // Make sure text is properly ended
         //Text[SizeOfTag] = 0;              // Nope!!
         nItems = 1;
 
         // Keep the result
-        if (!cmsMLUsetASCII(mlu, cmsNoLanguage, cmsNoCountry, Text.AsSpan(..(int)SizeOfTag))) goto Error2;
+        if (!cmsMLUsetASCII(mlu, cmsNoLanguage, cmsNoCountry, Text.AsSpan(..(int)SizeOfTag)))
+            goto Error2;
 
         //ReturnArray(self.ContextID, Text);
         return mlu;
 
     Error2:
-    //if (Text is not null) ReturnArray(self.ContextID, Text);
+        //if (Text is not null) ReturnArray(self.ContextID, Text);
 
     Error1:
-        if (mlu is not null) cmsMLUfree(mlu);
+        if (mlu is not null)
+            cmsMLUfree(mlu);
 
         return null;
     }
@@ -797,7 +1142,8 @@ public static partial class Lcms2
 
         // Get the size of the string. Note there is an extra "\0" at the end       // No extra "\0"
         var size = cmsMLUgetASCII(mlu, cmsNoLanguage, cmsNoCountry, null);
-        if (size is 0) return false;    // Cannot be zero!
+        if (size is 0)
+            return false;    // Cannot be zero!
 
         // Create memory
         //var Text = GetArray<byte>(self.ContextID, size);
@@ -825,8 +1171,8 @@ public static partial class Lcms2
 
     private static Signature DecideTextType(double ICCVersion, object? _) =>
         ICCVersion >= 4.0
-            ? Signature.TagType.MultiLocalizedUnicode
-            : Signature.TagType.Text;
+            ? Signatures.TagType.MultiLocalizedUnicode
+            : Signatures.TagType.Text;
 
     #endregion Text
 
@@ -836,22 +1182,25 @@ public static partial class Lcms2
     {
         nItems = 0;
 
-        if (SizeOfTag < sizeof(uint)) return null;
+        if (SizeOfTag < sizeof(uint))
+            return null;
 
         var LenOfData = SizeOfTag - sizeof(uint);
-        if (LenOfData > Int32.MaxValue) return null;
+        if (LenOfData > Int32.MaxValue)
+            return null;
 
         //BinData = _cmsMalloc<IccData>(self.ContextID, _sizeof<IccData>() + LenOfData - 1);
         //if (BinData is null) return null;
         var BinData = new IccData
         {
             //data = Context.GetPool<byte>(self.ContextID).Rent((int)LenOfData),
-            data = new byte[LenOfData],
-            len = LenOfData
+            data = new byte[LenOfData], len = LenOfData
         };
-        if (!io.ReadUint(out BinData.flag)) goto Error;
+        if (!io.ReadUint(out BinData.flag))
+            goto Error;
 
-        if (io.ReadFunc(io, BinData.data, sizeof(byte), LenOfData) != LenOfData) goto Error;
+        if (io.ReadFunc(io, BinData.data, sizeof(byte), LenOfData) != LenOfData)
+            goto Error;
 
         nItems = 1;
 
@@ -970,12 +1319,15 @@ public static partial class Lcms2
 
         if (SizeOfTag >= sizeof(ushort) + sizeof(byte) + 67)
         {
-            if (!io.ReadUshort(out var ScriptCodeCode)) goto Done;
-            if (!io.ReadByte(out var ScriptCodeCount)) goto Done;
+            if (!io.ReadUshort(out var ScriptCodeCode))
+                goto Done;
+            if (!io.ReadByte(out var ScriptCodeCount))
+                goto Done;
 
             // Skip rest of tag
             for (var i = 0; i < 67; i++)
-                if (io.ReadFunc(io, Dummy, sizeof(byte), 1) is 0) goto Error;
+                if (io.ReadFunc(io, Dummy, sizeof(byte), 1) is 0)
+                    goto Error;
         }
 
     Done:
@@ -984,14 +1336,16 @@ public static partial class Lcms2
 
     Error:
         //if (Text is not null) ReturnArray(self.ContextID, Text);
-        if (mlu is not null) cmsMLUfree(mlu);
+        if (mlu is not null)
+            cmsMLUfree(mlu);
 
         return null;
     }
 
     private static bool Type_Text_Description_Write(TagTypeHandler self, IOHandler io, object? Ptr, uint _1)
     {
-        if (Ptr is not Mlu mlu) return false;
+        if (Ptr is not Mlu mlu)
+            return false;
         byte[]? Text = null;
         char[]? Wide = null;
         uint len, len_text, len_tag_requirement, len_aligned;
@@ -1045,15 +1399,15 @@ public static partial class Lcms2
         len_text = (uint)Text.Length;
         // Compute a total tag size requirement
         len_tag_requirement =
-            8                   // Alignment
-            + 4                 // count
-            + len_text          // desc[count]
-            + 4                 // ucLangCode
-            + 4                 // ucCount
-            + (2 * len_text)    // ucDesc[ucCount]
-            + 2                 // scCode
-            + 1                 // scCount
-            + 67;               // scDesc[67]
+            8                // Alignment
+            + 4              // count
+            + len_text       // desc[count]
+            + 4              // ucLangCode
+            + 4              // ucCount
+            + (2 * len_text) // ucDesc[ucCount]
+            + 2              // scCode
+            + 1              // scCount
+            + 67;            // scDesc[67]
         len_aligned = _cmsALIGNLONG(len_tag_requirement);
 
         if (!io.Write(len_text))
@@ -1111,8 +1465,8 @@ public static partial class Lcms2
 
     private static Signature DecideTextDescType(double ICCVersion, object? _1) =>
         ICCVersion >= 4.0
-            ? Signature.TagType.MultiLocalizedUnicode
-            : Signature.TagType.TextDescription;
+            ? Signatures.TagType.MultiLocalizedUnicode
+            : Signatures.TagType.TextDescription;
 
     #endregion Text Description
 
@@ -1123,45 +1477,48 @@ public static partial class Lcms2
         Span<double> SingleGamma = stackalloc double[1];
         nItems = 0;
 
-        if (!io.ReadUint(out var Count)) return null;
+        if (!io.ReadUint(out var Count))
+            return null;
 
         switch (Count)
         {
             case 0:     // Linear
-                {
-                    SingleGamma[0] = 1.0;
+            {
+                SingleGamma[0] = 1.0;
 
-                    var NewGamma = cmsBuildParametricToneCurve(self.ContextID, 1, SingleGamma);
-                    if (NewGamma is null)
-                        return null;
-                    nItems = 1;
-                    return NewGamma;
-                }
+                var NewGamma = cmsBuildParametricToneCurve(self.ContextID, 1, SingleGamma);
+                if (NewGamma is null)
+                    return null;
+                nItems = 1;
+                return NewGamma;
+            }
             case 1:     // Specified as the exponent of gamma function
-                {
-                    if (!io.ReadUshort(out var SingleGammaFixed)) return null;
-                    SingleGamma[0] = U8Fixed8ToDouble(SingleGammaFixed);
+            {
+                if (!io.ReadUshort(out var SingleGammaFixed))
+                    return null;
+                SingleGamma[0] = U8Fixed8ToDouble(SingleGammaFixed);
 
-                    nItems = 1;
-                    return cmsBuildParametricToneCurve(self.ContextID, 1, SingleGamma);
-                }
+                nItems = 1;
+                return cmsBuildParametricToneCurve(self.ContextID, 1, SingleGamma);
+            }
             default:
+            {
+                if (Count > 0x7FFF)
+                    return null;    // This is to prevent bad guys from doing bad things
+
+                var NewGamma = cmsBuildTabulatedToneCurve16(self.ContextID, Count, null);
+                if (NewGamma is null)
+                    return null;
+
+                if (!io.ReadUshortArray(Count, NewGamma.Table16))
                 {
-                    if (Count > 0x7FFF)
-                        return null;    // This is to prevent bad guys from doing bad things
-
-                    var NewGamma = cmsBuildTabulatedToneCurve16(self.ContextID, Count, null);
-                    if (NewGamma is null) return null;
-
-                    if (!io.ReadUshortArray(Count, NewGamma.Table16))
-                    {
-                        cmsFreeToneCurve(NewGamma);
-                        return null;
-                    }
-
-                    nItems = 1;
-                    return NewGamma;
+                    cmsFreeToneCurve(NewGamma);
+                    return null;
                 }
+
+                nItems = 1;
+                return NewGamma;
+            }
         }
     }
 
@@ -1175,12 +1532,15 @@ public static partial class Lcms2
             // Single gamma, preserve number
             var SingleGammaFixed = DoubleToU8Fixed8(Curve.Segments[0].Params[0]);
 
-            if (!io.Write((uint)1)) return false;
-            if (!io.Write(SingleGammaFixed)) return false;
+            if (!io.Write((uint)1))
+                return false;
+            if (!io.Write(SingleGammaFixed))
+                return false;
             return true;
         }
 
-        if (!io.Write(Curve.nEntries)) return false;
+        if (!io.Write(Curve.nEntries))
+            return false;
 
         return io.Write(Curve.nEntries, Curve.Table16);
     }
@@ -1191,15 +1551,18 @@ public static partial class Lcms2
 
     private static Signature DecideCurveType(double ICCVersion, object? Data)
     {
-        if (ICCVersion < 4.0) return Signature.TagType.Curve;
+        if (ICCVersion < 4.0)
+            return Signatures.TagType.Curve;
 
         if (Data is ToneCurve Curve)
         {
-            if (Curve.nSegments is not 1) return Signature.TagType.Curve;
-            if (Curve.Segments?[0].Type is < 0 or > 5) return Signature.TagType.Curve;
+            if (Curve.nSegments is not 1)
+                return Signatures.TagType.Curve;
+            if (Curve.Segments?[0].Type is < 0 or > 5)
+                return Signatures.TagType.Curve;
         }
 
-        return Signature.TagType.ParametricCurve;
+        return Signatures.TagType.ParametricCurve;
     }
 
     private static ToneCurve? Type_ParametricCurve_Read(TagTypeHandler self, IOHandler io, out uint nItems, uint _1)
@@ -1208,8 +1571,10 @@ public static partial class Lcms2
         Span<double> Params = stackalloc double[10];
 
         nItems = 0;
-        if (!io.ReadUshort(out var Type)) return null;
-        if (!io.ReadUshort(out _)) return null;   // Reserved
+        if (!io.ReadUshort(out var Type))
+            return null;
+        if (!io.ReadUshort(out _))
+            return null;   // Reserved
 
         if (Type > 4)
         {
@@ -1221,7 +1586,8 @@ public static partial class Lcms2
         var n = ParamsByType[Type];
 
         for (var i = 0; i < n; i++)
-            if (!io.ReadFixed15_16(out Params[i])) return null;
+            if (!io.ReadFixed15_16(out Params[i]))
+                return null;
 
         var NewGamma = cmsBuildParametricToneCurve(self.ContextID, Type + 1, Params);
 
@@ -1240,7 +1606,10 @@ public static partial class Lcms2
 
         if (Curve.nSegments is 1 && typen < 1)
         {
-            LogError(self.ContextID, ErrorCodes.UnknownExtension, "Multisegment or Inverted parametric curves cannot be written");
+            LogError(
+                self.ContextID,
+                ErrorCodes.UnknownExtension,
+                "Multisegment or Inverted parametric curves cannot be written");
             return false;
         }
 
@@ -1252,12 +1621,15 @@ public static partial class Lcms2
 
         var nParam = ParamsByType[typen];
 
-        if (!io.Write((ushort)(Curve.Segments[0].Type - 1))) return false;
-        if (!io.Write((ushort)0)) return false;    // Reserved
+        if (!io.Write((ushort)(Curve.Segments[0].Type - 1)))
+            return false;
+        if (!io.Write((ushort)0))
+            return false;    // Reserved
 
         for (var i = 0; i < nParam; i++)
         {
-            if (!io.Write(Curve.Segments[0].Params[i])) return false;
+            if (!io.Write(Curve.Segments[0].Params[i]))
+                return false;
         }
 
         return true;
@@ -1274,7 +1646,8 @@ public static partial class Lcms2
 
         nItems = 0;
 
-        if (io.ReadFunc(io, timestamp, (uint)timestamp.Length, 1) is not 1) return null;
+        if (io.ReadFunc(io, timestamp, (uint)timestamp.Length, 1) is not 1)
+            return null;
 
         //NewDateTime = _cmsMalloc<DateTime>(self.ContextID);
         //if (NewDateTime is null) return null;
@@ -1312,18 +1685,27 @@ public static partial class Lcms2
 
     #region Measurement
 
-    private static Box<IccMeasurementConditions>? Type_Measurement_Read(TagTypeHandler _1, IOHandler io, out uint nItems, uint _2)
+    private static Box<IccMeasurementConditions>? Type_Measurement_Read(
+        TagTypeHandler _1,
+        IOHandler io,
+        out uint nItems,
+        uint _2)
     {
         IccMeasurementConditions mc = new();
 
         nItems = 0;
         //memset(&mc, 0, _sizeof<IccMeasurementConditions>());
 
-        if (!io.ReadUint(out mc.Observer)) return null;
-        if (!io.ReadXYZ(out mc.Backing)) return null;
-        if (!io.ReadUint(out mc.Geometry)) return null;
-        if (!io.ReadFixed15_16(out mc.Flare)) return null;
-        if (!io.ReadUint(out var illuminant)) return null;
+        if (!io.ReadUint(out mc.Observer))
+            return null;
+        if (!io.ReadXYZ(out mc.Backing))
+            return null;
+        if (!io.ReadUint(out mc.Geometry))
+            return null;
+        if (!io.ReadFixed15_16(out mc.Flare))
+            return null;
+        if (!io.ReadUint(out var illuminant))
+            return null;
         mc.IlluminantType = (IlluminantType)illuminant;
 
         //var result = _cmsDupMem<IccMeasurementConditions>(self.ContextID, &mc);
@@ -1335,13 +1717,19 @@ public static partial class Lcms2
 
     private static bool Type_Measurement_Write(TagTypeHandler _1, IOHandler io, object? Ptr, uint _2)
     {
-        if (Ptr is not Box<IccMeasurementConditions> mc) return false;
+        if (Ptr is not Box<IccMeasurementConditions> mc)
+            return false;
 
-        if (!io.Write(mc.Value.Observer)) return false;
-        if (!io.Write(mc.Value.Backing)) return false;
-        if (!io.Write(mc.Value.Geometry)) return false;
-        if (!io.Write(mc.Value.Flare)) return false;
-        if (!io.Write((uint)mc.Value.IlluminantType)) return false;
+        if (!io.Write(mc.Value.Observer))
+            return false;
+        if (!io.Write(mc.Value.Backing))
+            return false;
+        if (!io.Write(mc.Value.Geometry))
+            return false;
+        if (!io.Write(mc.Value.Flare))
+            return false;
+        if (!io.Write((uint)mc.Value.IlluminantType))
+            return false;
 
         return true;
     }
@@ -1367,17 +1755,23 @@ public static partial class Lcms2
         char[]? Block;
 
         nItems = 0;
-        if (!io.ReadUint(out var Count)) return null;
-        if (!io.ReadUint(out var RecLen)) return null;
+        if (!io.ReadUint(out var Count))
+            return null;
+        if (!io.ReadUint(out var RecLen))
+            return null;
 
         if (RecLen is not 12)
         {
-            LogError(self.ContextID, ErrorCodes.UnknownExtension, "multiLocalizedUnicodeType of len != 12 is not supported");
+            LogError(
+                self.ContextID,
+                ErrorCodes.UnknownExtension,
+                "multiLocalizedUnicodeType of len != 12 is not supported");
             return null;
         }
 
         Mlu? mlu = cmsMLUalloc(self.ContextID, Count);
-        if (mlu is null) return null;
+        if (mlu is null)
+            return null;
 
         //mlu->UsedEntries = Count;
 
@@ -1386,22 +1780,29 @@ public static partial class Lcms2
 
         for (var i = 0; i < Count; i++)
         {
-            if (!io.ReadUshort(out var Language)) goto Error;
-            if (!io.ReadUshort(out var Country)) goto Error;
+            if (!io.ReadUshort(out var Language))
+                goto Error;
+            if (!io.ReadUshort(out var Country))
+                goto Error;
 
             // Now deal with Len and offset
-            if (!io.ReadUint(out var Len)) goto Error;
-            if (!io.ReadUint(out var Offset)) goto Error;
+            if (!io.ReadUint(out var Len))
+                goto Error;
+            if (!io.ReadUint(out var Offset))
+                goto Error;
 
             // Offset MUST be even because it indexes a block of utf16 chars.
             // Tricky profiles that uses odd positions will not work anyway
             // because the whole utf16 block is previously converted to wchar_t
             // and sizeof this type may be of 4 bytes. On Linux systems, for example.
-            if ((Offset & 1) is not 0) goto Error;
+            if ((Offset & 1) is not 0)
+                goto Error;
 
             // Check for overflow
-            if (Offset < (SizeOfHeader + 8)) goto Error;
-            if (((Offset + Len) < Len) || ((Offset + Len) > SizeOfTag + 8)) goto Error;
+            if (Offset < (SizeOfHeader + 8))
+                goto Error;
+            if (((Offset + Len) < Len) || ((Offset + Len) > SizeOfTag + 8))
+                goto Error;
 
             // True begin of the string
             BeginOfThisString = Offset - SizeOfHeader - 8;
@@ -1427,7 +1828,8 @@ public static partial class Lcms2
         else
         {
             // Make sure this is an even utf16 size.
-            if ((SizeOfTag & 1) is not 0) goto Error;
+            if ((SizeOfTag & 1) is not 0)
+                goto Error;
             //Block = _cmsMalloc<char>(self.ContextID, SizeOfTag);
             NumOfWchar = SizeOfTag / sizeof(char);
             //Block = GetArray<char>(self.ContextID, NumOfWchar);
@@ -1451,7 +1853,8 @@ public static partial class Lcms2
         return mlu;
 
     Error:
-        if (mlu is not null) cmsMLUfree(mlu);
+        if (mlu is not null)
+            cmsMLUfree(mlu);
 
         return null;
     }
@@ -1461,15 +1864,20 @@ public static partial class Lcms2
         if (Ptr is null)
         {
             // Empty placeholder
-            if (!io.Write((uint)0)) return false;
-            if (!io.Write((uint)12)) return false;
+            if (!io.Write((uint)0))
+                return false;
+            if (!io.Write((uint)12))
+                return false;
             return true;
         }
 
-        if (Ptr is not Mlu mlu) return false;
+        if (Ptr is not Mlu mlu)
+            return false;
 
-        if (!io.Write(mlu.UsedEntries)) return false;
-        if (!io.Write((uint)12)) return false;
+        if (!io.Write(mlu.UsedEntries))
+            return false;
+        if (!io.Write((uint)12))
+            return false;
 
         var HeaderSize = (12 * mlu.UsedEntries) + (sizeof(uint) * 2);
 
@@ -1480,13 +1888,20 @@ public static partial class Lcms2
 
             Offset += HeaderSize + 8;
 
-            if (!io.Write(mlu.Entries[i].Language)) return false;
-            if (!io.Write(mlu.Entries[i].Country)) return false;
-            if (!io.Write(Len)) return false;
-            if (!io.Write(Offset)) return false;
+            if (!io.Write(mlu.Entries[i].Language))
+                return false;
+            if (!io.Write(mlu.Entries[i].Country))
+                return false;
+            if (!io.Write(Len))
+                return false;
+            if (!io.Write(Offset))
+                return false;
         }
 
-        return _cmsWriteWCharArray(io, mlu.PoolUsedInBytes / sizeof(char), mlu.MemPool.AsSpan()[..(int)(mlu.PoolUsedInBytes / sizeof(char))]);
+        return _cmsWriteWCharArray(
+            io,
+            mlu.PoolUsedInBytes / sizeof(char),
+            mlu.MemPool.AsSpan()[..(int)(mlu.PoolUsedInBytes / sizeof(char))]);
     }
 
     private static Mlu? Type_MLU_Dup(TagTypeHandler _1, object? Ptr, uint _2) =>
@@ -1521,20 +1936,20 @@ public static partial class Lcms2
     private static Signature DecideLUTtypeA2B(double ICCVersion, object? Data) =>
         (ICCVersion < 4.0)
             ? Data is Pipeline p
-                ? p.SaveAs8Bits
-                    ? Signature.TagType.Lut8
-                    : Signature.TagType.Lut16
-                : Signature.TagType.LutAtoB
-            : Signature.TagType.LutAtoB;
+                  ? p.SaveAs8Bits
+                        ? Signatures.TagType.Lut8
+                        : Signatures.TagType.Lut16
+                  : Signatures.TagType.LutAtoB
+            : Signatures.TagType.LutAtoB;
 
     private static Signature DecideLUTtypeB2A(double ICCVersion, object? Data) =>
         (ICCVersion < 4.0)
             ? Data is Pipeline p
-                ? p.SaveAs8Bits
-                    ? Signature.TagType.Lut8
-                    : Signature.TagType.Lut16
-                : Signature.TagType.LutBtoA
-            : Signature.TagType.LutBtoA;
+                  ? p.SaveAs8Bits
+                        ? Signatures.TagType.Lut8
+                        : Signatures.TagType.Lut16
+                  : Signatures.TagType.LutBtoA
+            : Signatures.TagType.LutBtoA;
 
     private static bool Read8bitTables(Context? ContextID, IOHandler io, Pipeline lut, uint nChannels)
     {
@@ -1544,7 +1959,8 @@ public static partial class Lcms2
         //ToneCurve[] Tables = pool.Rent(cmsMAXCHANNELS);
         var Tables = new ToneCurve[cmsMAXCHANNELS];
 
-        if (nChannels is > cmsMAXCHANNELS or <= 0) goto Error2;
+        if (nChannels is > cmsMAXCHANNELS or <= 0)
+            goto Error2;
 
         //memset(Tables, 0, _sizeof<nint>() * cmsMAXCHANNELS);
 
@@ -1556,15 +1972,18 @@ public static partial class Lcms2
         for (var i = 0; i < nChannels; i++)
         {
             Tables[i] = cmsBuildTabulatedToneCurve16(ContextID, 256, null)!;
-            if (Tables[i] is null) goto Error;
+            if (Tables[i] is null)
+                goto Error;
         }
 
         for (var i = 0; i < nChannels; i++)
         {
-            if (io.ReadFunc(io, Temp, 256, 1) is not 1) goto Error;
+            if (io.ReadFunc(io, Temp, 256, 1) is not 1)
+                goto Error;
 
             for (var j = 0; j < 256; j++)
-                if (Tables[i].Table16 is not null) Tables[i].Table16![j] = FROM_8_TO_16(Temp[j]);
+                if (Tables[i].Table16 is not null)
+                    Tables[i].Table16![j] = FROM_8_TO_16(Temp[j]);
         }
 
         //ReturnArray(ContextID, Temp);
@@ -1581,10 +2000,11 @@ public static partial class Lcms2
     Error:
         for (var i = 0; i < nChannels; i++)
         {
-            if (Tables[i] is not null) cmsFreeToneCurve(Tables[i]);
+            if (Tables[i] is not null)
+                cmsFreeToneCurve(Tables[i]);
         }
 
-    //if (Temp is not null) ReturnArray(ContextID, Temp);
+        //if (Temp is not null) ReturnArray(ContextID, Temp);
 
     Error2:
         //ReturnArray(pool, Tables);
@@ -1604,7 +2024,8 @@ public static partial class Lcms2
                     (Tables.TheCurves[i].Table16![1] is 65535))
                 {
                     for (var j = 0; j < 256; j++)
-                        if (!io.Write((byte)j)) return false;
+                        if (!io.Write((byte)j))
+                            return false;
                 }
                 else
                 {
@@ -1618,12 +2039,14 @@ public static partial class Lcms2
                         for (var j = 0; j < 256; j++)
                         {
                             var val = FROM_16_TO_8(Tables.TheCurves[i].Table16[j]);
-                            if (!io.Write(val)) return false;
+                            if (!io.Write(val))
+                                return false;
                         }
                     }
                 }
             }
         }
+
         return true;
     }
 
@@ -1631,20 +2054,24 @@ public static partial class Lcms2
     {
         var rv = 1u;
 
-        if (a is 0) return 0;
-        if (n is 0) return 0;
+        if (a is 0)
+            return 0;
+        if (n is 0)
+            return 0;
 
         for (; b > 0; b--)
         {
             rv *= a;
 
             // Check for overflow
-            if (rv > UInt32.MaxValue / a) return unchecked((uint)-1);
+            if (rv > UInt32.MaxValue / a)
+                return unchecked((uint)-1);
         }
 
         var rc = rv * n;
 
-        if (rv != rc / n) return unchecked((uint)-1);
+        if (rv != rc / n)
+            return unchecked((uint)-1);
         return rc;
     }
 
@@ -1655,26 +2082,35 @@ public static partial class Lcms2
 
         nItems = 0;
 
-        if (!io.ReadByte(out var InputChannels)) goto Error;
-        if (!io.ReadByte(out var OutputChannels)) goto Error;
-        if (!io.ReadByte(out var CLUTpoints)) goto Error;
+        if (!io.ReadByte(out var InputChannels))
+            goto Error;
+        if (!io.ReadByte(out var OutputChannels))
+            goto Error;
+        if (!io.ReadByte(out var CLUTpoints))
+            goto Error;
 
-        if (CLUTpoints is 1) goto Error;    // Impossible value, 0 for no CLUT and then 2 at least
+        if (CLUTpoints is 1)
+            goto Error;    // Impossible value, 0 for no CLUT and then 2 at least
 
         // Padding
-        if (!io.ReadByte(out _)) goto Error;
+        if (!io.ReadByte(out _))
+            goto Error;
 
         // Do some checking
-        if (InputChannels is 0 or > cmsMAXCHANNELS) goto Error;
-        if (OutputChannels is 0 or > cmsMAXCHANNELS) goto Error;
+        if (InputChannels is 0 or > cmsMAXCHANNELS)
+            goto Error;
+        if (OutputChannels is 0 or > cmsMAXCHANNELS)
+            goto Error;
 
         // Allocates an empty Pipeline
         NewLUT = cmsPipelineAlloc(self.ContextID, InputChannels, OutputChannels);
-        if (NewLUT is null) goto Error;
+        if (NewLUT is null)
+            goto Error;
 
         // Read the Matrix
         for (var i = 0; i < 9; i++)
-            if (!io.ReadFixed15_16(out Matrix[i])) goto Error;
+            if (!io.ReadFixed15_16(out Matrix[i]))
+                goto Error;
 
         // Only operates if not identity...
         if ((InputChannels is 3) &&
@@ -1685,11 +2121,13 @@ public static partial class Lcms2
         }
 
         // Get input tables
-        if (!Read8bitTables(self.ContextID, io, NewLUT, InputChannels)) goto Error;
+        if (!Read8bitTables(self.ContextID, io, NewLUT, InputChannels))
+            goto Error;
 
         // Get 3D CLUT. Check the overflow...
         var nTabSize = uipow(OutputChannels, CLUTpoints, InputChannels);
-        if (nTabSize == unchecked((uint)-1)) goto Error;
+        if (nTabSize == unchecked((uint)-1))
+            goto Error;
         if (nTabSize > 0)
         {
             //var bytePool = Context.GetPool<byte>(self.ContextID);
@@ -1723,7 +2161,10 @@ public static partial class Lcms2
             //ReturnArray(self.ContextID, Temp);
             Temp = null;
 
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, cmsStageAllocCLut16bit(self.ContextID, CLUTpoints, InputChannels, OutputChannels, T)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    cmsStageAllocCLut16bit(self.ContextID, CLUTpoints, InputChannels, OutputChannels, T)))
             {
                 //ReturnArray(self.ContextID, T);
                 goto Error;
@@ -1732,13 +2173,15 @@ public static partial class Lcms2
         }
 
         // Get output tables
-        if (!Read8bitTables(self.ContextID, io, NewLUT, OutputChannels)) goto Error;
+        if (!Read8bitTables(self.ContextID, io, NewLUT, OutputChannels))
+            goto Error;
 
         nItems = 1;
         return NewLUT;
 
     Error:
-        if (NewLUT is not null) cmsPipelineFree(NewLUT);
+        if (NewLUT is not null)
+            cmsPipelineFree(NewLUT);
 
         return null;
     }
@@ -1761,26 +2204,27 @@ public static partial class Lcms2
             return false;
         }
 
-        if (mpe.Type == Signature.Stage.MatrixElem)
+        if (mpe.Type == Signatures.Stage.MatrixElem)
         {
-            if (mpe.InputChannels is not 3 || mpe.OutputChannels is not 3) return false;
+            if (mpe.InputChannels is not 3 || mpe.OutputChannels is not 3)
+                return false;
             MatMPE = mpe.Data as StageMatrixData;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == Signature.Stage.CurveSetElem)
+        if (mpe?.Type == Signatures.Stage.CurveSetElem)
         {
             PreMPE = mpe.Data as StageToneCurvesData;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == Signature.Stage.CLutElem)
+        if (mpe?.Type == Signatures.Stage.CLutElem)
         {
             clut = mpe.Data as StageCLutData<ushort>;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == Signature.Stage.CurveSetElem)
+        if (mpe?.Type == Signatures.Stage.CurveSetElem)
         {
             PostMPE = mpe.Data as StageToneCurvesData;
             mpe = mpe.Next;
@@ -1802,26 +2246,36 @@ public static partial class Lcms2
             {
                 if (clut.Params.nSamples[i] != clutPoints)
                 {
-                    LogError(self.ContextID, ErrorCodes.UnknownExtension, "LUT with different samples per dimension not suitable to be saved as LUT8");
+                    LogError(
+                        self.ContextID,
+                        ErrorCodes.UnknownExtension,
+                        "LUT with different samples per dimension not suitable to be saved as LUT8");
                     return false;
                 }
             }
         }
 
-        if (!io.Write((byte)cmsPipelineInputChannels(NewLut))) return false;
-        if (!io.Write((byte)cmsPipelineOutputChannels(NewLut))) return false;
-        if (!io.Write((byte)clutPoints)) return false;
-        if (!io.Write((byte)0)) return false; // Padding
+        if (!io.Write((byte)cmsPipelineInputChannels(NewLut)))
+            return false;
+        if (!io.Write((byte)cmsPipelineOutputChannels(NewLut)))
+            return false;
+        if (!io.Write((byte)clutPoints))
+            return false;
+        if (!io.Write((byte)0))
+            return false; // Padding
 
         var mat = MatMPE is not null ? MatMPE.Double : ident;
         for (var i = 0; i < 9; i++)
-            if (!io.Write(mat[i])) return false;
+            if (!io.Write(mat[i]))
+                return false;
 
         // The prelinearization table
-        if (!Write8bitTables(self.ContextID, io, NewLut.InputChannels, PreMPE)) return false;
+        if (!Write8bitTables(self.ContextID, io, NewLut.InputChannels, PreMPE))
+            return false;
 
         var nTabSize = uipow(NewLut.OutputChannels, clutPoints, NewLut.InputChannels);
-        if (nTabSize == unchecked((uint)-1)) return false;
+        if (nTabSize == unchecked((uint)-1))
+            return false;
         if (nTabSize > 0)
         {
             // The 3D CLUT
@@ -1830,7 +2284,8 @@ public static partial class Lcms2
                 for (var j = 0; j < nTabSize; j++)
                 {
                     var val = FROM_16_TO_8(clut.TUshort[j]);
-                    if (!io.Write(val)) return false;
+                    if (!io.Write(val))
+                        return false;
                 }
             }
         }
@@ -1854,9 +2309,11 @@ public static partial class Lcms2
         //var pool = Context.GetPool<ToneCurve>(ContextID);
 
         // Maybe an empty table? (this is a lcms extension)
-        if (nEntries <= 0) return true;
+        if (nEntries <= 0)
+            return true;
 
-        if (nEntries < 2 || nChannels > cmsMAXCHANNELS) return false;
+        if (nEntries < 2 || nChannels > cmsMAXCHANNELS)
+            return false;
 
         // Init table to zero
         //memset(Tables, 0, _sizeof<nint>() * cmsMAXCHANNELS);
@@ -1866,9 +2323,11 @@ public static partial class Lcms2
         for (var i = 0; i < nChannels; i++)
         {
             Tables[i] = cmsBuildTabulatedToneCurve16(ContextID, nEntries, null)!;
-            if (Tables[i] is null) goto Error;
+            if (Tables[i] is null)
+                goto Error;
 
-            if (!io.ReadUshortArray(nEntries, Tables[i].Table16)) goto Error;
+            if (!io.ReadUshortArray(nEntries, Tables[i].Table16))
+                goto Error;
         }
 
         // Add the table (which may certainly be an identity, but this is up to the optimizer, not the reading code)
@@ -1883,7 +2342,8 @@ public static partial class Lcms2
 
     Error:
         for (var i = 0; i < nChannels; i++)
-            if (Tables[i] is not null) cmsFreeToneCurve(Tables[i]);
+            if (Tables[i] is not null)
+                cmsFreeToneCurve(Tables[i]);
 
         //ReturnArray(pool, Tables);
         return false;
@@ -1899,8 +2359,10 @@ public static partial class Lcms2
 
             // Usual case of identity curves
             for (var j = 0; j < nEntries; j++)
-                if (!io.Write(Tables.TheCurves[i].Table16[j])) return false;
+                if (!io.Write(Tables.TheCurves[i].Table16[j]))
+                    return false;
         }
+
         return true;
     }
 
@@ -1911,24 +2373,32 @@ public static partial class Lcms2
 
         nItems = 0;
 
-        if (!io.ReadByte(out var InputChannels)) goto Error;
-        if (!io.ReadByte(out var OutputChannels)) goto Error;
-        if (!io.ReadByte(out var CLUTpoints)) goto Error;  // 255 maximum
+        if (!io.ReadByte(out var InputChannels))
+            goto Error;
+        if (!io.ReadByte(out var OutputChannels))
+            goto Error;
+        if (!io.ReadByte(out var CLUTpoints))
+            goto Error;  // 255 maximum
 
         // Padding
-        if (!io.ReadByte(out _)) goto Error;
+        if (!io.ReadByte(out _))
+            goto Error;
 
         // Do some checking
-        if (InputChannels is 0 or > cmsMAXCHANNELS) goto Error;
-        if (OutputChannels is 0 or > cmsMAXCHANNELS) goto Error;
+        if (InputChannels is 0 or > cmsMAXCHANNELS)
+            goto Error;
+        if (OutputChannels is 0 or > cmsMAXCHANNELS)
+            goto Error;
 
         // Allocates an empty LUT
         NewLUT = cmsPipelineAlloc(self.ContextID, InputChannels, OutputChannels);
-        if (NewLUT is null) goto Error;
+        if (NewLUT is null)
+            goto Error;
 
         // Read the Matrix
         for (var i = 0; i < 9; i++)
-            if (!io.ReadFixed15_16(out Matrix[i])) goto Error;
+            if (!io.ReadFixed15_16(out Matrix[i]))
+                goto Error;
 
         // Only operates on 3 channels
         if ((InputChannels is 3) &&
@@ -1938,18 +2408,24 @@ public static partial class Lcms2
             goto Error;
         }
 
-        if (!io.ReadUshort(out var InputEntries)) goto Error;
-        if (!io.ReadUshort(out var OutputEntries)) goto Error;
+        if (!io.ReadUshort(out var InputEntries))
+            goto Error;
+        if (!io.ReadUshort(out var OutputEntries))
+            goto Error;
 
-        if (InputEntries > 0x7FFF || OutputEntries > 0x7FFF) goto Error;
-        if (CLUTpoints is 1) goto Error;    // Impossible value, 0 for no CLUT and then 2 at least
+        if (InputEntries > 0x7FFF || OutputEntries > 0x7FFF)
+            goto Error;
+        if (CLUTpoints is 1)
+            goto Error;    // Impossible value, 0 for no CLUT and then 2 at least
 
         // Get input tables
-        if (!Read16bitTables(self.ContextID, io, NewLUT, InputChannels, InputEntries)) goto Error;
+        if (!Read16bitTables(self.ContextID, io, NewLUT, InputChannels, InputEntries))
+            goto Error;
 
         // Get 3D CLUT
         var nTabSize = uipow(OutputChannels, CLUTpoints, InputChannels);
-        if (nTabSize == unchecked((uint)-1)) goto Error;
+        if (nTabSize == unchecked((uint)-1))
+            goto Error;
         if (nTabSize > 0)
         {
             //var T = _cmsCalloc<ushort>(self.ContextID, nTabSize);
@@ -1963,7 +2439,10 @@ public static partial class Lcms2
                 goto Error;
             }
 
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, cmsStageAllocCLut16bit(self.ContextID, CLUTpoints, InputChannels, OutputChannels, T)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    cmsStageAllocCLut16bit(self.ContextID, CLUTpoints, InputChannels, OutputChannels, T)))
             {
                 //ReturnArray(self.ContextID, T);
                 goto Error;
@@ -1972,13 +2451,15 @@ public static partial class Lcms2
         }
 
         // Get output tables
-        if (!Read16bitTables(self.ContextID, io, NewLUT, OutputChannels, OutputEntries)) goto Error;
+        if (!Read16bitTables(self.ContextID, io, NewLUT, OutputChannels, OutputEntries))
+            goto Error;
 
         nItems = 1;
         return NewLUT;
 
     Error:
-        if (NewLUT is not null) cmsPipelineFree(NewLUT);
+        if (NewLUT is not null)
+            cmsPipelineFree(NewLUT);
 
         return null;
     }
@@ -1995,26 +2476,27 @@ public static partial class Lcms2
 
         // Disassemble the LUT into components.
         var mpe = NewLut.Elements;
-        if (mpe?.Type == Signature.Stage.MatrixElem)
+        if (mpe?.Type == Signatures.Stage.MatrixElem)
         {
-            if (mpe.InputChannels is not 3 || mpe.OutputChannels is not 3) return false;
+            if (mpe.InputChannels is not 3 || mpe.OutputChannels is not 3)
+                return false;
             MatMPE = mpe.Data as StageMatrixData;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == Signature.Stage.CurveSetElem)
+        if (mpe?.Type == Signatures.Stage.CurveSetElem)
         {
             PreMPE = mpe.Data as StageToneCurvesData;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == Signature.Stage.CLutElem)
+        if (mpe?.Type == Signatures.Stage.CLutElem)
         {
             clut = mpe.Data as StageCLutData<ushort>;
             mpe = mpe.Next;
         }
 
-        if (mpe?.Type == Signature.Stage.CurveSetElem)
+        if (mpe?.Type == Signatures.Stage.CurveSetElem)
         {
             PostMPE = mpe.Data as StageToneCurvesData;
             mpe = mpe.Next;
@@ -2039,57 +2521,75 @@ public static partial class Lcms2
             {
                 if (clut.Params.nSamples[i] != clutPoints)
                 {
-                    LogError(self.ContextID, ErrorCodes.UnknownExtension, "LUT with different samples per dimension not suitable to be saved as LUT16");
+                    LogError(
+                        self.ContextID,
+                        ErrorCodes.UnknownExtension,
+                        "LUT with different samples per dimension not suitable to be saved as LUT16");
                     return false;
                 }
             }
         }
 
-        if (!io.Write((byte)NewLut.InputChannels)) return false;
-        if (!io.Write((byte)NewLut.OutputChannels)) return false;
-        if (!io.Write((byte)clutPoints)) return false;
-        if (!io.Write((byte)0)) return false; // Padding
+        if (!io.Write((byte)NewLut.InputChannels))
+            return false;
+        if (!io.Write((byte)NewLut.OutputChannels))
+            return false;
+        if (!io.Write((byte)clutPoints))
+            return false;
+        if (!io.Write((byte)0))
+            return false; // Padding
 
         var mat = MatMPE is not null ? MatMPE.Double : ident;
         for (var i = 0; i < 9; i++)
-            if (!io.Write(mat[i])) return false;
+            if (!io.Write(mat[i]))
+                return false;
 
-        if (!io.Write((ushort)(PreMPE is not null ? PreMPE.TheCurves[0].nEntries : 2))) return false;
-        if (!io.Write((ushort)(PostMPE is not null ? PostMPE.TheCurves[0].nEntries : 2))) return false;
+        if (!io.Write((ushort)(PreMPE is not null ? PreMPE.TheCurves[0].nEntries : 2)))
+            return false;
+        if (!io.Write((ushort)(PostMPE is not null ? PostMPE.TheCurves[0].nEntries : 2)))
+            return false;
 
         // The prelinearization table
         if (PreMPE is not null)
         {
-            if (!Write16bitTables(self.ContextID, io, PreMPE)) return false;
+            if (!Write16bitTables(self.ContextID, io, PreMPE))
+                return false;
         }
         else
         {
             for (var i = 0; i < InputChannels; i++)
             {
-                if (!io.Write((ushort)0)) return false;
-                if (!io.Write((ushort)0xFFFF)) return false;
+                if (!io.Write((ushort)0))
+                    return false;
+                if (!io.Write((ushort)0xFFFF))
+                    return false;
             }
         }
 
         var nTabSize = uipow(NewLut.OutputChannels, clutPoints, NewLut.InputChannels);
-        if (nTabSize == unchecked((uint)-1)) return false;
+        if (nTabSize == unchecked((uint)-1))
+            return false;
         if (nTabSize > 0)
         {
             // The 3D CLUT
-            if (clut is not null && !io.Write(nTabSize, clut.TUshort)) return false;
+            if (clut is not null && !io.Write(nTabSize, clut.TUshort))
+                return false;
         }
 
         // The postlinearization table
         if (PostMPE is not null)
         {
-            if (!Write16bitTables(self.ContextID, io, PostMPE)) return false;
+            if (!Write16bitTables(self.ContextID, io, PostMPE))
+                return false;
         }
         else
         {
             for (var i = 0; i < InputChannels; i++)
             {
-                if (!io.Write((ushort)0)) return false;
-                if (!io.Write((ushort)0xFFFF)) return false;
+                if (!io.Write((ushort)0))
+                    return false;
+                if (!io.Write((ushort)0xFFFF))
+                    return false;
             }
         }
 
@@ -2132,36 +2632,50 @@ public static partial class Lcms2
         Span<double> dOff = stackalloc double[3];
 
         // Go to address
-        if (!io.SeekFunc(io, Offset)) return null;
+        if (!io.SeekFunc(io, Offset))
+            return null;
 
         // Read the Matrix and Offsets
         for (var i = 0; i < 3 * 3; i++)
-            if (!io.ReadFixed15_16(out dMat[i])) return null;
+            if (!io.ReadFixed15_16(out dMat[i]))
+                return null;
         for (var i = 0; i < 3; i++)
-            if (!io.ReadFixed15_16(out dOff[i])) return null;
+            if (!io.ReadFixed15_16(out dOff[i]))
+                return null;
 
         return cmsStageAllocMatrix(self.ContextID, 3, 3, dMat, dOff);
     }
 
-    private static Stage? ReadCLUT(TagTypeHandler self, IOHandler io, uint Offset, uint InputChannels, uint OutputChannels)
+    private static Stage? ReadCLUT(TagTypeHandler self,
+                                   IOHandler io,
+                                   uint Offset,
+                                   uint InputChannels,
+                                   uint OutputChannels)
     {
         Span<byte> gridPoints8 = stackalloc byte[cmsMAXCHANNELS];  // Number of grid points in each dimension
         Span<uint> GridPoints = stackalloc uint[cmsMAXCHANNELS];
 
-        if (!io.SeekFunc(io, Offset)) return null;
-        if (io.ReadFunc(io, gridPoints8, cmsMAXCHANNELS, 1) is not 1) return null;
+        if (!io.SeekFunc(io, Offset))
+            return null;
+        if (io.ReadFunc(io, gridPoints8, cmsMAXCHANNELS, 1) is not 1)
+            return null;
 
         for (var i = 0; i < cmsMAXCHANNELS; i++)
         {
-            if (gridPoints8[i] is 1) return null; // Imposible value, 0 for no CLUT and then 2 at least
+            if (gridPoints8[i] is 1)
+                return null; // Imposible value, 0 for no CLUT and then 2 at least
             GridPoints[i] = gridPoints8[i];
         }
 
-        if (!io.ReadByte(out var Precision)) return null;
+        if (!io.ReadByte(out var Precision))
+            return null;
 
-        if (!io.ReadByte(out _)) return null;
-        if (!io.ReadByte(out _)) return null;
-        if (!io.ReadByte(out _)) return null;
+        if (!io.ReadByte(out _))
+            return null;
+        if (!io.ReadByte(out _))
+            return null;
+        if (!io.ReadByte(out _))
+            return null;
 
         var CLUT = cmsStageAllocCLut16bitGranular(self.ContextID, GridPoints, InputChannels, OutputChannels, null);
         if (CLUT is null || CLUT.Data is not StageCLutData<ushort> Data)
@@ -2180,8 +2694,10 @@ public static partial class Lcms2
                         cmsStageFree(CLUT);
                         return null;
                     }
+
                     Data.TUshort[i] = FROM_8_TO_16(v[0]);
                 }
+
                 break;
 
             case 2:
@@ -2190,6 +2706,7 @@ public static partial class Lcms2
                     cmsStageFree(CLUT);
                     return null;
                 }
+
                 break;
 
             default:
@@ -2204,17 +2721,17 @@ public static partial class Lcms2
     private static ToneCurve? ReadEmbeddedCurve(TagTypeHandler self, IOHandler io)
     {
         var BaseType = io.ReadTypeBase();
-        if (BaseType == Signature.TagType.Curve)
+        if (BaseType == Signatures.TagType.Curve)
         {
             return Type_Curve_Read(self, io, out _, 0);
         }
-        else if (BaseType == Signature.TagType.ParametricCurve)
+        else if (BaseType == Signatures.TagType.ParametricCurve)
         {
             return Type_ParametricCurve_Read(self, io, out _, 0);
         }
         else
         {
-            LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown curve type '{_cmsTagSignature2String(BaseType)}'");
+            LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown curve type '{(BaseType)}'");
             return null;
         }
     }
@@ -2224,9 +2741,11 @@ public static partial class Lcms2
         //var pool = Context.GetPool<ToneCurve>(self.ContextID);
         Stage? Lin = null;
 
-        if (nCurves > cmsMAXCHANNELS) return null;
+        if (nCurves > cmsMAXCHANNELS)
+            return null;
 
-        if (!io.SeekFunc(io, Offset)) return null;
+        if (!io.SeekFunc(io, Offset))
+            return null;
 
         //ToneCurve[] Curves = pool.Rent(cmsMAXCHANNELS);
         var Curves = new ToneCurve[cmsMAXCHANNELS];
@@ -2236,8 +2755,10 @@ public static partial class Lcms2
         for (var i = 0; i < nCurves; i++)
         {
             Curves[i] = ReadEmbeddedCurve(self, io)!;
-            if (Curves[i] is null) goto Error;
-            if (!io.ReadAlignment()) goto Error;
+            if (Curves[i] is null)
+                goto Error;
+            if (!io.ReadAlignment())
+                goto Error;
         }
 
         Lin = cmsStageAllocToneCurves(self.ContextID, nCurves, Curves);
@@ -2258,40 +2779,60 @@ public static partial class Lcms2
 
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
-        if (!io.ReadByte(out var inputChan)) goto Error;     // Number of input channels
-        if (!io.ReadByte(out var outputChan)) goto Error;    // Number of output channels
+        if (!io.ReadByte(out var inputChan))
+            goto Error;     // Number of input channels
+        if (!io.ReadByte(out var outputChan))
+            goto Error;    // Number of output channels
 
-        if (!io.ReadUshort(out _)) goto Error;
+        if (!io.ReadUshort(out _))
+            goto Error;
 
-        if (!io.ReadUint(out var offsetB)) goto Error;      // Offset to first "B" curve
-        if (!io.ReadUint(out var offsetMat)) goto Error;    // Offset to matrix
-        if (!io.ReadUint(out var offsetM)) goto Error;      // Offset to first "M" curve
-        if (!io.ReadUint(out var offsetC)) goto Error;      // Offset to CLUT
-        if (!io.ReadUint(out var offsetA)) goto Error;      // Offset to first "A" curve
+        if (!io.ReadUint(out var offsetB))
+            goto Error;      // Offset to first "B" curve
+        if (!io.ReadUint(out var offsetMat))
+            goto Error;    // Offset to matrix
+        if (!io.ReadUint(out var offsetM))
+            goto Error;      // Offset to first "M" curve
+        if (!io.ReadUint(out var offsetC))
+            goto Error;      // Offset to CLUT
+        if (!io.ReadUint(out var offsetA))
+            goto Error;      // Offset to first "A" curve
 
         // Do some checking
-        if (inputChan is 0 or > cmsMAXCHANNELS) goto Error;
-        if (outputChan is 0 or > cmsMAXCHANNELS) goto Error;
+        if (inputChan is 0 or > cmsMAXCHANNELS)
+            goto Error;
+        if (outputChan is 0 or > cmsMAXCHANNELS)
+            goto Error;
 
         // Allocates an empty LUT
         NewLUT = cmsPipelineAlloc(self.ContextID, inputChan, outputChan);
-        if (NewLUT is null) goto Error;
+        if (NewLUT is null)
+            goto Error;
 
         if (offsetA is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadSetOfCurves(self, io, BaseOffset + offsetA, inputChan)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    ReadSetOfCurves(self, io, BaseOffset + offsetA, inputChan)))
                 goto Error;
         }
 
         if (offsetC is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadCLUT(self, io, BaseOffset + offsetC, inputChan, outputChan)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    ReadCLUT(self, io, BaseOffset + offsetC, inputChan, outputChan)))
                 goto Error;
         }
 
         if (offsetM is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadSetOfCurves(self, io, BaseOffset + offsetM, outputChan)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    ReadSetOfCurves(self, io, BaseOffset + offsetM, outputChan)))
                 goto Error;
         }
 
@@ -2303,7 +2844,10 @@ public static partial class Lcms2
 
         if (offsetB is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadSetOfCurves(self, io, BaseOffset + offsetB, outputChan)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    ReadSetOfCurves(self, io, BaseOffset + offsetB, outputChan)))
                 goto Error;
         }
 
@@ -2311,7 +2855,8 @@ public static partial class Lcms2
         return NewLUT;
 
     Error:
-        if (NewLUT is not null) cmsPipelineFree(NewLUT);
+        if (NewLUT is not null)
+            cmsPipelineFree(NewLUT);
 
         return null;
     }
@@ -2329,11 +2874,13 @@ public static partial class Lcms2
 
         // Write the Matrix
         for (var i = 0; i < n; i++)
-            if (!io.Write(m.Double[i])) return false;
+            if (!io.Write(m.Double[i]))
+                return false;
 
         var offsets = m.Offset is not null ? m.Offset : zeros;
         for (var i = 0; i < mpe.OutputChannels; i++)
-            if (!io.Write(offsets[i])) return false;
+            if (!io.Write(offsets[i]))
+                return false;
 
         return true;
     }
@@ -2348,31 +2895,36 @@ public static partial class Lcms2
             // If this is a table-based curve, use curve type even on V4
             var CurrentType = Type;
 
-            if ((Curves[i].nSegments is 0) ||                                           // 16 bits tabulated
-                ((Curves[i].nSegments is 3) && (Curves[i].Segments[1].Type is 0)) ||    // Floating-point tabulated
+            if ((Curves[i].nSegments is 0) ||                                        // 16 bits tabulated
+                ((Curves[i].nSegments is 3) && (Curves[i].Segments[1].Type is 0)) || // Floating-point tabulated
                 Curves[i].Segments[0].Type < 0)
             {
-                CurrentType = Signature.TagType.Curve;
+                CurrentType = Signatures.TagType.Curve;
             }
 
-            if (!io.WriteTypeBase(CurrentType)) return false;
+            if (!io.WriteTypeBase(CurrentType))
+                return false;
 
-            if (CurrentType == Signature.TagType.Curve)
+            if (CurrentType == Signatures.TagType.Curve)
             {
-                if (!Type_Curve_Write(self, io, Curves[i], 1)) return false;
+                if (!Type_Curve_Write(self, io, Curves[i], 1))
+                    return false;
             }
-            else if (CurrentType == Signature.TagType.ParametricCurve)
+            else if (CurrentType == Signatures.TagType.ParametricCurve)
             {
-                if (!Type_ParametricCurve_Write(self, io, Curves[i], 1)) return false;
+                if (!Type_ParametricCurve_Write(self, io, Curves[i], 1))
+                    return false;
             }
             else
             {
-                LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown curve type '{_cmsTagSignature2String(Type)}'");
+                LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown curve type '{(Type)}'");
                 return false;
             }
 
-            if (!io.WriteAlignment()) return false;
+            if (!io.WriteAlignment())
+                return false;
         }
+
         return true;
     }
 
@@ -2382,7 +2934,10 @@ public static partial class Lcms2
 
         if (mpe.Data is StageCLutData<float>)
         {
-            LogError(self.ContextID, ErrorCodes.NotSuitable, "Cannot save floating point data, CLUT are 8 or 16 bit only");
+            LogError(
+                self.ContextID,
+                ErrorCodes.NotSuitable,
+                "Cannot save floating point data, CLUT are 8 or 16 bit only");
             return false;
         }
 
@@ -2393,23 +2948,30 @@ public static partial class Lcms2
         for (var i = 0; i < CLUT.Params.nInputs; i++)
             gridPoints[i] = (byte)CLUT.Params.nSamples[i];
 
-        if (!io.WriteFunc(io, (uint)(cmsMAXCHANNELS * sizeof(byte)), gridPoints)) return false;
+        if (!io.WriteFunc(io, (uint)(cmsMAXCHANNELS * sizeof(byte)), gridPoints))
+            return false;
 
-        if (!io.Write(Precision)) return false;
-        if (!io.Write((byte)0)) return false;
-        if (!io.Write((byte)0)) return false;
-        if (!io.Write((byte)0)) return false;
+        if (!io.Write(Precision))
+            return false;
+        if (!io.Write((byte)0))
+            return false;
+        if (!io.Write((byte)0))
+            return false;
+        if (!io.Write((byte)0))
+            return false;
 
         // Precision can be 1 or 2 bytes
         switch (Precision)
         {
             case 1:
                 for (var i = 0; i < CLUT.nEntries; i++)
-                    if (!io.Write(FROM_16_TO_8(CLUT.TUshort[i]))) return false;
+                    if (!io.Write(FROM_16_TO_8(CLUT.TUshort[i])))
+                        return false;
                 break;
 
             case 2:
-                if (!io.Write(CLUT.nEntries, CLUT.TUshort)) return false;
+                if (!io.Write(CLUT.nEntries, CLUT.TUshort))
+                    return false;
                 break;
 
             default:
@@ -2432,11 +2994,35 @@ public static partial class Lcms2
         var BassOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         if (Lut.Elements is not null &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out M, Signature.Stage.MatrixElem, out Matrix, Signature.Stage.CurveSetElem, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out A, Signature.Stage.CLutElem, out CLUT, Signature.Stage.CurveSetElem, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out A, Signature.Stage.CLutElem, out CLUT, Signature.Stage.CurveSetElem, out M,
-                                                    Signature.Stage.MatrixElem, out Matrix, Signature.Stage.CurveSetElem, out B))
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signatures.Stage.CurveSetElem, out B) &&
+            !cmsPipelineCheckAndRetrieveStages(
+                Lut,
+                Signatures.Stage.CurveSetElem,
+                out M,
+                Signatures.Stage.MatrixElem,
+                out Matrix,
+                Signatures.Stage.CurveSetElem,
+                out B) &&
+            !cmsPipelineCheckAndRetrieveStages(
+                Lut,
+                Signatures.Stage.CurveSetElem,
+                out A,
+                Signatures.Stage.CLutElem,
+                out CLUT,
+                Signatures.Stage.CurveSetElem,
+                out B) &&
+            !cmsPipelineCheckAndRetrieveStages(
+                Lut,
+                Signatures.Stage.CurveSetElem,
+                out A,
+                Signatures.Stage.CLutElem,
+                out CLUT,
+                Signatures.Stage.CurveSetElem,
+                out M,
+                Signatures.Stage.MatrixElem,
+                out Matrix,
+                Signatures.Stage.CurveSetElem,
+                out B))
         {
             LogError(self.ContextID, ErrorCodes.NotSuitable, "LUT is not suitable to be saved as LutAToB");
             return false;
@@ -2447,59 +3033,78 @@ public static partial class Lcms2
         var outputChan = cmsPipelineOutputChannels(Lut);
 
         // Write channel count
-        if (!io.Write((byte)inputChan)) return false;
-        if (!io.Write((byte)outputChan)) return false;
-        if (!io.Write((ushort)0)) return false;
+        if (!io.Write((byte)inputChan))
+            return false;
+        if (!io.Write((byte)outputChan))
+            return false;
+        if (!io.Write((ushort)0))
+            return false;
 
         // Keep directory location to be filled later
         var DirectoryPos = io.TellFunc(io);
 
         // Write the directory
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write((uint)0)) return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write((uint)0))
+            return false;
 
         if (A is not null)
         {
             offsetA = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, A)) return false;
+            if (!WriteSetOfCurves(self, io, Signatures.TagType.ParametricCurve, A))
+                return false;
         }
 
         if (CLUT is not null)
         {
             offsetC = io.TellFunc(io) - BassOffset;
-            if (!WriteCLUT(self, io, (byte)(Lut.SaveAs8Bits ? 1 : 2), CLUT)) return false;
+            if (!WriteCLUT(self, io, (byte)(Lut.SaveAs8Bits ? 1 : 2), CLUT))
+                return false;
         }
 
         if (M is not null)
         {
             offsetM = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, M)) return false;
+            if (!WriteSetOfCurves(self, io, Signatures.TagType.ParametricCurve, M))
+                return false;
         }
 
         if (Matrix is not null)
         {
             offsetMat = io.TellFunc(io) - BassOffset;
-            if (!WriteMatrix(self, io, Matrix)) return false;
+            if (!WriteMatrix(self, io, Matrix))
+                return false;
         }
 
         if (B is not null)
         {
             offsetB = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, B)) return false;
+            if (!WriteSetOfCurves(self, io, Signatures.TagType.ParametricCurve, B))
+                return false;
         }
 
         var CurrentPos = io.TellFunc(io);
 
-        if (!io.SeekFunc(io, DirectoryPos)) return false;
+        if (!io.SeekFunc(io, DirectoryPos))
+            return false;
 
-        if (!io.Write(offsetB)) return false;
-        if (!io.Write(offsetMat)) return false;
-        if (!io.Write(offsetM)) return false;
-        if (!io.Write(offsetC)) return false;
-        if (!io.Write(offsetA)) return false;
+        if (!io.Write(offsetB))
+            return false;
+        if (!io.Write(offsetMat))
+            return false;
+        if (!io.Write(offsetM))
+            return false;
+        if (!io.Write(offsetC))
+            return false;
+        if (!io.Write(offsetA))
+            return false;
 
         return io.SeekFunc(io, CurrentPos);
     }
@@ -2522,28 +3127,42 @@ public static partial class Lcms2
 
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
-        if (!io.ReadByte(out var inputChan)) goto Error;  // Number of input channels
-        if (!io.ReadByte(out var outputChan)) goto Error; // Number of output channels
+        if (!io.ReadByte(out var inputChan))
+            goto Error;  // Number of input channels
+        if (!io.ReadByte(out var outputChan))
+            goto Error; // Number of output channels
 
-        if (!io.ReadUshort(out _)) goto Error;
+        if (!io.ReadUshort(out _))
+            goto Error;
 
-        if (!io.ReadUint(out var offsetB)) goto Error;   // Offset to first "B" curve
-        if (!io.ReadUint(out var offsetMat)) goto Error; // Offset to matrix
-        if (!io.ReadUint(out var offsetM)) goto Error;   // Offset to first "M" curve
-        if (!io.ReadUint(out var offsetC)) goto Error;   // Offset to CLUT
-        if (!io.ReadUint(out var offsetA)) goto Error;   // Offset to first "A" curve
+        if (!io.ReadUint(out var offsetB))
+            goto Error;   // Offset to first "B" curve
+        if (!io.ReadUint(out var offsetMat))
+            goto Error; // Offset to matrix
+        if (!io.ReadUint(out var offsetM))
+            goto Error;   // Offset to first "M" curve
+        if (!io.ReadUint(out var offsetC))
+            goto Error;   // Offset to CLUT
+        if (!io.ReadUint(out var offsetA))
+            goto Error;   // Offset to first "A" curve
 
         // Do some checking
-        if (inputChan is 0 or > cmsMAXCHANNELS) goto Error;
-        if (outputChan is 0 or > cmsMAXCHANNELS) goto Error;
+        if (inputChan is 0 or > cmsMAXCHANNELS)
+            goto Error;
+        if (outputChan is 0 or > cmsMAXCHANNELS)
+            goto Error;
 
         // Allocates an empty LUT
         NewLUT = cmsPipelineAlloc(self.ContextID, inputChan, outputChan);
-        if (NewLUT is null) goto Error;
+        if (NewLUT is null)
+            goto Error;
 
         if (offsetB is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadSetOfCurves(self, io, BaseOffset + offsetB, inputChan)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    ReadSetOfCurves(self, io, BaseOffset + offsetB, inputChan)))
                 goto Error;
         }
 
@@ -2555,19 +3174,28 @@ public static partial class Lcms2
 
         if (offsetM is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadSetOfCurves(self, io, BaseOffset + offsetM, inputChan)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    ReadSetOfCurves(self, io, BaseOffset + offsetM, inputChan)))
                 goto Error;
         }
 
         if (offsetC is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadCLUT(self, io, BaseOffset + offsetC, inputChan, outputChan)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    ReadCLUT(self, io, BaseOffset + offsetC, inputChan, outputChan)))
                 goto Error;
         }
 
         if (offsetA is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadSetOfCurves(self, io, BaseOffset + offsetA, outputChan)))
+            if (!cmsPipelineInsertStage(
+                    NewLUT,
+                    StageLoc.AtEnd,
+                    ReadSetOfCurves(self, io, BaseOffset + offsetA, outputChan)))
                 goto Error;
         }
 
@@ -2575,7 +3203,8 @@ public static partial class Lcms2
         return NewLUT;
 
     Error:
-        if (NewLUT is not null) cmsPipelineFree(NewLUT);
+        if (NewLUT is not null)
+            cmsPipelineFree(NewLUT);
 
         return null;
     }
@@ -2592,11 +3221,35 @@ public static partial class Lcms2
         var BassOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         if (Lut.Elements is not null &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B, Signature.Stage.MatrixElem, out Matrix, Signature.Stage.CurveSetElem, out M) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B, Signature.Stage.CLutElem, out CLUT, Signature.Stage.CurveSetElem, out A) &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signature.Stage.CurveSetElem, out B, Signature.Stage.MatrixElem, out Matrix, Signature.Stage.CurveSetElem, out M,
-                                                    Signature.Stage.CLutElem, out CLUT, Signature.Stage.CurveSetElem, out A))
+            !cmsPipelineCheckAndRetrieveStages(Lut, Signatures.Stage.CurveSetElem, out B) &&
+            !cmsPipelineCheckAndRetrieveStages(
+                Lut,
+                Signatures.Stage.CurveSetElem,
+                out B,
+                Signatures.Stage.MatrixElem,
+                out Matrix,
+                Signatures.Stage.CurveSetElem,
+                out M) &&
+            !cmsPipelineCheckAndRetrieveStages(
+                Lut,
+                Signatures.Stage.CurveSetElem,
+                out B,
+                Signatures.Stage.CLutElem,
+                out CLUT,
+                Signatures.Stage.CurveSetElem,
+                out A) &&
+            !cmsPipelineCheckAndRetrieveStages(
+                Lut,
+                Signatures.Stage.CurveSetElem,
+                out B,
+                Signatures.Stage.MatrixElem,
+                out Matrix,
+                Signatures.Stage.CurveSetElem,
+                out M,
+                Signatures.Stage.CLutElem,
+                out CLUT,
+                Signatures.Stage.CurveSetElem,
+                out A))
         {
             LogError(self.ContextID, ErrorCodes.NotSuitable, "LUT is not suitable to be saved as LutAToB");
             return false;
@@ -2607,59 +3260,78 @@ public static partial class Lcms2
         var outputChan = cmsPipelineOutputChannels(Lut);
 
         // Write channel count
-        if (!io.Write((byte)inputChan)) return false;
-        if (!io.Write((byte)outputChan)) return false;
-        if (!io.Write((ushort)0)) return false;
+        if (!io.Write((byte)inputChan))
+            return false;
+        if (!io.Write((byte)outputChan))
+            return false;
+        if (!io.Write((ushort)0))
+            return false;
 
         // Keep directory location to be filled later
         var DirectoryPos = io.TellFunc(io);
 
         // Write the directory
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write((uint)0)) return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write((uint)0))
+            return false;
 
         if (A is not null)
         {
             offsetA = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, A)) return false;
+            if (!WriteSetOfCurves(self, io, Signatures.TagType.ParametricCurve, A))
+                return false;
         }
 
         if (CLUT is not null)
         {
             offsetC = io.TellFunc(io) - BassOffset;
-            if (!WriteCLUT(self, io, (byte)(Lut.SaveAs8Bits ? 1 : 2), CLUT)) return false;
+            if (!WriteCLUT(self, io, (byte)(Lut.SaveAs8Bits ? 1 : 2), CLUT))
+                return false;
         }
 
         if (M is not null)
         {
             offsetM = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, M)) return false;
+            if (!WriteSetOfCurves(self, io, Signatures.TagType.ParametricCurve, M))
+                return false;
         }
 
         if (Matrix is not null)
         {
             offsetMat = io.TellFunc(io) - BassOffset;
-            if (!WriteMatrix(self, io, Matrix)) return false;
+            if (!WriteMatrix(self, io, Matrix))
+                return false;
         }
 
         if (B is not null)
         {
             offsetB = io.TellFunc(io) - BassOffset;
-            if (!WriteSetOfCurves(self, io, Signature.TagType.ParametricCurve, B)) return false;
+            if (!WriteSetOfCurves(self, io, Signatures.TagType.ParametricCurve, B))
+                return false;
         }
 
         var CurrentPos = io.TellFunc(io);
 
-        if (!io.SeekFunc(io, DirectoryPos)) return false;
+        if (!io.SeekFunc(io, DirectoryPos))
+            return false;
 
-        if (!io.Write(offsetB)) return false;
-        if (!io.Write(offsetMat)) return false;
-        if (!io.Write(offsetM)) return false;
-        if (!io.Write(offsetC)) return false;
-        if (!io.Write(offsetA)) return false;
+        if (!io.Write(offsetB))
+            return false;
+        if (!io.Write(offsetMat))
+            return false;
+        if (!io.Write(offsetM))
+            return false;
+        if (!io.Write(offsetC))
+            return false;
+        if (!io.Write(offsetA))
+            return false;
 
         return io.SeekFunc(io, CurrentPos);
     }
@@ -2682,7 +3354,8 @@ public static partial class Lcms2
         Span<byte> preSufix = stackalloc byte[1] { 0 };
 
         nItems = 0;
-        if (!io.ReadUint(out var Count)) return null;
+        if (!io.ReadUint(out var Count))
+            return null;
 
         if (Count > cmsMAXCHANNELS)
         {
@@ -2691,16 +3364,20 @@ public static partial class Lcms2
         }
 
         List = cmsAllocNamedColorList(self.ContextID, Count, 0, preSufix, preSufix);
-        if (List is null) return null;
+        if (List is null)
+            return null;
 
         for (var i = 0; i < Count; i++)
         {
-            if (io.ReadFunc(io, Name, 32, 1) is not 1) goto Error;
+            if (io.ReadFunc(io, Name, 32, 1) is not 1)
+                goto Error;
             Name[32] = 0;
 
-            if (!io.ReadUshortArray(3, PCS)) goto Error;
+            if (!io.ReadUshortArray(3, PCS))
+                goto Error;
 
-            if (!cmsAppendNamedColor(List, Name, PCS, null)) goto Error;
+            if (!cmsAppendNamedColor(List, Name, PCS, null))
+                goto Error;
         }
 
         nItems = 1;
@@ -2722,17 +3399,21 @@ public static partial class Lcms2
 
         var nColors = cmsNamedColorCount(NamedColorList);
 
-        if (!io.Write(nColors)) return false;
+        if (!io.Write(nColors))
+            return false;
 
         for (var i = 0u; i < nColors; i++)
         {
             //memset(root, 0, cmsMAX_PATH * sizeof(byte));
 
-            if (!cmsNamedColorInfo(NamedColorList, i, root, null, null, PCS, null)) return false;
+            if (!cmsNamedColorInfo(NamedColorList, i, root, null, null, PCS, null))
+                return false;
             root[32] = 0;
 
-            if (!io.WriteFunc(io, 32, root)) return false;
-            if (!io.Write(3, PCS)) return false;
+            if (!io.WriteFunc(io, 32, root))
+                return false;
+            if (!io.Write(3, PCS))
+                return false;
         }
 
         return true;
@@ -2755,12 +3436,17 @@ public static partial class Lcms2
         Span<byte> Root = stackalloc byte[33];
 
         nItems = 0;
-        if (!io.ReadUint(out vendorFlag)) return null;
-        if (!io.ReadUint(out count)) return null;
-        if (!io.ReadUint(out nDeviceCoords)) return null;
+        if (!io.ReadUint(out vendorFlag))
+            return null;
+        if (!io.ReadUint(out count))
+            return null;
+        if (!io.ReadUint(out nDeviceCoords))
+            return null;
 
-        if (io.ReadFunc(io, prefix, 32, 1) is not 1) return null;
-        if (io.ReadFunc(io, suffix, 32, 1) is not 1) return null;
+        if (io.ReadFunc(io, prefix, 32, 1) is not 1)
+            return null;
+        if (io.ReadFunc(io, suffix, 32, 1) is not 1)
+            return null;
 
         prefix[31] = suffix[31] = 0;
 
@@ -2780,13 +3466,17 @@ public static partial class Lcms2
         for (var i = 0; i < count; i++)
         {
             //memset(Colorant, 0, sizeof(ushort) * cmsMAXCHANNELS);
-            if (io.ReadFunc(io, Root, 32, 1) is not 1) goto Error;
+            if (io.ReadFunc(io, Root, 32, 1) is not 1)
+                goto Error;
             Root[32] = 0;
 
-            if (!io.ReadUshortArray(3, PCS)) goto Error;
-            if (!io.ReadUshortArray(nDeviceCoords, Colorant)) goto Error;
+            if (!io.ReadUshortArray(3, PCS))
+                goto Error;
+            if (!io.ReadUshortArray(nDeviceCoords, Colorant))
+                goto Error;
 
-            if (!cmsAppendNamedColor(v, Root, PCS, Colorant)) goto Error;
+            if (!cmsAppendNamedColor(v, Root, PCS, Colorant))
+                goto Error;
         }
 
         nItems = 1;
@@ -2811,17 +3501,22 @@ public static partial class Lcms2
 
         var nColors = cmsNamedColorCount(NamedColorList);
 
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write(nColors)) return false;
-        if (!io.Write(NamedColorList.ColorantCount)) return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write(nColors))
+            return false;
+        if (!io.Write(NamedColorList.ColorantCount))
+            return false;
 
         memcpy(prefix, NamedColorList.Prefix, 33);
         memcpy(suffix, NamedColorList.Suffix, 33);
 
         suffix[32] = prefix[32] = 0;
 
-        if (!io.WriteFunc(io, 32, prefix)) return false;
-        if (!io.WriteFunc(io, 32, suffix)) return false;
+        if (!io.WriteFunc(io, 32, prefix))
+            return false;
+        if (!io.WriteFunc(io, 32, suffix))
+            return false;
 
         for (var i = 0u; i < nColors; i++)
         {
@@ -2829,11 +3524,15 @@ public static partial class Lcms2
             PCS.Clear();
             Colorant.Clear();
 
-            if (!cmsNamedColorInfo(NamedColorList, i, Root, null, null, PCS, Colorant)) return false;
+            if (!cmsNamedColorInfo(NamedColorList, i, Root, null, null, PCS, Colorant))
+                return false;
             Root[32] = 0;
-            if (!io.WriteFunc(io, 32, Root)) return false;
-            if (!io.Write(3, PCS)) return false;
-            if (!io.Write(NamedColorList.ColorantCount, Colorant)) return false;
+            if (!io.WriteFunc(io, 32, Root))
+                return false;
+            if (!io.Write(3, PCS))
+                return false;
+            if (!io.Write(NamedColorList.ColorantCount, Colorant))
+                return false;
         }
 
         return true;
@@ -2846,14 +3545,14 @@ public static partial class Lcms2
     private static bool ReadEmbeddedText(TagTypeHandler self, IOHandler io, out Mlu? mlu, uint SizeOfTag)
     {
         var sig = io.ReadTypeBase();
-        if (sig == Signature.TagType.Text)
+        if (sig == Signatures.TagType.Text)
         {
             //if (*mlu is not null) cmsMLUfree(*mlu);
             mlu = Type_Text_Read(self, io, out _, SizeOfTag);
             return mlu is not null;
         }
 
-        if (sig == Signature.TagType.TextDescription)
+        if (sig == Signatures.TagType.TextDescription)
         {
             //if (*mlu is not null) cmsMLUfree(*mlu);
             mlu = Type_Text_Description_Read(self, io, out _, SizeOfTag);
@@ -2863,7 +3562,7 @@ public static partial class Lcms2
             TBD: Size is needed for MLU, and we have no idea on which is the available size
             */
 
-        if (sig == Signature.TagType.MultiLocalizedUnicode)
+        if (sig == Signatures.TagType.MultiLocalizedUnicode)
         {
             //if (*mlu is not null) cmsMLUfree(*mlu);
             mlu = Type_MLU_Read(self, io, out _, SizeOfTag);
@@ -2874,17 +3573,23 @@ public static partial class Lcms2
         return false;
     }
 
-    private static Sequence? Type_ProfileSequenceDesc_Read(TagTypeHandler self, IOHandler io, out uint nItems, uint SizeOfTag)
+    private static Sequence? Type_ProfileSequenceDesc_Read(TagTypeHandler self,
+                                                           IOHandler io,
+                                                           out uint nItems,
+                                                           uint SizeOfTag)
     {
         nItems = 0;
 
-        if (!io.ReadUint(out var Count)) return null;
+        if (!io.ReadUint(out var Count))
+            return null;
 
-        if (SizeOfTag < sizeof(uint)) return null;
+        if (SizeOfTag < sizeof(uint))
+            return null;
         SizeOfTag -= sizeof(uint);
 
         var OutSeq = cmsAllocProfileSequenceDescription(self.ContextID, Count);
-        if (OutSeq is null) return null;
+        if (OutSeq is null)
+            return null;
 
         OutSeq.n = Count;
 
@@ -2894,24 +3599,34 @@ public static partial class Lcms2
         {
             var sec = OutSeq.seq[i];
 
-            if (!_cmsReadSignature(io, out sec.deviceMfg)) goto Error;
-            if (SizeOfTag < sizeof(uint)) goto Error;
+            if (!_cmsReadSignature(io, out sec.deviceMfg))
+                goto Error;
+            if (SizeOfTag < sizeof(uint))
+                goto Error;
             SizeOfTag -= sizeof(uint);
 
-            if (!_cmsReadSignature(io, out sec.deviceModel)) goto Error;
-            if (SizeOfTag < sizeof(uint)) goto Error;
+            if (!_cmsReadSignature(io, out sec.deviceModel))
+                goto Error;
+            if (SizeOfTag < sizeof(uint))
+                goto Error;
             SizeOfTag -= sizeof(uint);
 
-            if (!io.ReadUlong(out sec.attributes)) goto Error;
-            if (SizeOfTag < sizeof(ulong)) goto Error;
+            if (!io.ReadUlong(out sec.attributes))
+                goto Error;
+            if (SizeOfTag < sizeof(ulong))
+                goto Error;
             SizeOfTag -= sizeof(ulong);
 
-            if (!_cmsReadSignature(io, out sec.technology)) goto Error;
-            if (SizeOfTag < sizeof(uint)) goto Error;
+            if (!_cmsReadSignature(io, out sec.technology))
+                goto Error;
+            if (SizeOfTag < sizeof(uint))
+                goto Error;
             SizeOfTag -= sizeof(uint);
 
-            if (!ReadEmbeddedText(self, io, out sec.Manufacturer, SizeOfTag)) goto Error;
-            if (!ReadEmbeddedText(self, io, out sec.Model, SizeOfTag)) goto Error;
+            if (!ReadEmbeddedText(self, io, out sec.Manufacturer, SizeOfTag))
+                goto Error;
+            if (!ReadEmbeddedText(self, io, out sec.Model, SizeOfTag))
+                goto Error;
         }
 
         nItems = 1;
@@ -2927,12 +3642,14 @@ public static partial class Lcms2
     {
         if (self.ICCVersion < 0x04000000)
         {
-            if (!io.WriteTypeBase(Signature.TagType.TextDescription)) return false;
+            if (!io.WriteTypeBase(Signatures.TagType.TextDescription))
+                return false;
             return Type_Text_Description_Write(self, io, Text, 1);
         }
         else
         {
-            if (!io.WriteTypeBase(Signature.TagType.MultiLocalizedUnicode)) return false;
+            if (!io.WriteTypeBase(Signatures.TagType.MultiLocalizedUnicode))
+                return false;
             return Type_MLU_Write(self, io, Text, 1);
         }
     }
@@ -2942,19 +3659,26 @@ public static partial class Lcms2
         if (Ptr is not Sequence Seq)
             return false;
 
-        if (!io.Write(Seq.n)) return false;
+        if (!io.Write(Seq.n))
+            return false;
 
         for (var i = 0u; i < Seq.n; i++)
         {
             var sec = Seq.seq[i];
 
-            if (!io.Write((uint)sec.deviceMfg)) return false;
-            if (!io.Write((uint)sec.deviceModel)) return false;
-            if (!io.Write(sec.attributes)) return false;
-            if (!io.Write((uint)sec.technology)) return false;
+            if (!io.Write((uint)sec.deviceMfg))
+                return false;
+            if (!io.Write((uint)sec.deviceModel))
+                return false;
+            if (!io.Write(sec.attributes))
+                return false;
+            if (!io.Write((uint)sec.technology))
+                return false;
 
-            if (!SaveDescription(self, io, sec.Manufacturer)) return false;
-            if (!SaveDescription(self, io, sec.Model)) return false;
+            if (!SaveDescription(self, io, sec.Manufacturer))
+                return false;
+            if (!SaveDescription(self, io, sec.Model))
+                return false;
         }
 
         return true;
@@ -2971,7 +3695,8 @@ public static partial class Lcms2
 
         var seq = OutSeq.seq[n];
         Span<byte> buffer = stackalloc byte[16];
-        if (io.ReadFunc(io, buffer, 16, 1) is not 1) return false;
+        if (io.ReadFunc(io, buffer, 16, 1) is not 1)
+            return false;
         seq.ProfileID = ProfileID.Set(buffer);
 
         return ReadEmbeddedText(self, io, out seq.Description, SizeOfTag);
@@ -2985,11 +3710,13 @@ public static partial class Lcms2
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         // Get table count
-        if (!io.ReadUint(out var Count)) return null;
+        if (!io.ReadUint(out var Count))
+            return null;
 
         // Allocate an empty structure
         var OutSeq = cmsAllocProfileSequenceDescription(self.ContextID, Count);
-        if (OutSeq is null) return null;
+        if (OutSeq is null)
+            return null;
 
         // Read the position table
         if (!ReadPositionTable(self, io, Count, BaseOffset, OutSeq, ReadSeqID))
@@ -3010,26 +3737,31 @@ public static partial class Lcms2
 
         Span<byte> buffer = stackalloc byte[16];
         Seq.seq[n].ProfileID.Get(buffer);
-        if (!io.WriteFunc(io, 16, buffer)) return false;
+        if (!io.WriteFunc(io, 16, buffer))
+            return false;
 
         // Store MLU here
-        if (!SaveDescription(self, io, Seq.seq[n].Description)) return false;
+        if (!SaveDescription(self, io, Seq.seq[n].Description))
+            return false;
 
         return true;
     }
 
     private static bool Type_ProfileSequenceId_Write(TagTypeHandler self, IOHandler io, object? Ptr, uint _1)
     {
-        if (Ptr is not Sequence Seq) return false;
+        if (Ptr is not Sequence Seq)
+            return false;
 
         // Keep the base offset
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         // This is the table count
-        if (!io.Write(Seq.n)) return false;
+        if (!io.Write(Seq.n))
+            return false;
 
         // This is the position table and content
-        if (!WritePositionTable(self, io, 0, Seq.n, BaseOffset, Seq, WriteSeqID)) return false;
+        if (!WritePositionTable(self, io, 0, Seq.n, BaseOffset, Seq, WriteSeqID))
+            return false;
 
         return true;
     }
@@ -3048,36 +3780,48 @@ public static partial class Lcms2
 
         // First curve is Under color removal
 
-        if (SignedSizeOfTag < sizeof(uint)) return null;
-        if (!io.ReadUint(out var CountUcr)) return null;
+        if (SignedSizeOfTag < sizeof(uint))
+            return null;
+        if (!io.ReadUint(out var CountUcr))
+            return null;
         SignedSizeOfTag -= sizeof(uint);
 
         n.Ucr = cmsBuildTabulatedToneCurve16(self.ContextID, CountUcr, null)!;
-        if (n.Ucr is null) goto Error;
+        if (n.Ucr is null)
+            goto Error;
 
-        if (SignedSizeOfTag < (int)(CountUcr * sizeof(ushort))) goto Error;
-        if (!io.ReadUshortArray(CountUcr, n.Ucr.Table16)) goto Error;
+        if (SignedSizeOfTag < (int)(CountUcr * sizeof(ushort)))
+            goto Error;
+        if (!io.ReadUshortArray(CountUcr, n.Ucr.Table16))
+            goto Error;
 
         SignedSizeOfTag -= (int)(CountUcr * sizeof(ushort));
 
         // Secong curve is Black generation
 
-        if (SignedSizeOfTag < sizeof(uint)) goto Error;
-        if (!io.ReadUint(out var CountBg)) goto Error;
+        if (SignedSizeOfTag < sizeof(uint))
+            goto Error;
+        if (!io.ReadUint(out var CountBg))
+            goto Error;
         SignedSizeOfTag -= sizeof(uint);
 
         n.Bg = cmsBuildTabulatedToneCurve16(self.ContextID, CountBg, null)!;
-        if (n.Bg is null) goto Error;
+        if (n.Bg is null)
+            goto Error;
 
-        if (SignedSizeOfTag < (int)(CountBg * sizeof(ushort))) goto Error;
-        if (!io.ReadUshortArray(CountBg, n.Bg.Table16)) goto Error;
+        if (SignedSizeOfTag < (int)(CountBg * sizeof(ushort)))
+            goto Error;
+        if (!io.ReadUshortArray(CountBg, n.Bg.Table16))
+            goto Error;
         SignedSizeOfTag -= (int)(CountBg * sizeof(ushort));
 
-        if (SignedSizeOfTag is < 0 or > 32000) goto Error;
+        if (SignedSizeOfTag is < 0 or > 32000)
+            goto Error;
 
         // Now comes the text. The length is specified by the tag size
         var desc = cmsMLUalloc(self.ContextID, 1);
-        if (desc is null) goto Error;
+        if (desc is null)
+            goto Error;
         n.Desc = desc;
 
         //ASCIIString = _cmsMalloc<byte>(self.ContextID, (uint)SignedSizeOfTag + 1);
@@ -3099,9 +3843,12 @@ public static partial class Lcms2
         return new(n);
 
     Error:
-        if (n.Ucr is not null) cmsFreeToneCurve(n.Ucr);
-        if (n.Bg is not null) cmsFreeToneCurve(n.Bg);
-        if (n.Desc is not null) cmsMLUfree(n.Desc);
+        if (n.Ucr is not null)
+            cmsFreeToneCurve(n.Ucr);
+        if (n.Bg is not null)
+            cmsFreeToneCurve(n.Bg);
+        if (n.Desc is not null)
+            cmsMLUfree(n.Desc);
         //_cmsFree(self.ContextID, n);
         return null;
     }
@@ -3112,23 +3859,29 @@ public static partial class Lcms2
             return false;
 
         // First curve is Under color removal
-        if (!io.Write(Value.Value.Ucr.nEntries)) return false;
-        if (!io.Write(Value.Value.Ucr.nEntries, Value.Value.Ucr.Table16)) return false;
+        if (!io.Write(Value.Value.Ucr.nEntries))
+            return false;
+        if (!io.Write(Value.Value.Ucr.nEntries, Value.Value.Ucr.Table16))
+            return false;
 
         // Then black generation
-        if (!io.Write(Value.Value.Bg.nEntries)) return false;
-        if (!io.Write(Value.Value.Bg.nEntries, Value.Value.Bg.Table16)) return false;
+        if (!io.Write(Value.Value.Bg.nEntries))
+            return false;
+        if (!io.Write(Value.Value.Bg.nEntries, Value.Value.Bg.Table16))
+            return false;
 
         // Now comes the text. The length is specified by the tag size
         var TextSize = cmsMLUgetASCII(Value.Value.Desc, cmsNoLanguage, cmsNoCountry, null);
         //Text = _cmsMalloc<byte>(self.ContextID, TextSize);
         //var Text = GetArray<byte>(self.ContextID, TextSize);
         var Text = new byte[TextSize];
-        if (cmsMLUgetASCII(Value.Value.Desc, cmsNoLanguage, cmsNoCountry, Text.AsSpan()[..(int)TextSize]) != TextSize) return false;
+        if (cmsMLUgetASCII(Value.Value.Desc, cmsNoLanguage, cmsNoCountry, Text.AsSpan()[..(int)TextSize]) != TextSize)
+            return false;
 
         //var tmp = stackalloc char[(int)TextSize];
         //Text.AsSpan()[..(int)TextSize].CopyTo(new(tmp, (int)TextSize));
-        if (!io.WriteFunc(io, TextSize, Text)) return false;
+        if (!io.WriteFunc(io, TextSize, Text))
+            return false;
         //ReturnArray(self.ContextID, Text);
 
         return true;
@@ -3136,7 +3889,8 @@ public static partial class Lcms2
 
     private static Box<UcrBg>? Type_UcrBg_Dup(TagTypeHandler self, object? Ptr, uint _1)
     {
-        if (Ptr is not Box<UcrBg> Src) return null;
+        if (Ptr is not Box<UcrBg> Src)
+            return null;
         var NewUcrBg = new UcrBg
         {
             //if (NewUcrBg is null) return null;
@@ -3148,7 +3902,10 @@ public static partial class Lcms2
 
         if (NewUcrBg.Bg is null ||
             NewUcrBg.Ucr is null ||
-            NewUcrBg.Desc is null) { goto Error; }
+            NewUcrBg.Desc is null)
+        {
+            goto Error;
+        }
 
         return new(NewUcrBg);
 
@@ -3159,11 +3916,15 @@ public static partial class Lcms2
 
     private static void Type_UcrBg_Free(TagTypeHandler self, object? Ptr)
     {
-        if (Ptr is not Box<UcrBg> Src) return;
+        if (Ptr is not Box<UcrBg> Src)
+            return;
 
-        if (Src.Value.Bg is not null) cmsFreeToneCurve(Src.Value.Bg);
-        if (Src.Value.Ucr is not null) cmsFreeToneCurve(Src.Value.Ucr);
-        if (Src.Value.Desc is not null) cmsMLUfree(Src.Value.Desc);
+        if (Src.Value.Bg is not null)
+            cmsFreeToneCurve(Src.Value.Bg);
+        if (Src.Value.Ucr is not null)
+            cmsFreeToneCurve(Src.Value.Ucr);
+        if (Src.Value.Desc is not null)
+            cmsMLUfree(Src.Value.Desc);
 
         //_cmsFree(self.ContextID, Src);
     }
@@ -3172,21 +3933,30 @@ public static partial class Lcms2
 
     #region CrdInfo
 
-    private static bool ReadCountAndString(TagTypeHandler self, IOHandler io, Mlu mlu, ref uint SizeOfTag, ReadOnlySpan<byte> Section)
+    private static bool ReadCountAndString(TagTypeHandler self,
+                                           IOHandler io,
+                                           Mlu mlu,
+                                           ref uint SizeOfTag,
+                                           ReadOnlySpan<byte> Section)
     {
         var ps = "PS"u8;
 
-        if (SizeOfTag < sizeof(uint)) return false;
+        if (SizeOfTag < sizeof(uint))
+            return false;
 
-        if (!io.ReadUint(out var Count)) return false;
+        if (!io.ReadUint(out var Count))
+            return false;
 
-        if (Count > UInt32.MaxValue - sizeof(uint)) return false;
-        if (SizeOfTag < Count + sizeof(uint)) return false;
+        if (Count > UInt32.MaxValue - sizeof(uint))
+            return false;
+        if (SizeOfTag < Count + sizeof(uint))
+            return false;
 
         //var Text = _cmsMalloc<byte>(self.ContextID, Count + 1);
         //var Text = GetArray<byte>(self.ContextID, Count);
         var Text = new byte[Count];
-        if (Text is null) return false;
+        if (Text is null)
+            return false;
 
         //var tmp = stackalloc byte[(int)Count];
         if (io.ReadFunc(io, Text, sizeof(byte), Count) != Count)
@@ -3213,15 +3983,19 @@ public static partial class Lcms2
         //var Text = _cmsMalloc<byte>(self.ContextID, TextSize);
         //var Text = GetArray<byte>(self.ContextID, TextSize);
         var Text = new byte[TextSize];
-        if (Text is null) return false;
+        if (Text is null)
+            return false;
 
-        if (!io.Write(TextSize)) goto Error;
+        if (!io.Write(TextSize))
+            goto Error;
 
-        if (cmsMLUgetASCII(mlu, ps, Section, Text.AsSpan(..(int)TextSize)) is 0) goto Error;
+        if (cmsMLUgetASCII(mlu, ps, Section, Text.AsSpan(..(int)TextSize)) is 0)
+            goto Error;
 
         //var tmp = stackalloc byte[(int)TextSize];
         //Text.AsSpan()[..(int)TextSize].CopyTo(new(tmp, (int)TextSize));
-        if (!io.WriteFunc(io, TextSize, Text)) goto Error;
+        if (!io.WriteFunc(io, TextSize, Text))
+            goto Error;
         //ReturnArray(self.ContextID, Text);
 
         return true;
@@ -3241,13 +4015,19 @@ public static partial class Lcms2
 
         nItems = 0;
         var mlu = cmsMLUalloc(self.ContextID, 5);
-        if (mlu is null) return null;
+        if (mlu is null)
+            return null;
 
-        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, nm)) goto Error;
-        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, n0)) goto Error;
-        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, n1)) goto Error;
-        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, n2)) goto Error;
-        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, n3)) goto Error;
+        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, nm))
+            goto Error;
+        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, n0))
+            goto Error;
+        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, n1))
+            goto Error;
+        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, n2))
+            goto Error;
+        if (!ReadCountAndString(self, io, mlu, ref SizeOfTag, n3))
+            goto Error;
 
         nItems = 1;
         return mlu;
@@ -3265,13 +4045,19 @@ public static partial class Lcms2
         var n2 = "#2"u8;
         var n3 = "#3"u8;
 
-        if (Ptr is not Mlu mlu) return false;
+        if (Ptr is not Mlu mlu)
+            return false;
 
-        if (!WriteCountAndString(self, io, mlu, nm)) return false;
-        if (!WriteCountAndString(self, io, mlu, n0)) return false;
-        if (!WriteCountAndString(self, io, mlu, n1)) return false;
-        if (!WriteCountAndString(self, io, mlu, n2)) return false;
-        if (!WriteCountAndString(self, io, mlu, n3)) return false;
+        if (!WriteCountAndString(self, io, mlu, nm))
+            return false;
+        if (!WriteCountAndString(self, io, mlu, n0))
+            return false;
+        if (!WriteCountAndString(self, io, mlu, n1))
+            return false;
+        if (!WriteCountAndString(self, io, mlu, n2))
+            return false;
+        if (!WriteCountAndString(self, io, mlu, n3))
+            return false;
 
         return true;
     }
@@ -3295,17 +4081,22 @@ public static partial class Lcms2
         var sc = new Screening(self.ContextID); //var sc = _cmsMallocZero<Screening>(self.ContextID);
         //if (sc is null) return null;
 
-        if (!io.ReadUint(out sc.Flag)) goto Error;
-        if (!io.ReadUint(out sc.nChannels)) goto Error;
+        if (!io.ReadUint(out sc.Flag))
+            goto Error;
+        if (!io.ReadUint(out sc.nChannels))
+            goto Error;
 
         if (sc.nChannels > cmsMAXCHANNELS - 1)
             sc.nChannels = cmsMAXCHANNELS - 1;
 
         for (var i = 0; i < sc.nChannels; i++)
         {
-            if (!io.ReadFixed15_16(out sc.Channels[i].Frequency)) goto Error;
-            if (!io.ReadFixed15_16(out sc.Channels[i].ScreenAngle)) goto Error;
-            if (!io.ReadUint(out sc.Channels[i].SpotShape)) goto Error;
+            if (!io.ReadFixed15_16(out sc.Channels[i].Frequency))
+                goto Error;
+            if (!io.ReadFixed15_16(out sc.Channels[i].ScreenAngle))
+                goto Error;
+            if (!io.ReadUint(out sc.Channels[i].SpotShape))
+                goto Error;
         }
 
         nItems = 1;
@@ -3319,19 +4110,25 @@ public static partial class Lcms2
 
     private static bool Type_Screening_Write(TagTypeHandler _1, IOHandler io, object? Ptr, uint _2)
     {
-        if (Ptr is not Box<Screening> sc) return false;
+        if (Ptr is not Box<Screening> sc)
+            return false;
 
-        if (!io.Write(sc.Value.Flag)) return false;
-        if (!io.Write(sc.Value.nChannels)) return false;
+        if (!io.Write(sc.Value.Flag))
+            return false;
+        if (!io.Write(sc.Value.nChannels))
+            return false;
 
         if (sc.Value.nChannels > cmsMAXCHANNELS - 1)
             sc.Value.nChannels = cmsMAXCHANNELS - 1;
 
         for (var i = 0; i < sc.Value.nChannels; i++)
         {
-            if (!io.Write(sc.Value.Channels[i].Frequency)) return false;
-            if (!io.Write(sc.Value.Channels[i].ScreenAngle)) return false;
-            if (!io.Write(sc.Value.Channels[i].SpotShape)) return false;
+            if (!io.Write(sc.Value.Channels[i].Frequency))
+                return false;
+            if (!io.Write(sc.Value.Channels[i].ScreenAngle))
+                return false;
+            if (!io.Write(sc.Value.Channels[i].SpotShape))
+                return false;
         }
 
         return true;
@@ -3357,16 +4154,23 @@ public static partial class Lcms2
 
     #region ViewingConditions
 
-    private static Box<IccViewingConditions>? Type_ViewingConditions_Read(TagTypeHandler _1, IOHandler io, out uint nItems, uint _2)
+    private static Box<IccViewingConditions>? Type_ViewingConditions_Read(
+        TagTypeHandler _1,
+        IOHandler io,
+        out uint nItems,
+        uint _2)
     {
         nItems = 0;
 
         var vc = new IccViewingConditions(); //var vc = _cmsMallocZero<IccViewingConditions>(self.ContextID);
         //if (vc is null) return null;
 
-        if (!io.ReadXYZ(out vc.IlluminantXYZ)) goto Error;
-        if (!io.ReadXYZ(out vc.SurroundXYZ)) goto Error;
-        if (!io.ReadUint(out var illuminant)) goto Error;
+        if (!io.ReadXYZ(out vc.IlluminantXYZ))
+            goto Error;
+        if (!io.ReadXYZ(out vc.SurroundXYZ))
+            goto Error;
+        if (!io.ReadUint(out var illuminant))
+            goto Error;
         vc.IlluminantType = (IlluminantType)illuminant;
 
         nItems = 1;
@@ -3384,8 +4188,8 @@ public static partial class Lcms2
             return false;
 
         return io.Write(sc.Value.IlluminantXYZ) &&
-            io.Write(sc.Value.SurroundXYZ) &&
-            io.Write((uint)sc.Value.IlluminantType);
+               io.Write(sc.Value.SurroundXYZ) &&
+               io.Write((uint)sc.Value.IlluminantType);
     }
 
     private static Box<IccViewingConditions>? Type_ViewingConditions_Dup(TagTypeHandler self, object? Ptr, uint _) =>
@@ -3411,17 +4215,19 @@ public static partial class Lcms2
         var MPETypePluginChunk = Context.Get(self.ContextID).MPEPlugin;
 
         // Take signature and channels for each element.
-        if (!_cmsReadSignature(io, out var ElementSig)) return false;
+        if (!_cmsReadSignature(io, out var ElementSig))
+            return false;
 
         // The reserved placeholder
-        if (!io.ReadUint(out _)) return false;
+        if (!io.ReadUint(out _))
+            return false;
 
         // Read diverse MPE types
         var TypeHandler = GetHandler(ElementSig, MPETypePluginChunk.List, supportedMPEtypes);
         if (TypeHandler is null)
         {
             // An unknown element was found.
-            LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown MPE type '{_cmsTagSignature2String(ElementSig)}' found.");
+            LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown MPE type '{(ElementSig)}' found.");
             return false;
         }
 
@@ -3446,30 +4252,39 @@ public static partial class Lcms2
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         // Read channels and element count
-        if (!io.ReadUshort(out var InputChans)) return null;
-        if (!io.ReadUshort(out var OutputChans)) return null;
+        if (!io.ReadUshort(out var InputChans))
+            return null;
+        if (!io.ReadUshort(out var OutputChans))
+            return null;
 
-        if (InputChans is 0 or >= cmsMAXCHANNELS) return null;
-        if (OutputChans is 0 or >= cmsMAXCHANNELS) return null;
+        if (InputChans is 0 or >= cmsMAXCHANNELS)
+            return null;
+        if (OutputChans is 0 or >= cmsMAXCHANNELS)
+            return null;
 
         // Allocates an empty LUT
         var NewLUT = cmsPipelineAlloc(self.ContextID, InputChans, OutputChans);
-        if (NewLUT is null) return null;
+        if (NewLUT is null)
+            return null;
 
-        if (!io.ReadUint(out var ElementCount)) goto Error;
-        if (!ReadPositionTable(self, io, ElementCount, BaseOffset, NewLUT, ReadMPEElem)) goto Error;
+        if (!io.ReadUint(out var ElementCount))
+            goto Error;
+        if (!ReadPositionTable(self, io, ElementCount, BaseOffset, NewLUT, ReadMPEElem))
+            goto Error;
 
         // Check channel count
         if (InputChans != NewLUT.InputChannels ||
-            OutputChans != NewLUT.OutputChannels) goto Error;
+            OutputChans != NewLUT.OutputChannels)
+            goto Error;
 
         // Success
         nItems = 1;
         return NewLUT;
 
-    // Error
+        // Error
     Error:
-        if (NewLUT is not null) cmsPipelineFree(NewLUT);
+        if (NewLUT is not null)
+            cmsPipelineFree(NewLUT);
 
         return null;
     }
@@ -3501,17 +4316,22 @@ public static partial class Lcms2
         var ElementSizes = new uint[ElemCount];
 
         // Write the head
-        if (!io.Write((ushort)inputChan)) goto Error;
-        if (!io.Write((ushort)outputChan)) goto Error;
-        if (!io.Write((uint)(ushort)ElemCount)) goto Error;
+        if (!io.Write((ushort)inputChan))
+            goto Error;
+        if (!io.Write((ushort)outputChan))
+            goto Error;
+        if (!io.Write((uint)(ushort)ElemCount))
+            goto Error;
 
         var DirectoryPos = io.TellFunc(io);
 
         // Write a fake directory to be filled later on
         for (var i = 0; i < ElemCount; i++)
         {
-            if (!io.Write((uint)0)) goto Error;  // Offset
-            if (!io.Write((uint)0)) goto Error;  // Size
+            if (!io.Write((uint)0))
+                goto Error;  // Offset
+            if (!io.Write((uint)0))
+                goto Error;  // Size
         }
 
         // Write each single tag. Keep track of the size as well.
@@ -3525,15 +4345,19 @@ public static partial class Lcms2
             if (TypeHandler is null)
             {
                 // An unknown element was found.
-                LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Found unknown MPE type '{_cmsTagSignature2String(ElementSig)}'");
+                LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Found unknown MPE type '{(ElementSig)}'");
                 goto Error;
             }
 
-            if (!io.Write((uint)ElementSig)) goto Error;
-            if (!io.Write((uint)0)) goto Error;
+            if (!io.Write((uint)ElementSig))
+                goto Error;
+            if (!io.Write((uint)0))
+                goto Error;
             var Before = io.TellFunc(io);
-            if (!TypeHandler.WritePtr(self, io, Elem, 1)) goto Error;
-            if (!io.WriteAlignment()) goto Error;
+            if (!TypeHandler.WritePtr(self, io, Elem, 1))
+                goto Error;
+            if (!io.WriteAlignment())
+                goto Error;
 
             ElementSizes[i] = io.TellFunc(io) - Before;
 
@@ -3543,15 +4367,19 @@ public static partial class Lcms2
         // Write the directory
         var CurrentPos = io.TellFunc(io);
 
-        if (!io.SeekFunc(io, DirectoryPos)) goto Error;
+        if (!io.SeekFunc(io, DirectoryPos))
+            goto Error;
 
         for (var i = 0; i < ElemCount; i++)
         {
-            if (!io.Write(ElementOffsets[i])) goto Error;
-            if (!io.Write(ElementSizes[i])) goto Error;
+            if (!io.Write(ElementOffsets[i]))
+                goto Error;
+            if (!io.Write(ElementSizes[i]))
+                goto Error;
         }
 
-        if (!io.SeekFunc(io, CurrentPos)) goto Error;
+        if (!io.SeekFunc(io, CurrentPos))
+            goto Error;
 
         //if (ElementOffsets is not null) ReturnArray(self.ContextID, ElementOffsets);
         //if (ElementSizes is not null) ReturnArray(self.ContextID, ElementSizes);
@@ -3586,7 +4414,8 @@ public static partial class Lcms2
         nItems = 0;
 
         // Read tag type
-        if (!io.ReadUint(out var TagType)) return null;
+        if (!io.ReadUint(out var TagType))
+            return null;
 
         // Allocate space for the array
         //Curves = (ToneCurve**)_cmsCalloc(self.ContextID, 3, _sizeof<nint>());
@@ -3599,92 +4428,109 @@ public static partial class Lcms2
         {
             // Gamma is stored as a table
             case cmsVideoCardGammaTableType:
+            {
+                // Check channel count, which should be 3 (we don't support monochrome this time)
+                if (!io.ReadUshort(out var nChannels))
+                    goto Error;
+
+                if (nChannels is not 3)
                 {
-                    // Check channel count, which should be 3 (we don't support monochrome this time)
-                    if (!io.ReadUshort(out var nChannels)) goto Error;
-
-                    if (nChannels is not 3)
-                    {
-                        LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported number of channels for VCGT '{nChannels}'");
-                        goto Error;
-                    }
-
-                    // Get Table element count and bytes per element
-                    if (!io.ReadUshort(out var nElems)) goto Error;
-                    if (!io.ReadUshort(out var nBytes)) goto Error;
-
-                    // Adobe's quirk fixup. Fixing broken profiles...
-                    if (nElems is 256 && nBytes is 1 && SizeOfTag is 1576)
-                        nBytes = 2;
-
-                    // Populate tone curves
-                    for (var n = 0; n < 3; n++)
-                    {
-                        Curves[n] = cmsBuildTabulatedToneCurve16(self.ContextID, nElems, null);
-                        if (Curves[n] is null) goto Error;
-
-                        // Depending on byte depth...
-                        switch (nBytes)
-                        {
-                            // One byte, 0..255
-                            case 1:
-                                for (var i = 0; i < nElems; i++)
-                                {
-                                    if (!io.ReadByte(out var v)) goto Error;
-                                    Curves[n].Table16[i] = FROM_8_TO_16(v);
-                                }
-                                break;
-
-                            // One word 0..65535
-                            case 2:
-                                if (!io.ReadUshortArray(nElems, Curves[n].Table16)) goto Error;
-                                break;
-
-                            // Unsupported
-                            default:
-                                LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported bit depth for VCGT '{nBytes * 8}'");
-                                goto Error;
-                        }
-                    } // For all 3 channels
+                    LogError(
+                        self.ContextID,
+                        cmsERROR_UNKNOWN_EXTENSION,
+                        $"Unsupported number of channels for VCGT '{nChannels}'");
+                    goto Error;
                 }
+
+                // Get Table element count and bytes per element
+                if (!io.ReadUshort(out var nElems))
+                    goto Error;
+                if (!io.ReadUshort(out var nBytes))
+                    goto Error;
+
+                // Adobe's quirk fixup. Fixing broken profiles...
+                if (nElems is 256 && nBytes is 1 && SizeOfTag is 1576)
+                    nBytes = 2;
+
+                // Populate tone curves
+                for (var n = 0; n < 3; n++)
+                {
+                    Curves[n] = cmsBuildTabulatedToneCurve16(self.ContextID, nElems, null);
+                    if (Curves[n] is null)
+                        goto Error;
+
+                    // Depending on byte depth...
+                    switch (nBytes)
+                    {
+                        // One byte, 0..255
+                        case 1:
+                            for (var i = 0; i < nElems; i++)
+                            {
+                                if (!io.ReadByte(out var v))
+                                    goto Error;
+                                Curves[n].Table16[i] = FROM_8_TO_16(v);
+                            }
+
+                            break;
+
+                        // One word 0..65535
+                        case 2:
+                            if (!io.ReadUshortArray(nElems, Curves[n].Table16))
+                                goto Error;
+                            break;
+
+                        // Unsupported
+                        default:
+                            LogError(
+                                self.ContextID,
+                                cmsERROR_UNKNOWN_EXTENSION,
+                                $"Unsupported bit depth for VCGT '{nBytes * 8}'");
+                            goto Error;
+                    }
+                } // For all 3 channels
+            }
                 break;
 
             // In this case, gamma is stored as a formula
             case 1:
+            {
+                Span<VCGTGAMMA> Colorant = stackalloc VCGTGAMMA[3];
+                Span<double> Params = stackalloc double[10];
+
+                //memset(Params, 0, 10 * sizeof(double));
+
+                // Populate tone curves
+                for (var n = 0; n < 3; n++)
                 {
-                    Span<VCGTGAMMA> Colorant = stackalloc VCGTGAMMA[3];
-                    Span<double> Params = stackalloc double[10];
+                    if (!io.ReadFixed15_16(out Colorant[n].Gamma))
+                        goto Error;
+                    if (!io.ReadFixed15_16(out Colorant[n].Min))
+                        goto Error;
+                    if (!io.ReadFixed15_16(out Colorant[n].Max))
+                        goto Error;
 
-                    //memset(Params, 0, 10 * sizeof(double));
+                    // Parametric curve type 5 is:
+                    // Y = (aX + b)^Gamma + e | X >= d
+                    // Y = cX + f             | X < d
 
-                    // Populate tone curves
-                    for (var n = 0; n < 3; n++)
-                    {
-                        if (!io.ReadFixed15_16(out Colorant[n].Gamma)) goto Error;
-                        if (!io.ReadFixed15_16(out Colorant[n].Min)) goto Error;
-                        if (!io.ReadFixed15_16(out Colorant[n].Max)) goto Error;
+                    // vcgt formula is:
+                    // Y = (Max - Min) * (X ^ Gamma) + Min
 
-                        // Parametric curve type 5 is:
-                        // Y = (aX + b)^Gamma + e | X >= d
-                        // Y = cX + f             | X < d
+                    // So, the translation is
+                    // a = (Max - Min) ^ ( 1 / Gamma)
+                    // e = Min
+                    // b=c=d=f=0
 
-                        // vcgt formula is:
-                        // Y = (Max - Min) * (X ^ Gamma) + Min
+                    Params[0] = Colorant[n].Gamma;
+                    Params[1] = Math.Pow(Colorant[n].Max - Colorant[n].Min, 1.0 / Colorant[n].Gamma);
+                    Params[5] = Colorant[n].Min;
+                    // Params[2,3,4,6] are 0 and will stay 0
 
-                        // So, the translation is
-                        // a = (Max - Min) ^ ( 1 / Gamma)
-                        // e = Min
-                        // b=c=d=f=0
-
-                        Params[0] = Colorant[n].Gamma;
-                        Params[1] = Math.Pow(Colorant[n].Max - Colorant[n].Min, 1.0 / Colorant[n].Gamma);
-                        Params[5] = Colorant[n].Min;
-                        // Params[2,3,4,6] are 0 and will stay 0
-
-                        Curves[n] = cmsBuildParametricToneCurve(self.ContextID, 5, Params);
-                        if (Curves[n] is null) goto Error;
-                    }
+                    Curves[n] = cmsBuildParametricToneCurve(self.ContextID, 5, Params);
+                    if (Curves[n] is null)
+                        goto Error;
                 }
+            }
                 break;
 
             // Unsupported
@@ -3696,7 +4542,7 @@ public static partial class Lcms2
         nItems = 1;
         return Curves;
 
-    // Regret, free all resources
+        // Regret, free all resources
     Error:
         cmsFreeToneCurveTriple(Curves);
         //ReturnArray(self.ContextID, Curves);
@@ -3705,13 +4551,15 @@ public static partial class Lcms2
 
     private static bool Type_vcgt_Write(TagTypeHandler _1, IOHandler io, object? Ptr, uint _2)
     {
-        if (Ptr is not ToneCurve[] Curves) return false;
+        if (Ptr is not ToneCurve[] Curves)
+            return false;
 
         if (cmsGetToneCurveParametricType(Curves[0]) is 5 &&
             cmsGetToneCurveParametricType(Curves[1]) is 5 &&
             cmsGetToneCurveParametricType(Curves[2]) is 5)
         {
-            if (!io.Write(cmsVideoCardGammaFormulaType)) return false;
+            if (!io.Write(cmsVideoCardGammaFormulaType))
+                return false;
 
             // Save parameters
             for (var i = 0; i < 3; i++)
@@ -3722,18 +4570,25 @@ public static partial class Lcms2
                 v.Min = Curves[i].Segments[0].Params[5];
                 v.Max = Math.Pow(Curves[i].Segments[0].Params[1], v.Gamma) + v.Min;
 
-                if (!io.Write(v.Gamma)) return false;
-                if (!io.Write(v.Min)) return false;
-                if (!io.Write(v.Max)) return false;
+                if (!io.Write(v.Gamma))
+                    return false;
+                if (!io.Write(v.Min))
+                    return false;
+                if (!io.Write(v.Max))
+                    return false;
             }
         }
         else
         {
             // Always store as a table of 256 words
-            if (!io.Write(cmsVideoCardGammaTableType)) return false;
-            if (!io.Write((ushort)3)) return false;
-            if (!io.Write((ushort)256)) return false;
-            if (!io.Write((ushort)2)) return false;
+            if (!io.Write(cmsVideoCardGammaTableType))
+                return false;
+            if (!io.Write((ushort)3))
+                return false;
+            if (!io.Write((ushort)256))
+                return false;
+            if (!io.Write((ushort)2))
+                return false;
 
             for (var i = 0; i < 3; i++)
             {
@@ -3742,7 +4597,8 @@ public static partial class Lcms2
                     var v = cmsEvalToneCurveFloat(Curves[i], (float)(j / 255.0));
                     var n = _cmsQuickSaturateWord(v * 65535.0);
 
-                    if (!io.Write(n)) return false;
+                    if (!io.Write(n))
+                        return false;
                 }
             }
         }
@@ -3830,10 +4686,14 @@ public static partial class Lcms2
 
     private static void FreeArray(ref DICarray a)
     {
-        if (a.Name.Offsets is not null || a.Name.Sizes is not null) FreeElem(ref a.Name);
-        if (a.Value.Offsets is not null || a.Value.Sizes is not null) FreeElem(ref a.Value);
-        if (a.DisplayName.Offsets is not null || a.DisplayName.Sizes is not null) FreeElem(ref a.DisplayName);
-        if (a.DisplayValue.Offsets is not null || a.DisplayValue.Sizes is not null) FreeElem(ref a.DisplayValue);
+        if (a.Name.Offsets is not null || a.Name.Sizes is not null)
+            FreeElem(ref a.Name);
+        if (a.Value.Offsets is not null || a.Value.Sizes is not null)
+            FreeElem(ref a.Value);
+        if (a.DisplayName.Offsets is not null || a.DisplayName.Sizes is not null)
+            FreeElem(ref a.DisplayName);
+        if (a.DisplayValue.Offsets is not null || a.DisplayValue.Sizes is not null)
+            FreeElem(ref a.DisplayValue);
     }
 
     private static bool AllocArray(Context? ContextID, out DICarray a, uint Count, uint Length)
@@ -3843,8 +4703,10 @@ public static partial class Lcms2
         //memset(a, 0, _sizeof<DICarray>());
 
         // Depending on record size, create column arrays
-        if (!AllocElem(ContextID, out a.Name, Count)) goto Error;
-        if (!AllocElem(ContextID, out a.Value, Count)) goto Error;
+        if (!AllocElem(ContextID, out a.Name, Count))
+            goto Error;
+        if (!AllocElem(ContextID, out a.Value, Count))
+            goto Error;
 
         if (Length > 16 && !AllocElem(ContextID, out a.DisplayName, Count))
             goto Error;
@@ -3861,8 +4723,10 @@ public static partial class Lcms2
 
     private static bool ReadOneElem(IOHandler io, ref DICelem e, uint i, uint BaseOffset)
     {
-        if (!io.ReadUint(out e.Offsets[i])) return false;
-        if (!io.ReadUint(out e.Sizes[i])) return false;
+        if (!io.ReadUint(out e.Offsets[i]))
+            return false;
+        if (!io.ReadUint(out e.Sizes[i]))
+            return false;
 
         // An offset of zero has special meaning and shall be preserved
         if (e.Offsets[i] > 0)
@@ -3871,33 +4735,45 @@ public static partial class Lcms2
         return true;
     }
 
-    private static bool ReadOffsetArray(IOHandler io, ref DICarray a, uint Count, uint Length, uint BaseOffset, ref int SignedSizeOfTagPtr)
+    private static bool ReadOffsetArray(IOHandler io,
+                                        ref DICarray a,
+                                        uint Count,
+                                        uint Length,
+                                        uint BaseOffset,
+                                        ref int SignedSizeOfTagPtr)
     {
         var SignedSizeOfTag = SignedSizeOfTagPtr;
 
         // Read column arrays
         for (var i = 0u; i < Count; i++)
         {
-            if (SignedSizeOfTag < 4 * sizeof(uint)) return false;
+            if (SignedSizeOfTag < 4 * sizeof(uint))
+                return false;
             SignedSizeOfTag -= 4 * sizeof(uint);
 
-            if (!ReadOneElem(io, ref a.Name, i, BaseOffset)) return false;
-            if (!ReadOneElem(io, ref a.Value, i, BaseOffset)) return false;
+            if (!ReadOneElem(io, ref a.Name, i, BaseOffset))
+                return false;
+            if (!ReadOneElem(io, ref a.Value, i, BaseOffset))
+                return false;
 
             if (Length > 16)
             {
-                if (SignedSizeOfTag < 2 * sizeof(uint)) return false;
+                if (SignedSizeOfTag < 2 * sizeof(uint))
+                    return false;
                 SignedSizeOfTag -= 2 * sizeof(uint);
 
-                if (!ReadOneElem(io, ref a.DisplayName, i, BaseOffset)) return false;
+                if (!ReadOneElem(io, ref a.DisplayName, i, BaseOffset))
+                    return false;
             }
 
             if (Length > 24)
             {
-                if (SignedSizeOfTag < 2 * sizeof(uint)) return false;
+                if (SignedSizeOfTag < 2 * sizeof(uint))
+                    return false;
                 SignedSizeOfTag -= 2 * sizeof(uint);
 
-                if (!ReadOneElem(io, ref a.DisplayValue, i, BaseOffset)) return false;
+                if (!ReadOneElem(io, ref a.DisplayValue, i, BaseOffset))
+                    return false;
             }
         }
 
@@ -3907,8 +4783,10 @@ public static partial class Lcms2
 
     private static bool WriteOneElem(IOHandler io, ref DICelem e, uint i)
     {
-        if (!io.Write(e.Offsets[i])) return false;
-        if (!io.Write(e.Sizes[i])) return false;
+        if (!io.Write(e.Offsets[i]))
+            return false;
+        if (!io.Write(e.Sizes[i]))
+            return false;
 
         return true;
     }
@@ -3917,14 +4795,18 @@ public static partial class Lcms2
     {
         for (var i = 0u; i < Count; i++)
         {
-            if (!WriteOneElem(io, ref a.Name, i)) return false;
-            if (!WriteOneElem(io, ref a.Value, i)) return false;
+            if (!WriteOneElem(io, ref a.Name, i))
+                return false;
+            if (!WriteOneElem(io, ref a.Value, i))
+                return false;
 
             if (Length > 16)
-                if (!WriteOneElem(io, ref a.DisplayName, i)) return false;
+                if (!WriteOneElem(io, ref a.DisplayName, i))
+                    return false;
 
             if (Length > 24)
-                if (!WriteOneElem(io, ref a.DisplayValue, i)) return false;
+                if (!WriteOneElem(io, ref a.DisplayValue, i))
+                    return false;
         }
 
         return true;
@@ -3973,7 +4855,8 @@ public static partial class Lcms2
 
         //var n = mywcslen(wcstr);
         var n = (uint)wcstr.Length;
-        if (!_cmsWriteWCharArray(io, n, wcstr)) return false;
+        if (!_cmsWriteWCharArray(io, n, wcstr))
+            return false;
 
         e.Sizes[i] = io.TellFunc(io) - Before;
         return true;
@@ -3998,7 +4881,12 @@ public static partial class Lcms2
         return mlu is not null;
     }
 
-    private static bool WriteOneMLUC(TagTypeHandler self, IOHandler io, ref DICelem e, uint i, Mlu? mlu, uint BaseOffset)
+    private static bool WriteOneMLUC(TagTypeHandler self,
+                                     IOHandler io,
+                                     ref DICelem e,
+                                     uint i,
+                                     Mlu? mlu,
+                                     uint BaseOffset)
     {
         // Special case for undefined strings (see ICC Votable
         // Proposal Submission, Dictionary Type and Metadata TAG Definition)
@@ -4013,7 +4901,8 @@ public static partial class Lcms2
         if (e.Offsets is not null)
             e.Offsets[i] = Before - BaseOffset;
 
-        if (!Type_MLU_Write(self, io, mlu, 1)) return false;
+        if (!Type_MLU_Write(self, io, mlu, 1))
+            return false;
 
         if (e.Sizes is not null)
             e.Sizes[i] = io.TellFunc(io) - Before;
@@ -4036,13 +4925,17 @@ public static partial class Lcms2
 
         // Get name-value record count
         SignedSizeOfTag -= sizeof(uint);
-        if (SignedSizeOfTag < 0) goto Error;
-        if (!io.ReadUint(out var Count)) goto Error;
+        if (SignedSizeOfTag < 0)
+            goto Error;
+        if (!io.ReadUint(out var Count))
+            goto Error;
 
         // Get rec length
         SignedSizeOfTag -= sizeof(uint);
-        if (SignedSizeOfTag < 0) goto Error;
-        if (!io.ReadUint(out var Length)) goto Error;
+        if (SignedSizeOfTag < 0)
+            goto Error;
+        if (!io.ReadUint(out var Length))
+            goto Error;
 
         // Check for valid lengths
         if (Length is not 16 and not 24 and not 32)
@@ -4053,25 +4946,32 @@ public static partial class Lcms2
 
         // Creates an empty dictionary
         hDict = cmsDictAlloc(self.ContextID);
-        if (hDict is null) goto Error;
+        if (hDict is null)
+            goto Error;
 
         // Depending on record size, create column arrays
-        if (!AllocArray(self.ContextID, out a, Count, Length)) goto Error;
+        if (!AllocArray(self.ContextID, out a, Count, Length))
+            goto Error;
 
         // Read column arrays
-        if (!ReadOffsetArray(io, ref a, Count, Length, BaseOffset, ref SignedSizeOfTag)) goto Error;
+        if (!ReadOffsetArray(io, ref a, Count, Length, BaseOffset, ref SignedSizeOfTag))
+            goto Error;
 
         // Seek to each element and read it
         for (var i = 0u; i < Count; i++)
         {
-            if (!ReadOneWChar(io, ref a.Name, i, out NameWCS)) goto Error;
-            if (!ReadOneWChar(io, ref a.Value, i, out ValueWCS)) goto Error;
+            if (!ReadOneWChar(io, ref a.Name, i, out NameWCS))
+                goto Error;
+            if (!ReadOneWChar(io, ref a.Value, i, out ValueWCS))
+                goto Error;
 
             if (Length > 16)
-                if (!ReadOneMLUC(self, io, ref a.DisplayName, i, out DisplayNameMLU)) goto Error;
+                if (!ReadOneMLUC(self, io, ref a.DisplayName, i, out DisplayNameMLU))
+                    goto Error;
 
             if (Length > 24)
-                if (!ReadOneMLUC(self, io, ref a.DisplayValue, i, out DisplayValueMLU)) goto Error;
+                if (!ReadOneMLUC(self, io, ref a.DisplayValue, i, out DisplayValueMLU))
+                    goto Error;
 
             bool rc;
             if (NameWCS is null || ValueWCS is null)
@@ -4086,10 +4986,13 @@ public static partial class Lcms2
 
             //if (NameWCS is not null) _cmsFree(self.ContextID, NameWCS);
             //if (ValueWCS is not null) _cmsFree(self.ContextID, ValueWCS);
-            if (DisplayNameMLU is not null) cmsMLUfree(DisplayNameMLU);
-            if (DisplayValueMLU is not null) cmsMLUfree(DisplayValueMLU);
+            if (DisplayNameMLU is not null)
+                cmsMLUfree(DisplayNameMLU);
+            if (DisplayValueMLU is not null)
+                cmsMLUfree(DisplayValueMLU);
 
-            if (!rc) goto Error;
+            if (!rc)
+                goto Error;
         }
 
         FreeArray(ref a);
@@ -4098,7 +5001,8 @@ public static partial class Lcms2
 
     Error:
         FreeArray(ref a);
-        if (hDict is not null) cmsDictFree(hDict);
+        if (hDict is not null)
+            cmsDictFree(hDict);
         return null;
     }
 
@@ -4115,53 +5019,70 @@ public static partial class Lcms2
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         // Let's inspect the dictionary
-        var Count = 0u; var AnyName = false; var AnyValue = false;
+        var Count = 0u;
+        var AnyName = false;
+        var AnyValue = false;
         for (p = cmsDictGetEntryList(hDict); p is not null; p = cmsDictNextEntry(p))
         {
-            if (p.DisplayName is not null) AnyName = true;
-            if (p.DisplayValue is not null) AnyValue = true;
+            if (p.DisplayName is not null)
+                AnyName = true;
+            if (p.DisplayValue is not null)
+                AnyValue = true;
             Count++;
         }
 
         var Length = 16u;
-        if (AnyName) Length += 8;
-        if (AnyValue) Length += 8;
+        if (AnyName)
+            Length += 8;
+        if (AnyValue)
+            Length += 8;
 
-        if (!io.Write(Count)) return false;
-        if (!io.Write(Length)) return false;
+        if (!io.Write(Count))
+            return false;
+        if (!io.Write(Length))
+            return false;
 
         // Keep starting posiotion of offsets table
         var DirectoryPos = io.TellFunc(io);
 
         // Allocate offsets array
-        if (!AllocArray(self.ContextID, out var a, Count, Length)) goto Error;
+        if (!AllocArray(self.ContextID, out var a, Count, Length))
+            goto Error;
 
         // Write a fake directory to be filled later on
-        if (!WriteOffsetArray(io, ref a, Count, Length)) goto Error;
+        if (!WriteOffsetArray(io, ref a, Count, Length))
+            goto Error;
 
         // Write each element. Keep track of the size as well.
         p = cmsDictGetEntryList(hDict);
         for (var i = 0u; i < Count; i++)
         {
-            if (!WriteOneWChar(io, ref a.Name, i, p.Name, BaseOffset)) goto Error;
-            if (!WriteOneWChar(io, ref a.Value, i, p.Value, BaseOffset)) goto Error;
+            if (!WriteOneWChar(io, ref a.Name, i, p.Name, BaseOffset))
+                goto Error;
+            if (!WriteOneWChar(io, ref a.Value, i, p.Value, BaseOffset))
+                goto Error;
 
             if (p.DisplayName is not null)
-                if (!WriteOneMLUC(self, io, ref a.DisplayName, i, p.DisplayName, BaseOffset)) goto Error;
+                if (!WriteOneMLUC(self, io, ref a.DisplayName, i, p.DisplayName, BaseOffset))
+                    goto Error;
 
             if (p.DisplayValue is not null)
-                if (!WriteOneMLUC(self, io, ref a.DisplayValue, i, p.DisplayValue, BaseOffset)) goto Error;
+                if (!WriteOneMLUC(self, io, ref a.DisplayValue, i, p.DisplayValue, BaseOffset))
+                    goto Error;
 
             p = cmsDictNextEntry(p);
         }
 
         // Write the directory
         var CurrentPos = io.TellFunc(io);
-        if (!io.SeekFunc(io, DirectoryPos)) goto Error;
+        if (!io.SeekFunc(io, DirectoryPos))
+            goto Error;
 
-        if (!WriteOffsetArray(io, ref a, Count, Length)) goto Error;
+        if (!WriteOffsetArray(io, ref a, Count, Length))
+            goto Error;
 
-        if (!io.SeekFunc(io, CurrentPos)) goto Error;
+        if (!io.SeekFunc(io, CurrentPos))
+            goto Error;
 
         FreeArray(ref a);
         return true;
@@ -4181,7 +5102,10 @@ public static partial class Lcms2
 
     #region cicp VideoSignalType
 
-    private static Box<VideoSignalType>? Type_VideoSignal_Read(TagTypeHandler _1, IOHandler io, out uint nItems, uint SizeOfTag)
+    private static Box<VideoSignalType>? Type_VideoSignal_Read(TagTypeHandler _1,
+                                                               IOHandler io,
+                                                               out uint nItems,
+                                                               uint SizeOfTag)
     {
         nItems = 0;
 
@@ -4193,10 +5117,14 @@ public static partial class Lcms2
 
         var cicp = new VideoSignalType();
 
-        if (!io.ReadByte(out cicp.ColourPrimaries)) return null;
-        if (!io.ReadByte(out cicp.TransferCharacteristics)) return null;
-        if (!io.ReadByte(out cicp.MatrixCoefficients)) return null;
-        if (!io.ReadByte(out cicp.VideoFullRangeFlag)) return null;
+        if (!io.ReadByte(out cicp.ColourPrimaries))
+            return null;
+        if (!io.ReadByte(out cicp.TransferCharacteristics))
+            return null;
+        if (!io.ReadByte(out cicp.MatrixCoefficients))
+            return null;
+        if (!io.ReadByte(out cicp.VideoFullRangeFlag))
+            return null;
 
         nItems = 1;
         return new(cicp);
@@ -4207,11 +5135,16 @@ public static partial class Lcms2
         if (Ptr is not Box<VideoSignalType> cicp)
             return false;
 
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write(cicp.Value.ColourPrimaries)) return false;
-        if (!io.Write(cicp.Value.TransferCharacteristics)) return false;
-        if (!io.Write(cicp.Value.MatrixCoefficients)) return false;
-        if (!io.Write(cicp.Value.VideoFullRangeFlag)) return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write(cicp.Value.ColourPrimaries))
+            return false;
+        if (!io.Write(cicp.Value.TransferCharacteristics))
+            return false;
+        if (!io.Write(cicp.Value.MatrixCoefficients))
+            return false;
+        if (!io.Write(cicp.Value.VideoFullRangeFlag))
+            return false;
 
         return true;
     }
@@ -4227,9 +5160,18 @@ public static partial class Lcms2
 
     private static void SetIdentity(Span<double> XYZ2XYZmatrix)
     {
-        XYZ2XYZmatrix[0] = 1.0; XYZ2XYZmatrix[1] = 0.0; XYZ2XYZmatrix[2] = 0.0; XYZ2XYZmatrix[3] = 0.0;
-        XYZ2XYZmatrix[4] = 0.0; XYZ2XYZmatrix[5] = 1.0; XYZ2XYZmatrix[6] = 0.0; XYZ2XYZmatrix[7] = 0.0;
-        XYZ2XYZmatrix[8] = 0.0; XYZ2XYZmatrix[9] = 0.0; XYZ2XYZmatrix[10] = 1.0; XYZ2XYZmatrix[11] = 0.0;
+        XYZ2XYZmatrix[0] = 1.0;
+        XYZ2XYZmatrix[1] = 0.0;
+        XYZ2XYZmatrix[2] = 0.0;
+        XYZ2XYZmatrix[3] = 0.0;
+        XYZ2XYZmatrix[4] = 0.0;
+        XYZ2XYZmatrix[5] = 1.0;
+        XYZ2XYZmatrix[6] = 0.0;
+        XYZ2XYZmatrix[7] = 0.0;
+        XYZ2XYZmatrix[8] = 0.0;
+        XYZ2XYZmatrix[9] = 0.0;
+        XYZ2XYZmatrix[10] = 1.0;
+        XYZ2XYZmatrix[11] = 0.0;
     }
 
     private static bool CloseEnough(double a, double b) =>
@@ -4264,11 +5206,13 @@ public static partial class Lcms2
             //ReturnArray(pool, mhc2.Value.redCurve);
             mhc2.Value.redCurve = null!;
         }
+
         if (mhc2.Value.greenCurve is not null)
         {
             //ReturnArray(pool, mhc2.Value.greenCurve);
             mhc2.Value.greenCurve = null!;
         }
+
         if (mhc2.Value.blueCurve is not null)
         {
             //ReturnArray(pool, mhc2.Value.blueCurve);
@@ -4278,7 +5222,8 @@ public static partial class Lcms2
 
     private static Box<MHC2>? Type_MHC2_Dup(TagTypeHandler self, object? Ptr, uint _1)
     {
-        if (Ptr is not Box<MHC2> org) return null;
+        if (Ptr is not Box<MHC2> org)
+            return null;
 
         var mhc2 = org.Value;
 
@@ -4309,18 +5254,26 @@ public static partial class Lcms2
 
         var BaseOffset = io.TellFunc(io) - (uint)Unsafe.SizeOf<TagBase>();
 
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write(mhc2.Value.entries)) return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write(mhc2.Value.entries))
+            return false;
 
-        if (!io.Write(mhc2.Value.minLuminance)) return false;
-        if (!io.Write(mhc2.Value.peakLuminance)) return false;
+        if (!io.Write(mhc2.Value.minLuminance))
+            return false;
+        if (!io.Write(mhc2.Value.peakLuminance))
+            return false;
 
         var TablesOffsetPos = io.TellFunc(io);
 
-        if (!io.Write((uint)0)) return false;    // Matrix
-        if (!io.Write((uint)0)) return false;    // Curve R
-        if (!io.Write((uint)0)) return false;    // Curve G
-        if (!io.Write((uint)0)) return false;    // Curve B
+        if (!io.Write((uint)0))
+            return false;    // Matrix
+        if (!io.Write((uint)0))
+            return false;    // Curve R
+        if (!io.Write((uint)0))
+            return false;    // Curve G
+        if (!io.Write((uint)0))
+            return false;    // Curve B
 
         if (IsIdentity(mhc2.Value.matrix))
         {
@@ -4334,18 +5287,26 @@ public static partial class Lcms2
         }
 
         var OffsetRedTable = io.TellFunc(io) - BaseOffset;
-        if (!WriteDoubles(io, mhc2.Value.entries, mhc2.Value.redCurve)) return false;
+        if (!WriteDoubles(io, mhc2.Value.entries, mhc2.Value.redCurve))
+            return false;
         var OffsetGreenTable = io.TellFunc(io) - BaseOffset;
-        if (!WriteDoubles(io, mhc2.Value.entries, mhc2.Value.greenCurve)) return false;
+        if (!WriteDoubles(io, mhc2.Value.entries, mhc2.Value.greenCurve))
+            return false;
         var OffsetBlueTable = io.TellFunc(io) - BaseOffset;
-        if (!WriteDoubles(io, mhc2.Value.entries, mhc2.Value.blueCurve)) return false;
+        if (!WriteDoubles(io, mhc2.Value.entries, mhc2.Value.blueCurve))
+            return false;
 
-        if (!io.SeekFunc(io, TablesOffsetPos)) return false;
+        if (!io.SeekFunc(io, TablesOffsetPos))
+            return false;
 
-        if (!io.Write(MatrixOffset)) return false;
-        if (!io.Write(OffsetRedTable)) return false;
-        if (!io.Write(OffsetGreenTable)) return false;
-        if (!io.Write(OffsetBlueTable)) return false;
+        if (!io.Write(MatrixOffset))
+            return false;
+        if (!io.Write(OffsetRedTable))
+            return false;
+        if (!io.Write(OffsetGreenTable))
+            return false;
+        if (!io.Write(OffsetBlueTable))
+            return false;
 
         return true;
     }
@@ -4354,7 +5315,8 @@ public static partial class Lcms2
     {
         var CurrentPos = io.TellFunc(io);
 
-        if (!io.SeekFunc(io, At)) return false;
+        if (!io.SeekFunc(io, At))
+            return false;
 
         for (var i = 0; i < n; i++)
         {
@@ -4362,7 +5324,8 @@ public static partial class Lcms2
                 return false;
         }
 
-        if (!io.SeekFunc(io, CurrentPos)) return false;
+        if (!io.SeekFunc(io, CurrentPos))
+            return false;
 
         return true;
     }
@@ -4375,11 +5338,14 @@ public static partial class Lcms2
 
         var BaseOffset = io.TellFunc(io) - (uint)Unsafe.SizeOf<TagBase>();
 
-        if (!io.ReadUint(out _)) return null;
+        if (!io.ReadUint(out _))
+            return null;
 
-        if (!io.ReadUint(out mhc2.entries)) goto Error;
+        if (!io.ReadUint(out mhc2.entries))
+            goto Error;
 
-        if (mhc2.entries > 4096) goto Error;
+        if (mhc2.entries > 4096)
+            goto Error;
 
         //var pool = self.ContextID!.GetBufferPool<double>();
         //mhc2.redCurve = pool.Rent((int)mhc2.entries);
@@ -4391,24 +5357,34 @@ public static partial class Lcms2
 
         mhc2.matrix = new double[3 * 4];
 
-        if (!io.ReadFixed15_16(out mhc2.minLuminance)) goto Error;
-        if (!io.ReadFixed15_16(out mhc2.peakLuminance)) goto Error;
+        if (!io.ReadFixed15_16(out mhc2.minLuminance))
+            goto Error;
+        if (!io.ReadFixed15_16(out mhc2.peakLuminance))
+            goto Error;
 
-        if (!io.ReadUint(out var MatrixOffset)) goto Error;
-        if (!io.ReadUint(out var OffsetRedTable)) goto Error;
-        if (!io.ReadUint(out var OffsetGreenTable)) goto Error;
-        if (!io.ReadUint(out var OffsetBlueTable)) goto Error;
+        if (!io.ReadUint(out var MatrixOffset))
+            goto Error;
+        if (!io.ReadUint(out var OffsetRedTable))
+            goto Error;
+        if (!io.ReadUint(out var OffsetGreenTable))
+            goto Error;
+        if (!io.ReadUint(out var OffsetBlueTable))
+            goto Error;
 
         if (MatrixOffset is 0)
             SetIdentity(mhc2.matrix);
         else
         {
-            if (!ReadDoublesAt(io, BaseOffset + MatrixOffset, 3 * 4, mhc2.matrix)) goto Error;
+            if (!ReadDoublesAt(io, BaseOffset + MatrixOffset, 3 * 4, mhc2.matrix))
+                goto Error;
         }
 
-        if (!ReadDoublesAt(io, BaseOffset + OffsetRedTable, mhc2.entries, mhc2.redCurve)) goto Error;
-        if (!ReadDoublesAt(io, BaseOffset + OffsetGreenTable, mhc2.entries, mhc2.greenCurve)) goto Error;
-        if (!ReadDoublesAt(io, BaseOffset + OffsetBlueTable, mhc2.entries, mhc2.blueCurve)) goto Error;
+        if (!ReadDoublesAt(io, BaseOffset + OffsetRedTable, mhc2.entries, mhc2.redCurve))
+            goto Error;
+        if (!ReadDoublesAt(io, BaseOffset + OffsetGreenTable, mhc2.entries, mhc2.greenCurve))
+            goto Error;
+        if (!ReadDoublesAt(io, BaseOffset + OffsetBlueTable, mhc2.entries, mhc2.blueCurve))
+            goto Error;
 
         // Success
         nItems = 1;
@@ -4482,25 +5458,33 @@ public static partial class Lcms2
         float PrevBreak = MINUS_INF;
 
         // Take signature and channels for each element.
-        if (!_cmsReadSignature(io, out var ElementSig)) return null;
+        if (!_cmsReadSignature(io, out var ElementSig))
+            return null;
 
         // That should be a segmented curve
-        if (ElementSig != Signature.CurveSegment.Segmented) return null;
+        if (ElementSig != Signatures.CurveSegment.Segmented)
+            return null;
 
-        if (!io.ReadUint(out _)) return null;
-        if (!io.ReadUshort(out var nSegments)) return null;
-        if (!io.ReadUshort(out _)) return null;
+        if (!io.ReadUint(out _))
+            return null;
+        if (!io.ReadUshort(out var nSegments))
+            return null;
+        if (!io.ReadUshort(out _))
+            return null;
 
-        if (nSegments < 1) return null;
+        if (nSegments < 1)
+            return null;
         //var Segments = GetArray<CurveSegment>(self.ContextID, nSegments);
         var Segments = new CurveSegment[nSegments];
-        if (Segments is null) return null;
+        if (Segments is null)
+            return null;
 
         // Read breakpoints
         for (var i = 0; i < nSegments - 1; i++)
         {
             Segments[i].x0 = PrevBreak;
-            if (!io.ReadFloat(out Segments[i].x1)) goto Error;
+            if (!io.ReadFloat(out Segments[i].x1))
+                goto Error;
             PrevBreak = Segments[i].x1;
         }
 
@@ -4510,29 +5494,36 @@ public static partial class Lcms2
         // Read segments
         for (var i = 0; i < nSegments; i++)
         {
-            if (!_cmsReadSignature(io, out ElementSig)) goto Error;
-            if (!io.ReadUint(out _)) goto Error;
+            if (!_cmsReadSignature(io, out ElementSig))
+                goto Error;
+            if (!io.ReadUint(out _))
+                goto Error;
 
-            if (ElementSig == Signature.CurveSegment.Formula)
+            if (ElementSig == Signatures.CurveSegment.Formula)
             {
-                if (!io.ReadUshort(out var Type)) goto Error;
-                if (!io.ReadUshort(out _)) goto Error;
+                if (!io.ReadUshort(out var Type))
+                    goto Error;
+                if (!io.ReadUshort(out _))
+                    goto Error;
 
                 Segments[i].Type = Type + 6;
-                if (Type > 2) goto Error;
+                if (Type > 2)
+                    goto Error;
 
                 //Segments[i].Params = Context.GetPool<double>(self.ContextID).Rent(10);
                 Segments[i].Params = new double[10];
 
                 for (var j = 0; j < ParamsByType[Type]; j++)
                 {
-                    if (!io.ReadFloat(out var f)) goto Error;
+                    if (!io.ReadFloat(out var f))
+                        goto Error;
                     Segments[i].Params[j] = f;
                 }
             }
-            else if (ElementSig == Signature.CurveSegment.Sampled)
+            else if (ElementSig == Signatures.CurveSegment.Sampled)
             {
-                if (!io.ReadUint(out var Count)) goto Error;
+                if (!io.ReadUint(out var Count))
+                    goto Error;
 
                 // This first point is implicit in the last stage, we allocate an extra note to be populated later on
                 Count++;
@@ -4544,11 +5535,15 @@ public static partial class Lcms2
 
                 Segments[i].SampledPoints[0] = 0;
                 for (var j = 1; j < Count; j++)
-                    if (!io.ReadFloat(out Segments[i].SampledPoints[j])) goto Error;
+                    if (!io.ReadFloat(out Segments[i].SampledPoints[j]))
+                        goto Error;
             }
             else
             {
-                LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown curve element type '{_cmsTagSignature2String(ElementSig)}' found.");
+                LogError(
+                    self.ContextID,
+                    cmsERROR_UNKNOWN_EXTENSION,
+                    $"Unknown curve element type '{(ElementSig)}' found.");
                 goto Error;
             }
         }
@@ -4592,10 +5587,13 @@ public static partial class Lcms2
         // Get actual position as a basis for element offsets
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
-        if (!io.ReadUshort(out var InputChans)) return null;
-        if (!io.ReadUshort(out var OutputChans)) return null;
+        if (!io.ReadUshort(out var InputChans))
+            return null;
+        if (!io.ReadUshort(out var OutputChans))
+            return null;
 
-        if (InputChans != OutputChans) return null;
+        if (InputChans != OutputChans)
+            return null;
 
         //var GammaTables = (ToneCurve**)_cmsCalloc(self.ContextID, InputChans, _sizeof<nint>());
         //if (GammaTables is null) return null;
@@ -4604,11 +5602,12 @@ public static partial class Lcms2
         var GammaTables = new ToneCurve[InputChans];
 
         var mpe = ReadPositionTable(self, io, InputChans, BaseOffset, GammaTables, ReadMPECurve)
-            ? cmsStageAllocToneCurves(self.ContextID, InputChans, GammaTables)
-            : null;
+                      ? cmsStageAllocToneCurves(self.ContextID, InputChans, GammaTables)
+                      : null;
 
         for (var i = 0; i < InputChans; i++)
-            if (GammaTables[i] is not null) cmsFreeToneCurve(GammaTables[i]);
+            if (GammaTables[i] is not null)
+                cmsFreeToneCurve(GammaTables[i]);
 
         //ReturnArray(self.ContextID, GammaTables);
         nItems = mpe is not null ? 1u : 0;
@@ -4622,14 +5621,19 @@ public static partial class Lcms2
         var Segments = g.Segments;
         var nSegments = g.nSegments;
 
-        if (!io.Write((uint)Signature.CurveSegment.Segmented)) return false;
-        if (!io.Write((uint)0)) return false;
-        if (!io.Write((ushort)nSegments)) return false;
-        if (!io.Write((ushort)0)) return false;
+        if (!io.Write((uint)Signatures.CurveSegment.Segmented))
+            return false;
+        if (!io.Write((uint)0))
+            return false;
+        if (!io.Write((ushort)nSegments))
+            return false;
+        if (!io.Write((ushort)0))
+            return false;
 
         // Write the break points
         for (var i = 0; i < nSegments - 1; i++)
-            if (!io.Write(Segments[i].x1)) return false;
+            if (!io.Write(Segments[i].x1))
+                return false;
 
         // Write the segments
         for (var i = 0; i < nSegments; i++)
@@ -4639,28 +5643,38 @@ public static partial class Lcms2
             if (ActualSeg.Type is 0)
             {
                 // This is a sampled curve. First point is implicit in the ICC format, but not in our representation
-                if (!io.Write((uint)Signature.CurveSegment.Sampled)) return false;
-                if (!io.Write((uint)0)) return false;
-                if (!io.Write(ActualSeg.nGridPoints - 1)) return false;
+                if (!io.Write((uint)Signatures.CurveSegment.Sampled))
+                    return false;
+                if (!io.Write((uint)0))
+                    return false;
+                if (!io.Write(ActualSeg.nGridPoints - 1))
+                    return false;
 
                 for (var j = 1; j < g.Segments[i].nGridPoints; j++)
-                    if (!io.Write(ActualSeg.SampledPoints[j])) return false;
+                    if (!io.Write(ActualSeg.SampledPoints[j]))
+                        return false;
             }
             else
             {
                 // This is a formula-based
-                if (!io.Write((uint)Signature.CurveSegment.Formula)) return false;
-                if (!io.Write((uint)0)) return false;
+                if (!io.Write((uint)Signatures.CurveSegment.Formula))
+                    return false;
+                if (!io.Write((uint)0))
+                    return false;
 
                 // We only allow 1, 2, and 3 as types
                 var Type = ActualSeg.Type - 6;
-                if (Type is > 2 or < 0) return false;
+                if (Type is > 2 or < 0)
+                    return false;
 
-                if (!io.Write((ushort)Type)) return false;
-                if (!io.Write((ushort)0)) return false;
+                if (!io.Write((ushort)Type))
+                    return false;
+                if (!io.Write((ushort)0))
+                    return false;
 
                 for (var j = 0; j < ParamsByType[Type]; j++)
-                    if (!io.Write((float)ActualSeg.Params[j])) return false;
+                    if (!io.Write((float)ActualSeg.Params[j]))
+                        return false;
             }
 
             // It seems there is no need to align. Code is here, and for safety commented out
@@ -4676,15 +5690,21 @@ public static partial class Lcms2
     private static bool Type_MPEcurve_Write(TagTypeHandler self, IOHandler io, object? Ptr, uint _)
     {
         if (Ptr is not Stage mpe ||
-            mpe.Data is not StageToneCurvesData Curves) { return false; }
+            mpe.Data is not StageToneCurvesData Curves)
+        {
+            return false;
+        }
 
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         // Write the header. Since those are curves, input and output channels are the same
-        if (!io.Write((ushort)mpe.InputChannels)) return false;
-        if (!io.Write((ushort)mpe.InputChannels)) return false;
+        if (!io.Write((ushort)mpe.InputChannels))
+            return false;
+        if (!io.Write((ushort)mpe.InputChannels))
+            return false;
 
-        if (!WritePositionTable(self, io, 0, mpe.InputChannels, BaseOffset, Curves, WriteMPECurve)) return false;
+        if (!WritePositionTable(self, io, 0, mpe.InputChannels, BaseOffset, Curves, WriteMPECurve))
+            return false;
 
         return true;
     }
@@ -4697,11 +5717,15 @@ public static partial class Lcms2
     {
         nItems = 0;
 
-        if (!io.ReadUshort(out var InputChans)) return null;
-        if (!io.ReadUshort(out var OutputChans)) return null;
+        if (!io.ReadUshort(out var InputChans))
+            return null;
+        if (!io.ReadUshort(out var OutputChans))
+            return null;
 
-        if (InputChans >= cmsMAXCHANNELS) return null;
-        if (OutputChans >= cmsMAXCHANNELS) return null;
+        if (InputChans >= cmsMAXCHANNELS)
+            return null;
+        if (OutputChans >= cmsMAXCHANNELS)
+            return null;
 
         var nElems = (uint)InputChans * OutputChans;
 
@@ -4725,6 +5749,7 @@ public static partial class Lcms2
                 //_cmsFree(self.ContextID, Offsets);
                 return null;
             }
+
             Matrix[i] = v;
         }
 
@@ -4736,6 +5761,7 @@ public static partial class Lcms2
                 //_cmsFree(self.ContextID, Offsets);
                 return null;
             }
+
             Offsets[i] = v;
         }
 
@@ -4749,19 +5775,26 @@ public static partial class Lcms2
     private static bool Type_MPEmatrix_Write(TagTypeHandler _1, IOHandler io, object? Ptr, uint _2)
     {
         if (Ptr is not Stage mpe ||
-            mpe.Data is not StageMatrixData Matrix) { return false; }
+            mpe.Data is not StageMatrixData Matrix)
+        {
+            return false;
+        }
 
-        if (!io.Write((ushort)mpe.InputChannels)) return false;
-        if (!io.Write((ushort)mpe.OutputChannels)) return false;
+        if (!io.Write((ushort)mpe.InputChannels))
+            return false;
+        if (!io.Write((ushort)mpe.OutputChannels))
+            return false;
 
         var nElems = mpe.InputChannels * mpe.OutputChannels;
 
         for (var i = 0; i < nElems; i++)
-            if (!io.Write((float)Matrix.Double[i])) return false;
+            if (!io.Write((float)Matrix.Double[i]))
+                return false;
 
         for (var i = 0; i < mpe.OutputChannels; i++)
         {
-            if (!io.Write(Matrix.Offset is null ? 0 : (float)Matrix.Offset[i])) return false;
+            if (!io.Write(Matrix.Offset is null ? 0 : (float)Matrix.Offset[i]))
+                return false;
         }
 
         return true;
@@ -4782,39 +5815,48 @@ public static partial class Lcms2
         // Get actual position as a basis for element offsets
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
-        if (!io.ReadUshort(out var InputChans)) return null;
-        if (!io.ReadUshort(out var OutputChans)) return null;
+        if (!io.ReadUshort(out var InputChans))
+            return null;
+        if (!io.ReadUshort(out var OutputChans))
+            return null;
 
-        if (InputChans is 0 || InputChans >= cmsMAXCHANNELS) goto Error;
-        if (OutputChans is 0 || OutputChans >= cmsMAXCHANNELS) goto Error;
+        if (InputChans is 0 || InputChans >= cmsMAXCHANNELS)
+            goto Error;
+        if (OutputChans is 0 || OutputChans >= cmsMAXCHANNELS)
+            goto Error;
 
-        if (io.ReadFunc(io, Dimensions8, sizeof(byte), 16) is not 16) goto Error;
+        if (io.ReadFunc(io, Dimensions8, sizeof(byte), 16) is not 16)
+            goto Error;
 
         // Copy MAX_INPUT_DIMENSIONS at most. Expact to uint
         var nMaxGrids = Math.Min(InputChans, MAX_INPUT_DIMENSIONS);
 
         for (var i = 0; i < nMaxGrids; i++)
         {
-            if (Dimensions8[i] is 1) goto Error;    // Impossible value, 0 for no CLUT and at least 2 otherwise
+            if (Dimensions8[i] is 1)
+                goto Error;    // Impossible value, 0 for no CLUT and at least 2 otherwise
             GridPoints[i] = Dimensions8[i];
         }
 
         // Allocate the true CLUT
         mpe = cmsStageAllocCLutFloatGranular(self.ContextID, GridPoints, InputChans, OutputChans, null);
-        if (mpe is null) goto Error;
+        if (mpe is null)
+            goto Error;
 
         // Read and sanitize the data
         if (mpe.Data is not StageCLutData<float> clut)
             goto Error;
 
         for (var i = 0; i < clut.nEntries; i++)
-            if (!io.ReadFloat(out clut.TFloat[i])) goto Error;
+            if (!io.ReadFloat(out clut.TFloat[i]))
+                goto Error;
 
         nItems = 1;
         return mpe;
 
     Error:
-        if (mpe is not null) cmsStageFree(mpe);
+        if (mpe is not null)
+            cmsStageFree(mpe);
         return null;
     }
 
@@ -4826,7 +5868,8 @@ public static partial class Lcms2
             return false;
 
         // Check for maximum number of channels supported by lcms
-        if (mpe.InputChannels > MAX_INPUT_DIMENSIONS) return false;
+        if (mpe.InputChannels > MAX_INPUT_DIMENSIONS)
+            return false;
 
         //// Only floats are supported in MPE
         //if (!clut.HasFloatValues) return false;
@@ -4834,18 +5877,22 @@ public static partial class Lcms2
         // We already check for HasFloatValues by making sure we are working with
         // a StageCLutData<float> from the beginning.
 
-        if (!io.Write((ushort)mpe.InputChannels)) return false;
-        if (!io.Write((ushort)mpe.OutputChannels)) return false;
+        if (!io.Write((ushort)mpe.InputChannels))
+            return false;
+        if (!io.Write((ushort)mpe.OutputChannels))
+            return false;
 
         //memset(Dimensions8, 0, sizeof(byte) * 16);
 
         for (var i = 0; i < mpe.InputChannels; i++)
             Dimensions8[i] = (byte)clut.Params.nSamples[i];
 
-        if (!io.WriteFunc(io, 16, Dimensions8)) return false;
+        if (!io.WriteFunc(io, 16, Dimensions8))
+            return false;
 
         for (var i = 0; i < clut.nEntries; i++)
-            if (!io.Write(clut.TFloat[i])) return false;
+            if (!io.Write(clut.TFloat[i]))
+                return false;
 
         return true;
     }
@@ -4864,8 +5911,8 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.TagTypePlugin
-            : TagTypePluginChunk;
+                       ? src.TagTypePlugin
+                       : TagTypePluginChunk;
 
         DupTagTypeList(ref ctx.TagTypePlugin, from);
     }
@@ -4875,8 +5922,8 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.MPEPlugin
-            : MPETypePluginChunk;
+                       ? src.MPEPlugin
+                       : MPETypePluginChunk;
 
         DupTagTypeList(ref ctx.MPEPlugin, from);
     }
@@ -4895,8 +5942,8 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.TagPlugin
-            : TagPluginChunk;
+                       ? src.TagPlugin
+                       : TagPluginChunk;
 
         DupTagList(ref ctx.TagPlugin, from);
     }
@@ -4940,10 +5987,12 @@ public static partial class Lcms2
         var TagPluginChunk = Context.Get(ContextID).TagPlugin;
 
         foreach (var pt in TagPluginChunk.List)
-            if (sig == pt.Signature) return pt.Descriptor;
+            if (sig == pt.Signature)
+                return pt.Descriptor;
 
         foreach (var pt in supportedTags)
-            if (sig == pt.Signature) return pt.Descriptor;
+            if (sig == pt.Signature)
+                return pt.Descriptor;
 
         return null;
     }

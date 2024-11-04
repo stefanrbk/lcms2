@@ -24,37 +24,12 @@
 //
 //---------------------------------------------------------------------------------
 
-using System.Globalization;
-
 namespace lcms2.types;
 
-public partial struct Signature
+public static partial class Signatures
 {
-    public class Formatter : IFormatProvider, ICustomFormatter
+    public static class Gamut
     {
-        public string Format(string? format, object? obj, IFormatProvider? provider)
-        {
-            if (obj is null)
-                return string.Empty;
-
-            if (obj is Signature value)
-            {
-                // Text output
-                if (format?.StartsWith("T", StringComparison.CurrentCultureIgnoreCase) ?? false)
-                    return value.ToString();
-
-                // Hex output
-                if (format?.StartsWith("X", StringComparison.CurrentCultureIgnoreCase) ?? false)
-                    return String.Format(provider, "{" + format + "}", (uint)obj);
-            }
-
-            // Use default for all other formatting
-            return obj is IFormattable formattable
-                ? formattable.ToString(format, CultureInfo.CurrentCulture)
-                : obj.ToString() ?? String.Empty;
-        }
-
-        public object? GetFormat(Type? formatType) =>
-            formatType == typeof(ICustomFormatter) ? this : (object?)null;
+        public static readonly Signature PerceptualReferenceMedium = new("prmg"u8);
     }
 }

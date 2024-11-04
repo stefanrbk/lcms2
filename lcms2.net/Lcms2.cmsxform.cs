@@ -24,11 +24,11 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+
+using lcms2.state;
+using lcms2.types;
 
 namespace lcms2;
 
@@ -38,7 +38,8 @@ public static partial class Lcms2
 
     private static readonly AdaptationStateChunkType AdaptationStateChunk = new(DEFAULT_OBSERVER_ADAPTATION_STATE);
 
-    private static readonly AdaptationStateChunkType globalAdaptationStateChunk = new(DEFAULT_OBSERVER_ADAPTATION_STATE);
+    private static readonly AdaptationStateChunkType
+        globalAdaptationStateChunk = new(DEFAULT_OBSERVER_ADAPTATION_STATE);
 
     private static readonly AlarmCodesChunkType AlarmCodesChunk = new();
 
@@ -53,8 +54,8 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.AdaptationState
-            : AdaptationStateChunk;
+                       ? src.AdaptationState
+                       : AdaptationStateChunk;
 
         ctx.AdaptationState = (AdaptationStateChunkType)((ICloneable)from).Clone();
 
@@ -108,8 +109,8 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.AlarmCodes
-            : AlarmCodesChunk;
+                       ? src.AlarmCodes
+                       : AlarmCodesChunk;
 
         ctx.AlarmCodes = (AlarmCodesChunkType)((ICloneable)from).Clone();
 
@@ -155,7 +156,10 @@ public static partial class Lcms2
         where Tto : unmanaged =>
         cmsDoTransform(p, (ReadOnlySpan<Tfrom>)InputBuffer, out OutputBuffer, Size);
 
-    public static void cmsDoTransform<Tfrom, Tto>(Transform p, ReadOnlySpan<Tfrom> InputBuffer, out Tto OutputBuffer, uint Size)
+    public static void cmsDoTransform<Tfrom, Tto>(Transform p,
+                                                  ReadOnlySpan<Tfrom> InputBuffer,
+                                                  out Tto OutputBuffer,
+                                                  uint Size)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
@@ -187,7 +191,10 @@ public static partial class Lcms2
         where Tto : unmanaged =>
         cmsDoTransform(p, (ReadOnlySpan<Tfrom>)InputBuffer, OutputBuffer, Size);
 
-    public static void cmsDoTransform<Tfrom, Tto>(Transform p, ReadOnlySpan<Tfrom> InputBuffer, Tto[] OutputBuffer, uint Size)
+    public static void cmsDoTransform<Tfrom, Tto>(Transform p,
+                                                  ReadOnlySpan<Tfrom> InputBuffer,
+                                                  Tto[] OutputBuffer,
+                                                  uint Size)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
         cmsDoTransform(p, InputBuffer, (Span<Tto>)OutputBuffer, Size);
@@ -197,12 +204,18 @@ public static partial class Lcms2
         where Tto : unmanaged =>
         cmsDoTransform(p, (ReadOnlySpan<Tfrom>)InputBuffer, (Span<Tto>)OutputBuffer, Size);
 
-    public static void cmsDoTransform<Tfrom, Tto>(Transform p, Span<Tfrom> InputBuffer, Span<Tto> OutputBuffer, uint Size)
+    public static void cmsDoTransform<Tfrom, Tto>(Transform p,
+                                                  Span<Tfrom> InputBuffer,
+                                                  Span<Tto> OutputBuffer,
+                                                  uint Size)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
         cmsDoTransform(p, (ReadOnlySpan<Tfrom>)InputBuffer, OutputBuffer, Size);
 
-    public static void cmsDoTransform<Tfrom, Tto>(Transform p, ReadOnlySpan<Tfrom> InputBuffer, Span<Tto> OutputBuffer, uint Size)
+    public static void cmsDoTransform<Tfrom, Tto>(Transform p,
+                                                  ReadOnlySpan<Tfrom> InputBuffer,
+                                                  Span<Tto> OutputBuffer,
+                                                  uint Size)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
@@ -213,10 +226,20 @@ public static partial class Lcms2
         stride.BytesPerPlaneIn = Size * PixelSize(p.InputFormat);
         stride.BytesPerPlaneOut = Size * PixelSize(p.OutputFormat);
 
-        p.xform(p, MemoryMarshal.Cast<Tfrom, byte>(InputBuffer), MemoryMarshal.Cast<Tto, byte>(OutputBuffer), Size, 1, stride);
+        p.xform(
+            p,
+            MemoryMarshal.Cast<Tfrom, byte>(InputBuffer),
+            MemoryMarshal.Cast<Tto, byte>(OutputBuffer),
+            Size,
+            1,
+            stride);
     }
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, Tfrom InputBuffer, out Tto OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        Tfrom InputBuffer,
+                                                        out Tto OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
@@ -224,12 +247,20 @@ public static partial class Lcms2
         cmsDoTransformStride(p, buf, out OutputBuffer, Size, Stride);
     }
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, Span<Tfrom> InputBuffer, out Tto OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        Span<Tfrom> InputBuffer,
+                                                        out Tto OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
         cmsDoTransformStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, out OutputBuffer, Size, Stride);
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, ReadOnlySpan<Tfrom> InputBuffer, out Tto OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        ReadOnlySpan<Tfrom> InputBuffer,
+                                                        out Tto OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
@@ -238,12 +269,20 @@ public static partial class Lcms2
         OutputBuffer = buf[0];
     }
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, Tfrom[] InputBuffer, out Tto OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        Tfrom[] InputBuffer,
+                                                        out Tto OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
         cmsDoTransformStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, out OutputBuffer, Size, Stride);
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, Tfrom InputBuffer, Span<Tto> OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        Tfrom InputBuffer,
+                                                        Span<Tto> OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
@@ -251,36 +290,56 @@ public static partial class Lcms2
         cmsDoTransformStride(p, buf, OutputBuffer, Size, Stride);
     }
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, Tfrom[] InputBuffer, Tto[] OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        Tfrom[] InputBuffer,
+                                                        Tto[] OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
         cmsDoTransformStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, (Span<Tto>)OutputBuffer, Size, Stride);
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, Tfrom[] InputBuffer, Span<Tto> OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        Tfrom[] InputBuffer,
+                                                        Span<Tto> OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
         cmsDoTransformStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, OutputBuffer, Size, Stride);
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, ReadOnlySpan<Tfrom> InputBuffer, Tto[] OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        ReadOnlySpan<Tfrom> InputBuffer,
+                                                        Tto[] OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
         cmsDoTransformStride(p, InputBuffer, (Span<Tto>)OutputBuffer, Size, Stride);
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, Span<Tfrom> InputBuffer, Tto[] OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        Span<Tfrom> InputBuffer,
+                                                        Tto[] OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
         cmsDoTransformStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, (Span<Tto>)OutputBuffer, Size, Stride);
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p, Span<Tfrom> InputBuffer, Span<Tto> OutputBuffer, uint Size, uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        Span<Tfrom> InputBuffer,
+                                                        Span<Tto> OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
         cmsDoTransformStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, OutputBuffer, Size, Stride);
 
-    public static void cmsDoTransformStride<Tfrom, Tto>(
-        Transform p,
-        ReadOnlySpan<Tfrom> InputBuffer, Span<Tto> OutputBuffer,
-        uint Size,
-        uint Stride)
+    public static void cmsDoTransformStride<Tfrom, Tto>(Transform p,
+                                                        ReadOnlySpan<Tfrom> InputBuffer,
+                                                        Span<Tto> OutputBuffer,
+                                                        uint Size,
+                                                        uint Stride)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
@@ -291,79 +350,254 @@ public static partial class Lcms2
         stride.BytesPerPlaneIn = Stride;
         stride.BytesPerPlaneOut = Stride;
 
-        p.xform(p, MemoryMarshal.Cast<Tfrom, byte>(InputBuffer), MemoryMarshal.Cast<Tto, byte>(OutputBuffer), Size, 1, stride);
+        p.xform(
+            p,
+            MemoryMarshal.Cast<Tfrom, byte>(InputBuffer),
+            MemoryMarshal.Cast<Tto, byte>(OutputBuffer),
+            Size,
+            1,
+            stride);
     }
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, Tfrom InputBuffer, out Tto OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            Tfrom InputBuffer,
+                                                            out Tto OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
         ReadOnlySpan<Tfrom> buf = stackalloc Tfrom[] { InputBuffer };
-        cmsDoTransformLineStride(p, buf, out OutputBuffer, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            buf,
+            out OutputBuffer,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
     }
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, Span<Tfrom> InputBuffer, out Tto OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            Span<Tfrom> InputBuffer,
+                                                            out Tto OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
-        cmsDoTransformLineStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, out OutputBuffer, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            (ReadOnlySpan<Tfrom>)InputBuffer,
+            out OutputBuffer,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, ReadOnlySpan<Tfrom> InputBuffer, out Tto OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            ReadOnlySpan<Tfrom> InputBuffer,
+                                                            out Tto OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
         Span<Tto> buf = stackalloc Tto[1];
-        cmsDoTransformLineStride(p, InputBuffer, buf, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            InputBuffer,
+            buf,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
         OutputBuffer = buf[0];
     }
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, Tfrom[] InputBuffer, out Tto OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            Tfrom[] InputBuffer,
+                                                            out Tto OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
-        cmsDoTransformLineStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, out OutputBuffer, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            (ReadOnlySpan<Tfrom>)InputBuffer,
+            out OutputBuffer,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, Tfrom InputBuffer, Span<Tto> OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            Tfrom InputBuffer,
+                                                            Span<Tto> OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
         ReadOnlySpan<Tfrom> buf = stackalloc Tfrom[] { InputBuffer };
-        cmsDoTransformLineStride(p, buf, OutputBuffer, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            buf,
+            OutputBuffer,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
     }
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, Tfrom[] InputBuffer, Tto[] OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            Tfrom[] InputBuffer,
+                                                            Tto[] OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
-        cmsDoTransformLineStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, (Span<Tto>)OutputBuffer, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            (ReadOnlySpan<Tfrom>)InputBuffer,
+            (Span<Tto>)OutputBuffer,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, Tfrom[] InputBuffer, Span<Tto> OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            Tfrom[] InputBuffer,
+                                                            Span<Tto> OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
-        cmsDoTransformLineStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, OutputBuffer, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            (ReadOnlySpan<Tfrom>)InputBuffer,
+            OutputBuffer,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, ReadOnlySpan<Tfrom> InputBuffer, Tto[] OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            ReadOnlySpan<Tfrom> InputBuffer,
+                                                            Tto[] OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
-        cmsDoTransformLineStride(p, InputBuffer, (Span<Tto>)OutputBuffer, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            InputBuffer,
+            (Span<Tto>)OutputBuffer,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, Span<Tfrom> InputBuffer, Tto[] OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            Span<Tfrom> InputBuffer,
+                                                            Tto[] OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
-        cmsDoTransformLineStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, (Span<Tto>)OutputBuffer, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            (ReadOnlySpan<Tfrom>)InputBuffer,
+            (Span<Tto>)OutputBuffer,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p, Span<Tfrom> InputBuffer, Span<Tto> OutputBuffer, uint PixelsPerLine, uint LineCount, uint BytesPerLineIn, uint BytesPerLineOut, uint BytesPerPlaneIn, uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            Span<Tfrom> InputBuffer,
+                                                            Span<Tto> OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged =>
-        cmsDoTransformLineStride(p, (ReadOnlySpan<Tfrom>)InputBuffer, OutputBuffer, PixelsPerLine, LineCount, BytesPerLineIn, BytesPerLineOut, BytesPerPlaneIn, BytesPerPlaneOut);
+        cmsDoTransformLineStride(
+            p,
+            (ReadOnlySpan<Tfrom>)InputBuffer,
+            OutputBuffer,
+            PixelsPerLine,
+            LineCount,
+            BytesPerLineIn,
+            BytesPerLineOut,
+            BytesPerPlaneIn,
+            BytesPerPlaneOut);
 
-    public static void cmsDoTransformLineStride<Tfrom, Tto>(
-        Transform p,
-        ReadOnlySpan<Tfrom> InputBuffer,
-        Span<Tto> OutputBuffer,
-        uint PixelsPerLine,
-        uint LineCount,
-        uint BytesPerLineIn,
-        uint BytesPerLineOut,
-        uint BytesPerPlaneIn,
-        uint BytesPerPlaneOut)
+    public static void cmsDoTransformLineStride<Tfrom, Tto>(Transform p,
+                                                            ReadOnlySpan<Tfrom> InputBuffer,
+                                                            Span<Tto> OutputBuffer,
+                                                            uint PixelsPerLine,
+                                                            uint LineCount,
+                                                            uint BytesPerLineIn,
+                                                            uint BytesPerLineOut,
+                                                            uint BytesPerPlaneIn,
+                                                            uint BytesPerPlaneOut)
         where Tfrom : unmanaged
         where Tto : unmanaged
     {
@@ -374,16 +608,21 @@ public static partial class Lcms2
         stride.BytesPerPlaneIn = BytesPerPlaneIn;
         stride.BytesPerPlaneOut = BytesPerPlaneOut;
 
-        p.xform(p, MemoryMarshal.Cast<Tfrom, byte>(InputBuffer), MemoryMarshal.Cast<Tto, byte>(OutputBuffer), PixelsPerLine, LineCount, stride);
+        p.xform(
+            p,
+            MemoryMarshal.Cast<Tfrom, byte>(InputBuffer),
+            MemoryMarshal.Cast<Tto, byte>(OutputBuffer),
+            PixelsPerLine,
+            LineCount,
+            stride);
     }
 
-    private static void FloatXFORM(
-        Transform p,
-        ReadOnlySpan<byte> @in,
-        Span<byte> @out,
-        uint PixelsPerLine,
-        uint LineCount,
-        Stride Stride)
+    private static void FloatXFORM(Transform p,
+                                   ReadOnlySpan<byte> @in,
+                                   Span<byte> @out,
+                                   uint PixelsPerLine,
+                                   uint LineCount,
+                                   Stride Stride)
     {
         //var pool = Context.GetPool<float>(p.ContextID);
         //float[] fIn = pool.Rent(cmsMAXCHANNELS);
@@ -446,13 +685,12 @@ public static partial class Lcms2
         //ReturnArray(pool, fOut);
     }
 
-    private static void NullFloatXFORM(
-        Transform p,
-        ReadOnlySpan<byte> @in,
-        Span<byte> @out,
-        uint PixelsPerLine,
-        uint LineCount,
-        Stride Stride)
+    private static void NullFloatXFORM(Transform p,
+                                       ReadOnlySpan<byte> @in,
+                                       Span<byte> @out,
+                                       uint PixelsPerLine,
+                                       uint LineCount,
+                                       Stride Stride)
     {
         //var pool = Context.GetPool<float>(p.ContextID);
         //var fIn = pool.Rent(cmsMAXCHANNELS);
@@ -482,13 +720,12 @@ public static partial class Lcms2
         //ReturnArray(pool, fIn);
     }
 
-    private static void NullXFORM(
-        Transform p,
-        ReadOnlySpan<byte> @in,
-        Span<byte> @out,
-        uint PixelsPerLine,
-        uint LineCount,
-        Stride Stride)
+    private static void NullXFORM(Transform p,
+                                  ReadOnlySpan<byte> @in,
+                                  Span<byte> @out,
+                                  uint PixelsPerLine,
+                                  uint LineCount,
+                                  Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
         var wIn = new ushort[cmsMAXCHANNELS];
@@ -517,13 +754,12 @@ public static partial class Lcms2
         //ReturnArray(pool, wIn);
     }
 
-    private static void PrecalculatedXFORM(
-        Transform p,
-        ReadOnlySpan<byte> @in,
-        Span<byte> @out,
-        uint PixelsPerLine,
-        uint LineCount,
-        Stride Stride)
+    private static void PrecalculatedXFORM(Transform p,
+                                           ReadOnlySpan<byte> @in,
+                                           Span<byte> @out,
+                                           uint PixelsPerLine,
+                                           uint LineCount,
+                                           Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
         var wIn = new ushort[cmsMAXCHANNELS];
@@ -576,13 +812,12 @@ public static partial class Lcms2
         }
     }
 
-    private static void PrecalculatedXFORMGamutCheck(
-        Transform p,
-        ReadOnlySpan<byte> @in,
-        Span<byte> @out,
-        uint PixelsPerLine,
-        uint LineCount,
-        Stride Stride)
+    private static void PrecalculatedXFORMGamutCheck(Transform p,
+                                                     ReadOnlySpan<byte> @in,
+                                                     Span<byte> @out,
+                                                     uint PixelsPerLine,
+                                                     uint LineCount,
+                                                     Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
         var wIn = new ushort[cmsMAXCHANNELS];
@@ -615,22 +850,17 @@ public static partial class Lcms2
         //ReturnArray(pool, wOut);
     }
 
-    private static void CachedXFORM(
-        Transform p,
-        ReadOnlySpan<byte> @in,
-        Span<byte> @out,
-        uint PixelsPerLine,
-        uint LineCount,
-        Stride Stride)
+    private static void CachedXFORM(Transform p,
+                                    ReadOnlySpan<byte> @in,
+                                    Span<byte> @out,
+                                    uint PixelsPerLine,
+                                    uint LineCount,
+                                    Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
         var wIn = new ushort[cmsMAXCHANNELS];
         var wOut = new ushort[cmsMAXCHANNELS];
-        Cache Cache = new()
-        {
-            CacheIn = new ushort[cmsMAXCHANNELS],
-            CacheOut = new ushort[cmsMAXCHANNELS]
-        };
+        Cache Cache = new() { CacheIn = new ushort[cmsMAXCHANNELS], CacheOut = new ushort[cmsMAXCHANNELS] };
 
         _cmsHandleExtraChannels(p, @in, @out, PixelsPerLine, LineCount, Stride);
 
@@ -679,22 +909,17 @@ public static partial class Lcms2
         //ReturnArray(pool, Cache.CacheOut);
     }
 
-    private static void CachedXFORMGamutCheck(
-        Transform p,
-        ReadOnlySpan<byte> @in,
-        Span<byte> @out,
-        uint PixelsPerLine,
-        uint LineCount,
-        Stride Stride)
+    private static void CachedXFORMGamutCheck(Transform p,
+                                              ReadOnlySpan<byte> @in,
+                                              Span<byte> @out,
+                                              uint PixelsPerLine,
+                                              uint LineCount,
+                                              Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
         var wIn = new ushort[cmsMAXCHANNELS];
         var wOut = new ushort[cmsMAXCHANNELS];
-        Cache Cache = new()
-        {
-            CacheIn = new ushort[cmsMAXCHANNELS],
-            CacheOut = new ushort[cmsMAXCHANNELS]
-        };
+        Cache Cache = new() { CacheIn = new ushort[cmsMAXCHANNELS], CacheOut = new ushort[cmsMAXCHANNELS] };
 
         _cmsHandleExtraChannels(p, @in, @out, PixelsPerLine, LineCount, Stride);
 
@@ -751,19 +976,18 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.TransformPlugin
-            : TransformPluginChunk;
+                       ? src.TransformPlugin
+                       : TransformPluginChunk;
 
         DupPluginTransformList(ref ctx.TransformPlugin, from);
     }
 
-    internal static void _cmsTransform2toTransformAdaptor(
-        Transform CMMcargo,
-        ReadOnlySpan<byte> InputBuffer,
-        Span<byte> OutputBuffer,
-        uint PixelsPerLine,
-        uint LineCount,
-        Stride Stride)
+    internal static void _cmsTransform2toTransformAdaptor(Transform CMMcargo,
+                                                          ReadOnlySpan<byte> InputBuffer,
+                                                          Span<byte> OutputBuffer,
+                                                          uint PixelsPerLine,
+                                                          uint LineCount,
+                                                          Stride Stride)
     {
         _cmsHandleExtraChannels(CMMcargo, InputBuffer, OutputBuffer, PixelsPerLine, LineCount, Stride);
 
@@ -797,7 +1021,8 @@ public static partial class Lcms2
             return false;
 
         // Factory callback is required
-        if (Plugin!.factories.xform is null) return false;
+        if (Plugin!.factories.xform is null)
+            return false;
 
         //var fl = _cmsPluginMalloc<TransformCollection>(id);
         //if (fl is null) return false;
@@ -807,9 +1032,10 @@ public static partial class Lcms2
 
         // Copy the parameters
         //fl->Factory = Plugin.factories.xform;
-        ctx.List.Add((Plugin.ExpectedVersion < 2080)
-            ? new TransformFunc(Plugin.factories.legacy_xform)
-            : new TransformFunc(Plugin.factories.xform));
+        ctx.List.Add(
+            (Plugin.ExpectedVersion < 2080)
+                ? new TransformFunc(Plugin.factories.legacy_xform)
+                : new TransformFunc(Plugin.factories.xform));
 
         // All is ok
         return true;
@@ -835,13 +1061,12 @@ public static partial class Lcms2
     private static Span<byte> PackNothing(Transform _1, ReadOnlySpan<ushort> _2, Span<byte> output, uint _3) =>
         output;
 
-    private static Transform? AllocEmptyTransform(
-        Context? ContextID,
-        Pipeline? lut,
-        uint Intent,
-        ref uint InputFormat,
-        ref uint OutputFormat,
-        ref uint dwFlags)
+    private static Transform? AllocEmptyTransform(Context? ContextID,
+                                                  Pipeline? lut,
+                                                  uint Intent,
+                                                  ref uint InputFormat,
+                                                  ref uint OutputFormat,
+                                                  ref uint dwFlags)
     {
         var ctx = Context.Get(ContextID).TransformPlugin;
         //var pool = Context.GetPool<ushort>(ContextID);
@@ -880,8 +1105,14 @@ public static partial class Lcms2
 
                     if (Plugin.OldXform)
                     {
-                        if (!Plugin.OldFactory(out p.OldXform, out p.userData, out p.FreeUserData, ref p.Lut,
-                                ref p.InputFormat, ref p.OutputFormat, ref p.dwOriginalFlags))
+                        if (!Plugin.OldFactory(
+                                out p.OldXform,
+                                out p.userData,
+                                out p.FreeUserData,
+                                ref p.Lut,
+                                ref p.InputFormat,
+                                ref p.OutputFormat,
+                                ref p.dwOriginalFlags))
                         {
                             continue;
                         }
@@ -890,8 +1121,14 @@ public static partial class Lcms2
                         return p;
                     }
 
-                    if (!Plugin.Factory(out p.xform, out p.userData, out p.FreeUserData, ref p.Lut,
-                            ref p.InputFormat, ref p.OutputFormat, ref p.dwOriginalFlags))
+                    if (!Plugin.Factory(
+                            out p.xform,
+                            out p.userData,
+                            out p.FreeUserData,
+                            ref p.Lut,
+                            ref p.InputFormat,
+                            ref p.OutputFormat,
+                            ref p.dwOriginalFlags))
                     {
                         continue;
                     }
@@ -946,9 +1183,9 @@ public static partial class Lcms2
             }
 
             p.xform = ((dwFlags & cmsFLAGS_NULLTRANSFORM) is not 0)
-                ? NullFloatXFORM
-                // Float transforms don't use cache, always are non-null
-                : FloatXFORM;
+                          ? NullFloatXFORM
+                          // Float transforms don't use cache, always are non-null
+                          : FloatXFORM;
         }
         else
         {
@@ -976,14 +1213,15 @@ public static partial class Lcms2
                     dwFlags |= cmsFLAGS_CAN_CHANGE_FORMATTER;
             }
 
-            p.xform = (dwFlags & cmsFLAGS_NULLTRANSFORM, dwFlags & cmsFLAGS_NOCACHE, dwFlags & cmsFLAGS_GAMUTCHECK) switch
-            {
-                (not 0, _, _) => NullXFORM,
-                (_, not 0, not 0) => PrecalculatedXFORMGamutCheck,
-                (_, not 0, _) => PrecalculatedXFORM,
-                (_, _, not 0) => CachedXFORMGamutCheck,
-                _ => CachedXFORM,
-            };
+            p.xform =
+                (dwFlags & cmsFLAGS_NULLTRANSFORM, dwFlags & cmsFLAGS_NOCACHE, dwFlags & cmsFLAGS_GAMUTCHECK) switch
+                {
+                    (not 0, _, _)     => NullXFORM,
+                    (_, not 0, not 0) => PrecalculatedXFORMGamutCheck,
+                    (_, not 0, _)     => PrecalculatedXFORM,
+                    (_, _, not 0)     => CachedXFORMGamutCheck,
+                    _                 => CachedXFORM,
+                };
         }
 
         // Check consistency for alpha channel copy
@@ -1007,12 +1245,17 @@ public static partial class Lcms2
         return p;
     }
 
-    private static bool GetXFormColorSpaces(uint nProfiles, Profile?[] Profiles, out Signature Input, out Signature Output)
+    private static bool GetXFormColorSpaces(uint nProfiles,
+                                            Profile?[] Profiles,
+                                            out Signature Input,
+                                            out Signature Output)
     {
         Input = Output = default;
 
-        if (nProfiles is 0) return false;
-        if (Profiles[0] is null) return false;
+        if (nProfiles is 0)
+            return false;
+        if (Profiles[0] is null)
+            return false;
 
         var PostColorSpace = Input = cmsGetColorSpace(Profiles[0]!);
 
@@ -1020,20 +1263,21 @@ public static partial class Lcms2
         {
             var Profile = Profiles[i];
 
-            var lIsInput = PostColorSpace != Signature.Colorspace.XYZ && PostColorSpace != Signature.Colorspace.Lab;
+            var lIsInput = PostColorSpace != Signatures.Colorspace.XYZ && PostColorSpace != Signatures.Colorspace.Lab;
 
-            if (Profile is null) return false;
+            if (Profile is null)
+                return false;
 
             var cls = cmsGetDeviceClass(Profile);
 
             Signature ColorSpaceIn;
             Signature ColorSpaceOut;
-            if (cls == Signature.ProfileClass.NamedColor)
+            if (cls == Signatures.ProfileClass.NamedColor)
             {
-                (ColorSpaceIn, ColorSpaceOut) = (Signature.Colorspace.Color1,
-                    (nProfiles > 1) ? cmsGetPCS(Profile) : cmsGetColorSpace(Profile));
+                (ColorSpaceIn, ColorSpaceOut) = (Signatures.Colorspace.Color1,
+                                                 (nProfiles > 1) ? cmsGetPCS(Profile) : cmsGetColorSpace(Profile));
             }
-            else if (lIsInput || cls == Signature.ProfileClass.Link)
+            else if (lIsInput || cls == Signatures.ProfileClass.Link)
             {
                 (ColorSpaceIn, ColorSpaceOut) = (cmsGetColorSpace(Profile), cmsGetPCS(Profile));
             }
@@ -1058,11 +1302,15 @@ public static partial class Lcms2
         var Space1 = T_COLORSPACE(dwFormat);
         var Space2 = _cmsLCMScolorSpace(Check);
 
-        if (Space1 is PT_ANY) return true;
-        if (Space1 == Space2) return true;
+        if (Space1 is PT_ANY)
+            return true;
+        if (Space1 == Space2)
+            return true;
 
-        if (Space1 is PT_LabV2 && Space2 is PT_Lab) return true;
-        if (Space1 is PT_Lab && Space2 is PT_LabV2) return true;
+        if (Space1 is PT_LabV2 && Space2 is PT_Lab)
+            return true;
+        if (Space1 is PT_Lab && Space2 is PT_LabV2)
+            return true;
 
         return false;
     }
@@ -1095,18 +1343,17 @@ public static partial class Lcms2
         }
     }
 
-    public static Transform? cmsCreateExtendedTransform(
-        Context? ContextID,
-        uint nProfiles,
-        Profile[] Profiles,
-        Span<bool> BPC,
-        ReadOnlySpan<uint> Intents,
-        ReadOnlySpan<double> AdaptationStates,
-        Profile? hGamutProfile,
-        uint nGamutPCSposition,
-        uint InputFormat,
-        uint OutputFormat,
-        uint dwFlags)
+    public static Transform? cmsCreateExtendedTransform(Context? ContextID,
+                                                        uint nProfiles,
+                                                        Profile[] Profiles,
+                                                        Span<bool> BPC,
+                                                        ReadOnlySpan<uint> Intents,
+                                                        ReadOnlySpan<double> AdaptationStates,
+                                                        Profile? hGamutProfile,
+                                                        uint nGamutPCSposition,
+                                                        uint InputFormat,
+                                                        uint OutputFormat,
+                                                        uint dwFlags)
     {
         Signature EntryColorSpace, ExitColorSpace;
 
@@ -1121,7 +1368,13 @@ public static partial class Lcms2
 
         // If it is a fake transform
         if ((dwFlags & cmsFLAGS_NULLTRANSFORM) is not 0)
-            return AllocEmptyTransform(ContextID, null, INTENT_PERCEPTUAL, ref InputFormat, ref OutputFormat, ref dwFlags);
+            return AllocEmptyTransform(
+                ContextID,
+                null,
+                INTENT_PERCEPTUAL,
+                ref InputFormat,
+                ref OutputFormat,
+                ref dwFlags);
 
         // If gamut check is requested, make sure we have a gamut profile
         if ((dwFlags & cmsFLAGS_GAMUTCHECK) is not 0 && hGamutProfile is null)
@@ -1144,6 +1397,7 @@ public static partial class Lcms2
             LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Wrong input color space on transform");
             return null;
         }
+
         if (!IsProperColorSpace(ExitColorSpace, OutputFormat))
         {
             LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Wrong output color space on transform");
@@ -1151,7 +1405,8 @@ public static partial class Lcms2
         }
 
         // Check whether the transform is 16 bits and involves linear RGB in first profile. If so, disable optimizations
-        if (EntryColorSpace == Signature.Colorspace.Rgb && T_BYTES(InputFormat) is 2 && (dwFlags & cmsFLAGS_NOOPTIMIZE) is 0)
+        if (EntryColorSpace == Signatures.Colorspace.Rgb && T_BYTES(InputFormat) is 2 &&
+            (dwFlags & cmsFLAGS_NOOPTIMIZE) is 0)
         {
             var gamma = cmsDetectRGBProfileGamma(Profiles[0], 0.1);
 
@@ -1187,40 +1442,54 @@ public static partial class Lcms2
         xform.RenderingIntent = Intents[(int)nProfiles - 1];
 
         // Take white points
-        SetWhitePoint(out xform.EntryWhitePoint, cmsReadTag(Profiles[0], Signature.Tag.MediaWhitePoint) as Box<CIEXYZ>);
-        SetWhitePoint(out xform.ExitWhitePoint, cmsReadTag(Profiles[nProfiles - 1], Signature.Tag.MediaWhitePoint) as Box<CIEXYZ>);
+        SetWhitePoint(
+            out xform.EntryWhitePoint,
+            cmsReadTag(Profiles[0], Signatures.Tag.MediaWhitePoint) as Box<CIEXYZ>);
+        SetWhitePoint(
+            out xform.ExitWhitePoint,
+            cmsReadTag(Profiles[nProfiles - 1], Signatures.Tag.MediaWhitePoint) as Box<CIEXYZ>);
 
         // Create a gamut check LUT if requested
         if (hGamutProfile is not null && ((dwFlags & cmsFLAGS_GAMUTCHECK) is not 0))
-            xform.GamutCheck = _cmsCreateGamutCheckPipeline(ContextID, Profiles, BPC, Intents, AdaptationStates, nGamutPCSposition, hGamutProfile);
+            xform.GamutCheck = _cmsCreateGamutCheckPipeline(
+                ContextID,
+                Profiles,
+                BPC,
+                Intents,
+                AdaptationStates,
+                nGamutPCSposition,
+                hGamutProfile);
 
         // Try to read input and output colorant table
-        if (cmsIsTag(Profiles[0], Signature.Tag.ColorantTable))
+        if (cmsIsTag(Profiles[0], Signatures.Tag.ColorantTable))
         {
             // Input table can only come in this way.
-            xform.InputColorant = cmsDupNamedColorList(cmsReadTag(Profiles[0], Signature.Tag.ColorantTable) as NamedColorList)!;
+            xform.InputColorant =
+                cmsDupNamedColorList(cmsReadTag(Profiles[0], Signatures.Tag.ColorantTable) as NamedColorList)!;
         }
 
         // Output is a little bit more complex.
-        if (cmsGetDeviceClass(Profiles[nProfiles - 1]) == Signature.ProfileClass.Link)
+        if (cmsGetDeviceClass(Profiles[nProfiles - 1]) == Signatures.ProfileClass.Link)
         {
             // This tag may exist only on devicelink profiles.
-            if (cmsIsTag(Profiles[nProfiles - 1], Signature.Tag.ColorantTableOut))
+            if (cmsIsTag(Profiles[nProfiles - 1], Signatures.Tag.ColorantTableOut))
             {
                 // It may be null if error
-                xform.OutputColorant = cmsDupNamedColorList(cmsReadTag(Profiles[nProfiles - 1], Signature.Tag.ColorantTableOut) as NamedColorList)!;
+                xform.OutputColorant = cmsDupNamedColorList(
+                    cmsReadTag(Profiles[nProfiles - 1], Signatures.Tag.ColorantTableOut) as NamedColorList)!;
             }
         }
         else
         {
-            if (cmsIsTag(Profiles[nProfiles - 1], Signature.Tag.ColorantTable))
-                xform.OutputColorant = cmsDupNamedColorList(cmsReadTag(Profiles[nProfiles - 1], Signature.Tag.ColorantTable) as NamedColorList)!;
+            if (cmsIsTag(Profiles[nProfiles - 1], Signatures.Tag.ColorantTable))
+                xform.OutputColorant = cmsDupNamedColorList(
+                    cmsReadTag(Profiles[nProfiles - 1], Signatures.Tag.ColorantTable) as NamedColorList)!;
         }
 
         // Store the sequence of profiles
         xform.Sequence = ((dwFlags & cmsFLAGS_KEEP_SEQUENCE) is not 0)
-            ? _cmsCompileProfileSequence(ContextID, nProfiles, Profiles)
-            : null;
+                             ? _cmsCompileProfileSequence(ContextID, nProfiles, Profiles)
+                             : null;
 
         // If this is a cached transform, init first value, which is zero (16 bits only)
         if ((dwFlags & cmsFLAGS_NOCACHE) is 0)
@@ -1244,14 +1513,13 @@ public static partial class Lcms2
         return null;
     }
 
-    public static Transform? cmsCreateMultiprofileTransformTHR(
-        Context? ContextID,
-        Profile[] Profiles,
-        uint InputFormat,
-        uint OutputFormat,
-        uint nProfiles,
-        uint Intent,
-        uint dwFlags)
+    public static Transform? cmsCreateMultiprofileTransformTHR(Context? ContextID,
+                                                               Profile[] Profiles,
+                                                               uint InputFormat,
+                                                               uint OutputFormat,
+                                                               uint nProfiles,
+                                                               uint Intent,
+                                                               uint dwFlags)
     {
         Span<bool> BPC = stackalloc bool[256];
         Span<uint> Intents = stackalloc uint[256];
@@ -1270,51 +1538,65 @@ public static partial class Lcms2
             AdaptationStates[i] = cmsSetAdaptationStateTHR(ContextID, -1);
         }
 
-        return cmsCreateExtendedTransform(ContextID, nProfiles, Profiles, BPC, Intents, AdaptationStates, null, 0, InputFormat, OutputFormat, dwFlags);
+        return cmsCreateExtendedTransform(
+            ContextID,
+            nProfiles,
+            Profiles,
+            BPC,
+            Intents,
+            AdaptationStates,
+            null,
+            0,
+            InputFormat,
+            OutputFormat,
+            dwFlags);
     }
 
-    public static Transform? cmsCreateMultiprofileTransform(
-        Profile[] Profiles,
-        uint InputFormat,
-        uint OutputFormat,
-        uint nProfiles,
-        uint Intent,
-        uint dwFlags) =>
+    public static Transform? cmsCreateMultiprofileTransform(Profile[] Profiles,
+                                                            uint InputFormat,
+                                                            uint OutputFormat,
+                                                            uint nProfiles,
+                                                            uint Intent,
+                                                            uint dwFlags) =>
         cmsCreateMultiprofileTransformTHR(null, Profiles, InputFormat, OutputFormat, nProfiles, Intent, dwFlags);
 
-    public static Transform? cmsCreateTransformTHR(
-        Context? ContextID,
-        Profile Input,
-        uint InputFormat,
-        Profile? Output,
-        uint OutputFormat,
-        uint Intent,
-        uint dwFlags)
+    public static Transform? cmsCreateTransformTHR(Context? ContextID,
+                                                   Profile Input,
+                                                   uint InputFormat,
+                                                   Profile? Output,
+                                                   uint OutputFormat,
+                                                   uint Intent,
+                                                   uint dwFlags)
     {
         var hArray = new Profile[2] { Input, Output! };
 
-        return cmsCreateMultiprofileTransformTHR(ContextID, hArray, InputFormat, OutputFormat, Output is null ? 1u : 2u, Intent, dwFlags);
+        return cmsCreateMultiprofileTransformTHR(
+            ContextID,
+            hArray,
+            InputFormat,
+            OutputFormat,
+            Output is null ? 1u : 2u,
+            Intent,
+            dwFlags);
     }
 
-    public static Transform? cmsCreateTransform(
-        Profile Input,
-        uint InputFormat,
-        Profile? Output,
-        uint OutputFormat,
-        uint Intent,
-        uint dwFlags) =>
+    public static Transform? cmsCreateTransform(Profile Input,
+                                                uint InputFormat,
+                                                Profile? Output,
+                                                uint OutputFormat,
+                                                uint Intent,
+                                                uint dwFlags) =>
         cmsCreateTransformTHR(null, Input, InputFormat, Output, OutputFormat, Intent, dwFlags);
 
-    public static Transform? cmsCreateProofingTransformTHR(
-        Context? ContextID,
-        Profile InputProfile,
-        uint InputFormat,
-        Profile OutputProfile,
-        uint OutputFormat,
-        Profile ProofingProfile,
-        uint nIntent,
-        uint ProofingIntent,
-        uint dwFlags)
+    public static Transform? cmsCreateProofingTransformTHR(Context? ContextID,
+                                                           Profile InputProfile,
+                                                           uint InputFormat,
+                                                           Profile OutputProfile,
+                                                           uint OutputFormat,
+                                                           Profile ProofingProfile,
+                                                           uint nIntent,
+                                                           uint ProofingIntent,
+                                                           uint dwFlags)
     {
         var DoBPC = (dwFlags & cmsFLAGS_BLACKPOINTCOMPENSATION) is not 0;
         var hArray = new Profile[4] { InputProfile, ProofingProfile, ProofingProfile, OutputProfile };
@@ -1325,21 +1607,47 @@ public static partial class Lcms2
         Adaptation[0] = Adaptation[1] = Adaptation[2] = Adaptation[3] = cmsSetAdaptationStateTHR(ContextID, -1);
 
         if ((dwFlags & (cmsFLAGS_SOFTPROOFING | cmsFLAGS_GAMUTCHECK)) is 0)
-            return cmsCreateTransformTHR(ContextID, InputProfile, InputFormat, OutputProfile, OutputFormat, nIntent, dwFlags);
+            return cmsCreateTransformTHR(
+                ContextID,
+                InputProfile,
+                InputFormat,
+                OutputProfile,
+                OutputFormat,
+                nIntent,
+                dwFlags);
 
-        return cmsCreateExtendedTransform(ContextID, 4, hArray, BPC, Intents, Adaptation, ProofingProfile, 1, InputFormat, OutputFormat, dwFlags);
+        return cmsCreateExtendedTransform(
+            ContextID,
+            4,
+            hArray,
+            BPC,
+            Intents,
+            Adaptation,
+            ProofingProfile,
+            1,
+            InputFormat,
+            OutputFormat,
+            dwFlags);
     }
 
-    public static Transform? cmsCreateProofingTransform(
-        Profile InputProfile,
-        uint InputFormat,
-        Profile OutputProfile,
-        uint OutputFormat,
-        Profile ProofingProfile,
-        uint nIntent,
-        uint ProofingIntent,
-        uint dwFlags) =>
-        cmsCreateProofingTransformTHR(null, InputProfile, InputFormat, OutputProfile, OutputFormat, ProofingProfile, nIntent, ProofingIntent, dwFlags);
+    public static Transform? cmsCreateProofingTransform(Profile InputProfile,
+                                                        uint InputFormat,
+                                                        Profile OutputProfile,
+                                                        uint OutputFormat,
+                                                        Profile ProofingProfile,
+                                                        uint nIntent,
+                                                        uint ProofingIntent,
+                                                        uint dwFlags) =>
+        cmsCreateProofingTransformTHR(
+            null,
+            InputProfile,
+            InputFormat,
+            OutputProfile,
+            OutputFormat,
+            ProofingProfile,
+            nIntent,
+            ProofingIntent,
+            dwFlags);
 
     public static Context? cmsGetTransformContextID(Transform? xform) =>
         xform?.ContextID;
@@ -1355,7 +1663,10 @@ public static partial class Lcms2
         // We only can afford to change formatters if previous transform is at least 16 bits
         if ((xform.dwOriginalFlags & cmsFLAGS_CAN_CHANGE_FORMATTER) is 0)
         {
-            LogError(xform.ContextID, cmsERROR_NOT_SUITABLE, "cmsChangeBuffersFormat works only on transforms created originally with at least 16 bits of precision");
+            LogError(
+                xform.ContextID,
+                cmsERROR_NOT_SUITABLE,
+                "cmsChangeBuffersFormat works only on transforms created originally with at least 16 bits of precision");
             return false;
         }
 

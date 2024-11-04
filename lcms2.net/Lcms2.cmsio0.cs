@@ -24,12 +24,12 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
 using lcms2.io;
 using lcms2.state;
 using lcms2.types;
-
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace lcms2;
 
@@ -93,7 +93,8 @@ public static partial class Lcms2
     public static IOHandler? cmsOpenIOhandlerFromNULL(Context? ContextID)
     {
         var iohandler = new IOHandler();
-        if (iohandler is null) return null;
+        if (iohandler is null)
+            return null;
 
         var fm = new FILENULL { Pointer = 0 };
         //if (fm is null) return null;
@@ -124,7 +125,10 @@ public static partial class Lcms2
         if (ResData.Pointer + len > ResData.Size)
         {
             len = ResData.Size - ResData.Pointer;
-            LogError(iohandler.ContextID, ErrorCodes.Read, $"Read from memory error. Got {len} bytes, block should be of {count * size} bytes");
+            LogError(
+                iohandler.ContextID,
+                ErrorCodes.Read,
+                $"Read from memory error. Got {len} bytes, block should be of {count * size} bytes");
             return 0;
         }
 
@@ -171,7 +175,8 @@ public static partial class Lcms2
         if (ResData.Pointer + size > ResData.Size)
             size = ResData.Size - ResData.Pointer;
 
-        if (size is 0) return true;     // Write zero bytes is ok, but does nothing
+        if (size is 0)
+            return true;     // Write zero bytes is ok, but does nothing
 
         Ptr[..(int)size].CopyTo(ResData.Block.Span[(int)ResData.Pointer..]);
         //memmove(ResData.Block + ResData.Pointer, Ptr, size);
@@ -198,14 +203,18 @@ public static partial class Lcms2
     }
 
     [DebuggerStepThrough]
-    public static IOHandler? cmsOpenIOhandlerFromMem(Context? ContextID, Memory<byte> Buffer, uint size, string AccessMode)
+    public static IOHandler? cmsOpenIOhandlerFromMem(Context? ContextID,
+                                                     Memory<byte> Buffer,
+                                                     uint size,
+                                                     string AccessMode)
     {
         FILEMEM? fm = null;
 
         _cmsAssert(AccessMode);
 
         var iohandler = new IOHandler();
-        if (iohandler is null) return null;
+        if (iohandler is null)
+            return null;
 
         switch (AccessMode)
         {
@@ -285,7 +294,10 @@ public static partial class Lcms2
 
         if (nReaded != count)
         {
-            LogError(iohandler.ContextID, ErrorCodes.File, $"Read error. Got {nReaded * size} bytes, block should be of {count * size} bytes");
+            LogError(
+                iohandler.ContextID,
+                ErrorCodes.File,
+                $"Read error. Got {nReaded * size} bytes, block should be of {count * size} bytes");
             return 0;
         }
 
@@ -326,7 +338,8 @@ public static partial class Lcms2
     [DebuggerStepThrough]
     private static bool FileWrite(IOHandler iohandler, uint size, ReadOnlySpan<byte> Buffer)
     {
-        if (size is 0) return true;     // We allow to write 0 bytes, but nothing is written
+        if (size is 0)
+            return true;     // We allow to write 0 bytes, but nothing is written
 
         iohandler.UsedSpace += size;
 
@@ -353,7 +366,8 @@ public static partial class Lcms2
         _cmsAssert(AccessMode);
 
         var iohandler = new IOHandler();
-        if (iohandler is null) return null;
+        if (iohandler is null)
+            return null;
 
         switch (AccessMode[0])
         {
@@ -365,6 +379,7 @@ public static partial class Lcms2
                     LogError(ContextID, ErrorCodes.File, $"File '{FileName}' not found");
                     return null;
                 }
+
                 fileLen = (int)fm.Length();
                 if (fileLen < 0)
                 {
@@ -433,7 +448,6 @@ public static partial class Lcms2
             UsedSpace = 0,
             reportedSize = (uint)fileSize,
             physicalFile = String.Empty,
-
             ReadFunc = FileRead,
             SeekFunc = FileSeek,
             CloseFunc = FileClose,
@@ -461,7 +475,8 @@ public static partial class Lcms2
     public static Profile? cmsCreateProfilePlaceholder(Context? ContextID)
     {
         var Icc = new Profile();
-        if (Icc is null) return null;
+        if (Icc is null)
+            return null;
 
         Icc.ContextID = ContextID;
 
@@ -475,23 +490,23 @@ public static partial class Lcms2
         Icc.Version = 0x02100000;
 
         // Set default CMM (that's me!)
-        Icc.CMM = Signature.LcmsSignature;
+        Icc.CMM = Signatures.LcmsSignature;
 
         // Set default creator
         // Created by LittleCMS (that's me!)
-        Icc.creator = Signature.LcmsSignature;
+        Icc.creator = Signatures.LcmsSignature;
 
         // Set default platform
         Icc.platform = Environment.OSVersion.Platform switch
-        {
-            PlatformID.Win32S => Signature.Platform.Microsoft,
-            PlatformID.Win32Windows => Signature.Platform.Microsoft,
-            PlatformID.Win32NT => Signature.Platform.Microsoft,
-            PlatformID.WinCE => Signature.Platform.Microsoft,
-            PlatformID.Unix => Signature.Platform.Unices,
-            PlatformID.MacOSX => Signature.Platform.Macintosh,
-            _ => throw new NotImplementedException(),
-        };
+                       {
+                           PlatformID.Win32S       => Signatures.Platform.Microsoft,
+                           PlatformID.Win32Windows => Signatures.Platform.Microsoft,
+                           PlatformID.Win32NT      => Signatures.Platform.Microsoft,
+                           PlatformID.WinCE        => Signatures.Platform.Microsoft,
+                           PlatformID.Unix         => Signatures.Platform.Unices,
+                           PlatformID.MacOSX       => Signatures.Platform.Macintosh,
+                           _                       => throw new NotImplementedException(),
+                       };
 
         // Set creation date/time
         if (!_cmsGetTime(out Icc.Created))
@@ -593,6 +608,7 @@ public static partial class Lcms2
                     tag.TagObject = null;
                 }
             }
+
             Icc.Tags[i] = tag;
         }
     }
@@ -656,11 +672,14 @@ public static partial class Lcms2
         Span<byte> pByte = stackalloc byte[4];
         BitConverter.TryWriteBytes(pByte, DWord);
 
-        if (pByte[0] > 0x09) pByte[0] = 0x09;
+        if (pByte[0] > 0x09)
+            pByte[0] = 0x09;
         var temp1 = (byte)(pByte[1] & 0xF0);
         var temp2 = (byte)(pByte[1] & 0x0F);
-        if (temp1 > 0x90) temp1 = 0x90;
-        if (temp2 > 0x09) temp2 = 0x09;
+        if (temp1 > 0x90)
+            temp1 = 0x90;
+        if (temp2 > 0x09)
+            temp2 = 0x09;
         pByte[1] = (byte)(temp1 | temp2);
         pByte[2] = 0;
         pByte[3] = 0;
@@ -671,13 +690,13 @@ public static partial class Lcms2
     private static bool validDeviceClass(Signature cl)
     {
         return cl == default ||
-               cl == Signature.ProfileClass.Input ||
-               cl == Signature.ProfileClass.Display ||
-               cl == Signature.ProfileClass.Output ||
-               cl == Signature.ProfileClass.Link ||
-               cl == Signature.ProfileClass.Abstract ||
-               cl == Signature.ProfileClass.ColorSpace ||
-               cl == Signature.ProfileClass.NamedColor;
+               cl == Signatures.ProfileClass.Input ||
+               cl == Signatures.ProfileClass.Display ||
+               cl == Signatures.ProfileClass.Output ||
+               cl == Signatures.ProfileClass.Link ||
+               cl == Signatures.ProfileClass.Abstract ||
+               cl == Signatures.ProfileClass.ColorSpace ||
+               cl == Signatures.ProfileClass.NamedColor;
     }
 
     [DebuggerStepThrough]
@@ -691,7 +710,8 @@ public static partial class Lcms2
 
         var io = Icc.IOHandler;
 
-        if (io is null) return false;
+        if (io is null)
+            return false;
 
         // Read the header
         if (io.ReadFunc(io, buffer, (uint)buffer.Length, 1) is not 1)
@@ -700,7 +720,7 @@ public static partial class Lcms2
         Header = MemoryMarshal.Read<Profile.Header>(buffer);
 
         // Validate file as an ICC profile
-        if (AdjustEndianess(Header.magic) != Signature.MagicNumber)
+        if (AdjustEndianess(Header.magic) != Signatures.MagicNumber)
         {
             LogError(Icc.ContextID, ErrorCodes.BadSignature, "not an Icc profile, invalid signature");
             return false;
@@ -730,7 +750,11 @@ public static partial class Lcms2
 
         if (!validDeviceClass(Icc.DeviceClass))
         {
-            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, "Unsupported device class '0x{0:x}'", (uint)Icc.DeviceClass);
+            LogError(
+                Icc.ContextID,
+                cmsERROR_UNKNOWN_EXTENSION,
+                "Unsupported device class '0x{0:x}'",
+                (uint)Icc.DeviceClass);
             return false;
         }
 
@@ -748,7 +772,8 @@ public static partial class Lcms2
         Icc.ProfileID = Header.profileID;
 
         // Read tag directory
-        if (!io.ReadUint(out TagCount)) return false;
+        if (!io.ReadUint(out TagCount))
+            return false;
         if (TagCount > MAX_TABLE_TAG)
         {
             LogError(Icc.ContextID, ErrorCodes.Range, $"Too many tags({TagCount})");
@@ -759,13 +784,17 @@ public static partial class Lcms2
         //Icc.TagCount = 0;
         for (var i = 0; i < TagCount; i++)
         {
-            if (!io.ReadUint(out var sig)) return false;
+            if (!io.ReadUint(out var sig))
+                return false;
             Tag.sig = new(sig);
-            if (!io.ReadUint(out Tag.offset)) return false;
-            if (!io.ReadUint(out Tag.size)) return false;
+            if (!io.ReadUint(out Tag.offset))
+                return false;
+            if (!io.ReadUint(out Tag.size))
+                return false;
 
             // Perform some sanity check. Offset + size should fall inside file.
-            if (Tag.size is 0 || Tag.offset is 0) continue;
+            if (Tag.size is 0 || Tag.offset is 0)
+                continue;
             if (Tag.offset + Tag.size > HeaderSize ||
                 Tag.offset + Tag.size < Tag.offset)
             {
@@ -788,8 +817,9 @@ public static partial class Lcms2
                     (Icc.Tags[j].Size == Tag.size))
                 {
                     // Check types.
-                    if (CompatibleTypes(_cmsGetTagDescriptor(Icc.ContextID, Icc.Tags[j].Name),
-                                        _cmsGetTagDescriptor(Icc.ContextID, Tag.sig)))
+                    if (CompatibleTypes(
+                            _cmsGetTagDescriptor(Icc.ContextID, Icc.Tags[j].Name),
+                            _cmsGetTagDescriptor(Icc.ContextID, Tag.sig)))
                     {
                         linked = Icc.Tags[j].Name;
                     }
@@ -797,13 +827,7 @@ public static partial class Lcms2
             }
 
             //Icc.TagCount++;
-            Icc.Tags.Add(new()
-            {
-                Name = name,
-                Offset = offset,
-                Size = size,
-                Linked = linked
-            });
+            Icc.Tags.Add(new() { Name = name, Offset = offset, Size = size, Linked = linked });
         }
 
         for (var i = 0; i < Icc.Tags.Count; i++)
@@ -842,7 +866,7 @@ public static partial class Lcms2
         // NOTE: in v4 Timestamp must be in UTC rather than in local time
         DateTimeNumber.Encode(out Header.date, Icc.Created);
 
-        Header.magic = AdjustEndianess(Signature.MagicNumber);
+        Header.magic = AdjustEndianess(Signatures.MagicNumber);
         Header.platform = AdjustEndianess(Icc.platform);
 
         Header.flags = AdjustEndianess(Icc.flags);
@@ -882,12 +906,14 @@ public static partial class Lcms2
         }
 
         // Store number of tags
-        if (!Icc.IOHandler.Write(Count)) return false;
+        if (!Icc.IOHandler.Write(Count))
+            return false;
 
         for (var i = 0; i < Icc.Tags.Count; i++)
         {
             var t = Icc.Tags[i];
-            if (t.Name == default) continue;      // It is just a placeholder
+            if (t.Name == default)
+                continue;      // It is just a placeholder
 
             Tag.sig = AdjustEndianess(t.Name);
             Tag.offset = AdjustEndianess(t.Offset);
@@ -895,7 +921,8 @@ public static partial class Lcms2
 
             MemoryMarshal.Write(tagBuffer, in Tag);
 
-            if (!Icc.IOHandler.WriteFunc(Icc.IOHandler, (uint)tagBuffer.Length, tagBuffer)) return false;
+            if (!Icc.IOHandler.WriteFunc(Icc.IOHandler, (uint)tagBuffer.Length, tagBuffer))
+                return false;
         }
 
         return true;
@@ -1027,12 +1054,14 @@ public static partial class Lcms2
     public static Profile? cmsOpenProfileFromIOHandlerTHR(Context? ContextID, IOHandler io)
     {
         var hEmpty = cmsCreateProfilePlaceholder(ContextID);
-        if (hEmpty is null) return null;
+        if (hEmpty is null)
+            return null;
 
         var NewIcc = hEmpty;
 
         NewIcc.IOHandler = io;
-        if (!_cmsReadHeader(NewIcc)) goto Error;
+        if (!_cmsReadHeader(NewIcc))
+            goto Error;
         return NewIcc;
     Error:
         cmsCloseProfile(NewIcc);
@@ -1043,7 +1072,8 @@ public static partial class Lcms2
     public static Profile? cmsOpenProfileFromIOHandler2THR(Context? ContextID, IOHandler io, bool write)
     {
         var hEmpty = cmsCreateProfilePlaceholder(ContextID);
-        if (hEmpty is null) return null;
+        if (hEmpty is null)
+            return null;
 
         var NewIcc = hEmpty;
 
@@ -1054,7 +1084,8 @@ public static partial class Lcms2
             return NewIcc;
         }
 
-        if (!_cmsReadHeader(NewIcc)) goto Error;
+        if (!_cmsReadHeader(NewIcc))
+            goto Error;
         return NewIcc;
     Error:
         cmsCloseProfile(NewIcc);
@@ -1065,12 +1096,14 @@ public static partial class Lcms2
     public static Profile? cmsOpenProfileFromFileTHR(Context? ContextID, string FileName, string Access)
     {
         var hEmpty = cmsCreateProfilePlaceholder(ContextID);
-        if (hEmpty is null) return null;
+        if (hEmpty is null)
+            return null;
 
         var NewIcc = hEmpty;
 
         NewIcc.IOHandler = cmsOpenIOhandlerFromFile(ContextID, FileName, Access);
-        if (NewIcc.IOHandler is null) goto Error;
+        if (NewIcc.IOHandler is null)
+            goto Error;
 
         if (Access.ToLower().Contains('w'))
         {
@@ -1078,7 +1111,8 @@ public static partial class Lcms2
             return NewIcc;
         }
 
-        if (!_cmsReadHeader(NewIcc)) goto Error;
+        if (!_cmsReadHeader(NewIcc))
+            goto Error;
         return NewIcc;
 
     Error:
@@ -1094,12 +1128,14 @@ public static partial class Lcms2
     public static Profile? cmsOpenProfileFromStreamTHR(Context? ContextID, Stream ICCProfile, string Access)
     {
         var hEmpty = cmsCreateProfilePlaceholder(ContextID);
-        if (hEmpty is null) return null;
+        if (hEmpty is null)
+            return null;
 
         var NewIcc = hEmpty;
 
         NewIcc.IOHandler = cmsOpenIOhandlerFromStream(ContextID, ICCProfile);
-        if (NewIcc.IOHandler is null) goto Error;
+        if (NewIcc.IOHandler is null)
+            goto Error;
 
         if (Access.ToLower().Contains('w'))
         {
@@ -1107,7 +1143,8 @@ public static partial class Lcms2
             return NewIcc;
         }
 
-        if (!_cmsReadHeader(NewIcc)) goto Error;
+        if (!_cmsReadHeader(NewIcc))
+            goto Error;
         return NewIcc;
 
     Error:
@@ -1123,14 +1160,17 @@ public static partial class Lcms2
     public static Profile? cmsOpenProfileFromMemTHR(Context? ContextID, Memory<byte> MemPtr, uint Size)
     {
         var hEmpty = cmsCreateProfilePlaceholder(ContextID);
-        if (hEmpty is null) return null;
+        if (hEmpty is null)
+            return null;
 
         var NewIcc = hEmpty;
 
         NewIcc.IOHandler = cmsOpenIOhandlerFromMem(ContextID, MemPtr, Size, "r");
-        if (NewIcc.IOHandler is null) goto Error;
+        if (NewIcc.IOHandler is null)
+            goto Error;
 
-        if (!_cmsReadHeader(NewIcc)) goto Error;
+        if (!_cmsReadHeader(NewIcc))
+            goto Error;
         return NewIcc;
 
     Error:
@@ -1155,17 +1195,20 @@ public static partial class Lcms2
         //var pool = Context.GetPool<byte>(Icc.ContextID);
 
         var io = Icc.IOHandler;
-        if (io is null) return false;
+        if (io is null)
+            return false;
 
         var Version = cmsGetProfileVersion(Icc);
 
         for (var i = 0; i < Icc.Tags.Count; i++)
         {
             var Tag = Icc.Tags[i];
-            if ((uint)Tag.Name is 0) continue;
+            if ((uint)Tag.Name is 0)
+                continue;
 
             // Linked tags are not written
-            if ((uint)Tag.Linked is not 0) continue;
+            if ((uint)Tag.Linked is not 0)
+                continue;
 
             var Begin = Tag.Offset = io.UsedSpace;
 
@@ -1182,7 +1225,8 @@ public static partial class Lcms2
                     var TagSize = FileOrig.Tags[i].Size;
                     var TagOffset = FileOrig.Tags[i].Offset;
 
-                    if (!FileOrig.IOHandler.SeekFunc(FileOrig.IOHandler, TagOffset)) return false;
+                    if (!FileOrig.IOHandler.SeekFunc(FileOrig.IOHandler, TagOffset))
+                        return false;
 
                     //Mem = _cmsMalloc(Icc.ContextID, TagSize, typeof(byte));
                     //if (Mem is null) return false;
@@ -1217,7 +1261,8 @@ public static partial class Lcms2
             // Should this tag be saved as RAW? If so, tagsizes should be specified in advance (no further cooking is done)
             if (Tag.SaveAsRaw && Data is byte[] buffer)
             {
-                if (!io.WriteFunc(io, Tag.Size, buffer)) return false;
+                if (!io.WriteFunc(io, Tag.Size, buffer))
+                    return false;
             }
             else
             {
@@ -1230,8 +1275,8 @@ public static partial class Lcms2
                 }
 
                 var Type = (TagDescriptor.DecideType is not null)
-                    ? TagDescriptor.DecideType(Version, Data)
-                    : TagDescriptor.SupportedTypes[0];
+                               ? TagDescriptor.DecideType(Version, Data)
+                               : TagDescriptor.SupportedTypes[0];
 
                 var TypeHandler = _cmsGetTagTypeHandler(Icc.ContextID, Type);
 
@@ -1251,7 +1296,7 @@ public static partial class Lcms2
                 LocalTypeHandler.ICCVersion = Icc.Version;
                 if (!LocalTypeHandler.WritePtr(LocalTypeHandler, io, Data, TagDescriptor.ElemCount))
                 {
-                    LogError(Icc.ContextID, cmsERROR_WRITE, $"Couldn't write type '{_cmsTagSignature2String(TypeBase)}'");
+                    LogError(Icc.ContextID, cmsERROR_WRITE, $"Couldn't write type '{TypeBase}'");
                     return false;
                 }
             }
@@ -1298,7 +1343,8 @@ public static partial class Lcms2
 
         Keep = Profile;
 
-        if (!Context.LockMutex(Keep.ContextID, Keep.UserMutex)) return 0;
+        if (!Context.LockMutex(Keep.ContextID, Keep.UserMutex))
+            return 0;
         var Icc = (Profile)Keep.Clone();
         //memmove(&Keep, Icc, _sizeof<Profile>());
 
@@ -1311,8 +1357,10 @@ public static partial class Lcms2
         }
 
         // Pass #1 does computer offsets
-        if (!_cmsWriteHeader(Icc, 0)) goto Error;
-        if (!SaveTags(Icc, Keep)) goto Error;
+        if (!_cmsWriteHeader(Icc, 0))
+            goto Error;
+        if (!SaveTags(Icc, Keep))
+            goto Error;
 
         var UsedSpace = PrevIO.UsedSpace;
 
@@ -1321,9 +1369,12 @@ public static partial class Lcms2
         if (io is not null)
         {
             Icc.IOHandler = io;
-            if (!SetLinks(Icc)) goto Error;
-            if (!_cmsWriteHeader(Icc, UsedSpace)) goto Error;
-            if (!SaveTags(Icc, Keep)) goto Error;
+            if (!SetLinks(Icc))
+                goto Error;
+            if (!_cmsWriteHeader(Icc, UsedSpace))
+                goto Error;
+            if (!SaveTags(Icc, Keep))
+                goto Error;
         }
 
         //memmove(Icc, &Keep, _sizeof<Profile>());
@@ -1347,7 +1398,8 @@ public static partial class Lcms2
         var ContextID = cmsGetProfileContextID(Profile);
         var io = cmsOpenIOhandlerFromFile(ContextID, FileName, "w");
 
-        if (io is null) return false;
+        if (io is null)
+            return false;
 
         var rc = cmsSaveProfileToIOhandler(Profile, io) is not 0;
         rc &= cmsCloseIOhandler(io);
@@ -1360,6 +1412,7 @@ public static partial class Lcms2
             }
             catch { }
         }
+
         return rc;
     }
 
@@ -1368,7 +1421,8 @@ public static partial class Lcms2
         var ContextID = cmsGetProfileContextID(Profile);
         var io = cmsOpenIOhandlerFromStream(ContextID, Stream);
 
-        if (io is null) return false;
+        if (io is null)
+            return false;
 
         var rc = cmsSaveProfileToIOhandler(Profile, io) is not 0;
         rc &= cmsCloseIOhandler(io);
@@ -1393,7 +1447,8 @@ public static partial class Lcms2
 
         // That is a read write operation
         var io = cmsOpenIOhandlerFromMem(ContextID, MemPtr, BytesNeeded, "w");
-        if (io is null) return false;
+        if (io is null)
+            return false;
 
         var rc = cmsSaveProfileToIOhandler(Profile, io) is not 0;
         rc &= cmsCloseIOhandler(io);
@@ -1431,7 +1486,8 @@ public static partial class Lcms2
         var Icc = Profile;
         var rc = true;
 
-        if (Icc is null) return false;
+        if (Icc is null)
+            return false;
 
         // Was open in write mode?
         if (Icc.IsWrite)
@@ -1463,7 +1519,8 @@ public static partial class Lcms2
             nMaxTypes = MAX_TYPES_IN_LCMS_PLUGIN;
 
         for (var i = 0; i < nMaxTypes; i++)
-            if (Type == TagDescriptor.SupportedTypes[i]) return true;
+            if (Type == TagDescriptor.SupportedTypes[i])
+                return true;
 
         return false;
     }
@@ -1475,7 +1532,8 @@ public static partial class Lcms2
 
         var Icc = Profile;
 
-        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return null;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex))
+            return null;
 
         var n = _cmsSearchTag(Icc, sig, true);
         if (n < 0)
@@ -1489,18 +1547,23 @@ public static partial class Lcms2
         var tag = Icc.Tags[n];
         if (tag.TagObject is not null)
         {
-            if (tag.TypeHandler is null) goto Error;
+            if (tag.TypeHandler is null)
+                goto Error;
 
             // Sanity check
             BaseType = tag.TypeHandler.Signature;
-            if ((uint)BaseType is 0) goto Error;
+            if ((uint)BaseType is 0)
+                goto Error;
 
             TagDescriptor = _cmsGetTagDescriptor(Icc.ContextID, sig);
-            if (TagDescriptor is null) goto Error;
+            if (TagDescriptor is null)
+                goto Error;
 
-            if (!IsTypeSupported(TagDescriptor, BaseType)) goto Error;
+            if (!IsTypeSupported(TagDescriptor, BaseType))
+                goto Error;
 
-            if (tag.SaveAsRaw) goto Error;   // We don't support read raw tags as cooked
+            if (tag.SaveAsRaw)
+                goto Error;   // We don't support read raw tags as cooked
 
             Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
             return tag.TagObject;
@@ -1510,7 +1573,8 @@ public static partial class Lcms2
         var Offset = tag.Offset;
         var TagSize = tag.Size;
 
-        if (TagSize < 8) goto Error;
+        if (TagSize < 8)
+            goto Error;
 
         var io = Icc.IOHandler;
 
@@ -1519,6 +1583,7 @@ public static partial class Lcms2
             LogError(Icc.ContextID, cmsERROR_CORRUPTION_DETECTED, "Corrupted built-in profile");
             goto Error;
         }
+
         // Seek to its location
         if (io?.SeekFunc(io, Offset) != true)
             goto Error;
@@ -1528,21 +1593,24 @@ public static partial class Lcms2
         if (TagDescriptor is null)
         {
             // An unknown element was found.
-            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown tag type '{_cmsTagSignature2String(sig)}' found.");
+            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown tag type '{sig}' found.");
             goto Error;     // Unsupported
         }
 
         // if supported, get type and check if in list
         BaseType = io.ReadTypeBase();
-        if ((uint)BaseType is 0) goto Error;
+        if ((uint)BaseType is 0)
+            goto Error;
 
-        if (!IsTypeSupported(TagDescriptor, BaseType)) goto Error;
+        if (!IsTypeSupported(TagDescriptor, BaseType))
+            goto Error;
 
         TagSize -= 8;   // Already read by the type base logic
 
         // Get type handler
         var TypeHandler = _cmsGetTagTypeHandler(Icc.ContextID, BaseType);
-        if (TypeHandler is null) goto Error;
+        if (TypeHandler is null)
+            goto Error;
         var LocalTypeHandler = (TagTypeHandler)TypeHandler.Clone();
 
         // Read the tag
@@ -1555,7 +1623,7 @@ public static partial class Lcms2
         // let the user know about this (although it is just a warning)
         if (tag.TagObject is null)
         {
-            LogError(Icc.ContextID, cmsERROR_CORRUPTION_DETECTED, $"Corrupted tag '{_cmsTagSignature2String(sig)}'");
+            LogError(Icc.ContextID, cmsERROR_CORRUPTION_DETECTED, $"Corrupted tag '{sig}'");
             goto Error2;
         }
 
@@ -1563,8 +1631,10 @@ public static partial class Lcms2
         // stored items is actuall less than the number of required elements.
         if (ElemCount < TagDescriptor.ElemCount)
         {
-            LogError(Icc.ContextID, cmsERROR_CORRUPTION_DETECTED,
-                $"'{_cmsTagSignature2String(sig)}' Inconsistent number of items: expected {TagDescriptor.ElemCount}, got {ElemCount}");
+            LogError(
+                Icc.ContextID,
+                cmsERROR_CORRUPTION_DETECTED,
+                $"'{sig}' Inconsistent number of items: expected {TagDescriptor.ElemCount}, got {ElemCount}");
             goto Error2;
         }
 
@@ -1589,7 +1659,8 @@ public static partial class Lcms2
 
         // Search for given tag in Icc profile directory
         var n = _cmsSearchTag(Icc, sig, true);
-        if (n < 0) return default;                        // Not found, return null
+        if (n < 0)
+            return default;                        // Not found, return null
 
         // Get the handler. The true type is there
         var TypeHandler = Icc.Tags[n].TypeHandler;
@@ -1604,7 +1675,8 @@ public static partial class Lcms2
         int i;
         Profile.TagEntry tag;
 
-        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return false;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex))
+            return false;
 
         // To delete tags
         if (data is null)
@@ -1621,11 +1693,13 @@ public static partial class Lcms2
                 Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
                 return true;
             }
+
             // Didn't find the tag
             goto Error;
         }
 
-        if (!_cmsNewTag(Icc, sig, out i)) goto Error;
+        if (!_cmsNewTag(Icc, sig, out i))
+            goto Error;
         tag = Icc.Tags[i];
 
         // This is not raw
@@ -1638,7 +1712,7 @@ public static partial class Lcms2
         var TagDescriptor = _cmsGetTagDescriptor(Icc.ContextID, sig);
         if (TagDescriptor is null)
         {
-            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported tag '{_cmsTagSignature2String(sig)}'");
+            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported tag '{(sig)}'");
             goto Error;
         }
 
@@ -1662,7 +1736,7 @@ public static partial class Lcms2
         // Does the tag support this type?
         if (!IsTypeSupported(TagDescriptor, Type))
         {
-            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported type '{_cmsTagSignature2String(Type)}' for tag '{_cmsTagSignature2String(sig)}'");
+            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported type '{(Type)}' for tag '{(sig)}'");
             goto Error;
         }
 
@@ -1670,7 +1744,7 @@ public static partial class Lcms2
         var TypeHandler = _cmsGetTagTypeHandler(Icc.ContextID, Type);
         if (TypeHandler is null)
         {
-            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported type '{_cmsTagSignature2String(Type)}' for tag '{_cmsTagSignature2String(sig)}'");
+            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported type '{(Type)}' for tag '{(sig)}'");
             goto Error;     // Should never happen
         }
 
@@ -1687,7 +1761,10 @@ public static partial class Lcms2
 
         if (tag.TagObject is null)
         {
-            LogError(Icc.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Malformed struct in type '{_cmsTagSignature2String(Type)}' for tag '{_cmsTagSignature2String(sig)}'");
+            LogError(
+                Icc.ContextID,
+                cmsERROR_UNKNOWN_EXTENSION,
+                $"Malformed struct in type '{(Type)}' for tag '{(sig)}'");
             goto Error;
         }
 
@@ -1707,11 +1784,13 @@ public static partial class Lcms2
         if (!data.IsEmpty && BufferSize is 0)
             return 0;
 
-        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return 0;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex))
+            return 0;
 
         // Search for given tag in ICC profile directory
         var i = _cmsSearchTag(Icc, sig, true);
-        if (i < 0) goto Error;  // Not found
+        if (i < 0)
+            goto Error;  // Not found
 
         // It is already read?
         var tag = Icc.Tags[i];
@@ -1727,8 +1806,10 @@ public static partial class Lcms2
                 if (BufferSize < TagSize)
                     TagSize = BufferSize;
 
-                if (Icc.IOHandler?.SeekFunc(Icc.IOHandler, Offset) != true) goto Error;
-                if (Icc.IOHandler.ReadFunc(Icc.IOHandler, data.Span, 1, TagSize) is 0) goto Error;
+                if (Icc.IOHandler?.SeekFunc(Icc.IOHandler, Offset) != true)
+                    goto Error;
+                if (Icc.IOHandler.ReadFunc(Icc.IOHandler, data.Span, 1, TagSize) is 0)
+                    goto Error;
 
                 Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
                 return TagSize;
@@ -1764,16 +1845,19 @@ public static partial class Lcms2
 
         Context.UnlockMutex(Icc.ContextID, Icc.UserMutex);
         var Object = cmsReadTag(Icc, sig);
-        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return 0;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex))
+            return 0;
 
-        if (Object is null) goto Error;
+        if (Object is null)
+            goto Error;
 
         // Now we need to serialize to a memory block: just use a memory iohandler
 
         var MemIO = data.IsEmpty
-            ? cmsOpenIOhandlerFromNULL(cmsGetProfileContextID(Icc))
-            : cmsOpenIOhandlerFromMem(cmsGetProfileContextID(Icc), data, BufferSize, "w");
-        if (MemIO is null) goto Error;
+                        ? cmsOpenIOhandlerFromNULL(cmsGetProfileContextID(Icc))
+                        : cmsOpenIOhandlerFromMem(cmsGetProfileContextID(Icc), data, BufferSize, "w");
+        if (MemIO is null)
+            goto Error;
 
         // Obtain type handling for the tag
         var TypeHandler = tag.TypeHandler;
@@ -1784,7 +1868,8 @@ public static partial class Lcms2
             goto Error;
         }
 
-        if (TypeHandler is null) goto Error;
+        if (TypeHandler is null)
+            goto Error;
 
         // Serialize
         var LocalTypeHandler = (TagTypeHandler)TypeHandler.Clone();
@@ -1819,7 +1904,8 @@ public static partial class Lcms2
     {
         var Icc = Profile;
 
-        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return false;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex))
+            return false;
 
         if (!_cmsNewTag(Icc, sig, out var i))
         {
@@ -1854,7 +1940,8 @@ public static partial class Lcms2
     {
         var Icc = Profile;
 
-        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex)) return false;
+        if (!Context.LockMutex(Icc.ContextID, Icc.UserMutex))
+            return false;
 
         if (!_cmsNewTag(Icc, sig, out var i))
         {
@@ -1885,7 +1972,8 @@ public static partial class Lcms2
 
         // Search for given tag in ICC profile directory
         var i = _cmsSearchTag(Icc, sig, false);
-        if (i < 0) return default;        // Not found, return 0
+        if (i < 0)
+            return default;        // Not found, return 0
 
         return Icc.Tags[i].Linked;
     }

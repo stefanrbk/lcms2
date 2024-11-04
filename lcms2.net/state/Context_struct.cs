@@ -24,11 +24,11 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Diagnostics;
+
 using lcms2.types;
 
 using Microsoft.Extensions.Logging;
-
-using System.Diagnostics;
 
 namespace lcms2.state;
 
@@ -51,9 +51,12 @@ public class Context : ICloneable
     internal MutexPluginChunkType MutexPlugin = new();
     internal ParallelizationPluginChunkType ParallelizationPlugin = new(0, 0, null);
 
-    public ref object? UserData => ref userData;
+    public ref object? UserData =>
+        ref userData;
 
-    public static Context Default => new();
+    public static Context Default =>
+        new();
+
     public static readonly Context Shared = new();
 
     public const ushort LibraryVersion = 2160;
@@ -92,14 +95,17 @@ public class Context : ICloneable
 
     public void RegisterPlugin(PluginBase plugin)
     {
-        if (plugin.Magic != Signature.Plugin.MagicNumber)
+        if (plugin.Magic != Signatures.Plugin.MagicNumber)
         {
             LogError(this, ErrorCodes.UnknownExtension, "Unrecognized plugin");
         }
 
         if (plugin.ExpectedVersion > LibraryVersion)
         {
-            LogError(this, ErrorCodes.UnknownExtension, $"plugin needs Little CMS {plugin.ExpectedVersion}, current version is {LibraryVersion}");
+            LogError(
+                this,
+                ErrorCodes.UnknownExtension,
+                $"plugin needs Little CMS {plugin.ExpectedVersion}, current version is {LibraryVersion}");
         }
 
         switch ((uint)plugin.Type)

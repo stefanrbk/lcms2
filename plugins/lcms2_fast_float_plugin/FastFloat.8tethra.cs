@@ -19,12 +19,13 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Diagnostics;
+
 using lcms2.state;
 using lcms2.types;
 
-using System.Diagnostics;
-
 namespace lcms2.FastFloatPlugin;
+
 public static partial class FastFloat
 {
     private const ushort PRELINEARIZATION_POINTS = 4096;
@@ -62,8 +63,20 @@ public static partial class FastFloat
             Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
             Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
 
-            _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-            _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+            _cmsComputeComponentIncrements(
+                cmsGetTransformInputFormat(CMMcargo),
+                Stride.BytesPerPlaneIn,
+                out _,
+                out var nalpha,
+                SourceStartingOrder,
+                SourceIncrements);
+            _cmsComputeComponentIncrements(
+                cmsGetTransformOutputFormat(CMMcargo),
+                Stride.BytesPerPlaneOut,
+                out _,
+                out nalpha,
+                DestStartingOrder,
+                DestIncrements);
 
             if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
                 nalpha = 0;
@@ -194,8 +207,10 @@ public static partial class FastFloat
 
         for (var i = 0; i < nEntries; i++)
         {
-            if (Table16[i] is 0x0000) Zeros++;
-            if (Table16[i] is 0xffff) Poles++;
+            if (Table16[i] is 0x0000)
+                Zeros++;
+            if (Table16[i] is 0xffff)
+                Poles++;
         }
 
         if (Zeros is 1 && Poles is 1)
@@ -276,7 +291,7 @@ public static partial class FastFloat
         var OriginalLut = Lut;
 
         var ContextID = cmsGetPipelineContextID(OriginalLut);
-        var nGridPoints = _cmsReasonableGridpointsByColorspace(Signature.Colorspace.Rgb, dwFlags);
+        var nGridPoints = _cmsReasonableGridpointsByColorspace(Signatures.Colorspace.Rgb, dwFlags);
 
         //var tcPool = Context.GetPool<ToneCurve>(ContextID);
         //var uaPool = Context.GetPool<ushort[]>(ContextID);
@@ -332,7 +347,8 @@ public static partial class FastFloat
             SlopeLimiting(MyTable[t], PRELINEARIZATION_POINTS);
 
             Trans[t] = cmsBuildTabulatedToneCurve16(ContextID, PRELINEARIZATION_POINTS, MyTable[t])!;
-            if (Trans[t] is null) goto Error;
+            if (Trans[t] is null)
+                goto Error;
 
             //usPool.Return(MyTable[t]);
             MyTable[t] = null!;
@@ -381,7 +397,12 @@ public static partial class FastFloat
         cmsPipelineInsertStage(OptimizedLUT, StageLoc.AtBegin, OptimizedPrelinMpe);
 
         // Allocate the CLUT for result
-        var OptimizedCLUTmpe = cmsStageAllocCLut16bit(ContextID, nGridPoints, 3, cmsPipelineOutputChannels(OriginalLut), null);
+        var OptimizedCLUTmpe = cmsStageAllocCLut16bit(
+            ContextID,
+            nGridPoints,
+            3,
+            cmsPipelineOutputChannels(OriginalLut),
+            null);
 
         // Add the CLUT to the destination LUT
         cmsPipelineInsertStage(OptimizedLUT, StageLoc.AtEnd, OptimizedCLUTmpe);
@@ -459,13 +480,23 @@ file class Performance8Data : IDisposable
 
     private bool disposedValue;
 
-    public Span<ushort> rx => _rx.AsSpan(..256);
-    public Span<ushort> ry => _ry.AsSpan(..256);
-    public Span<ushort> rz => _rz.AsSpan(..256);
+    public Span<ushort> rx =>
+        _rx.AsSpan(..256);
 
-    public Span<uint> X0 => _X0.AsSpan(..0x4001);
-    public Span<uint> Y0 => _Y0.AsSpan(..0x4001);
-    public Span<uint> Z0 => _Z0.AsSpan(..0x4001);
+    public Span<ushort> ry =>
+        _ry.AsSpan(..256);
+
+    public Span<ushort> rz =>
+        _rz.AsSpan(..256);
+
+    public Span<uint> X0 =>
+        _X0.AsSpan(..0x4001);
+
+    public Span<uint> Y0 =>
+        _Y0.AsSpan(..0x4001);
+
+    public Span<uint> Z0 =>
+        _Z0.AsSpan(..0x4001);
 
     public Performance8Data(Context? context, InterpParams<ushort> p)
     {
@@ -490,7 +521,6 @@ file class Performance8Data : IDisposable
         _X0 = new uint[0x4001];
         _Y0 = new uint[0x4001];
         _Z0 = new uint[0x4001];
-
     }
 
     protected virtual void Dispose(bool disposing)

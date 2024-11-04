@@ -19,15 +19,15 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
+using lcms2.state;
+using lcms2.types;
+
 namespace lcms2.FastFloatPlugin;
+
 public unsafe static partial class FastFloat
 {
     private static void MatShaperXform8SSE(Transform CMMcargo,
@@ -58,8 +58,20 @@ public unsafe static partial class FastFloat
         new Span<byte>(buffer, 32).Fill(204);
         var output_index = (uint*)(((ulong)buffer + 16) & ~(ulong)0xf);
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -157,7 +169,8 @@ public unsafe static partial class FastFloat
         TransformFn = null!;
 
         // Check for SSE2 support
-        if (!IsSSE2Available()) return false;
+        if (!IsSSE2Available())
+            return false;
 
         // Only works on 3 to 3, probably RGB
         if (!(T_CHANNELS(InputFormat) is 3 && T_CHANNELS(OutputFormat) is 3))
@@ -174,10 +187,16 @@ public unsafe static partial class FastFloat
         var Src = Lut;
 
         // Check for shaper-matrix-matrix-shaper structure, that is what this optimizer stands for
-        if (!cmsPipelineCheckAndRetrieveStages(Src, Signature.Stage.CurveSetElem, out var Curve1,
-                                                    Signature.Stage.MatrixElem, out var Matrix1,
-                                                    Signature.Stage.MatrixElem, out var Matrix2,
-                                                    Signature.Stage.CurveSetElem, out var Curve2))
+        if (!cmsPipelineCheckAndRetrieveStages(
+                Src,
+                Signatures.Stage.CurveSetElem,
+                out var Curve1,
+                Signatures.Stage.MatrixElem,
+                out var Matrix1,
+                Signatures.Stage.MatrixElem,
+                out var Matrix2,
+                Signatures.Stage.CurveSetElem,
+                out var Curve2))
         {
             return false;
         }
@@ -201,7 +220,8 @@ public unsafe static partial class FastFloat
 
         // Allocate an empty LUT
         var Dest = cmsPipelineAlloc(ContextID, nChans, nChans);
-        if (Dest is null) return false;
+        if (Dest is null)
+            return false;
 
         // Assemble the new LUT
         cmsPipelineInsertStage(Dest, StageLoc.AtBegin, cmsStageDup(Curve1));
@@ -217,11 +237,19 @@ public unsafe static partial class FastFloat
             // If identity on matrix, we can further optimize the curves, so call the join curves routine
             if (IdentityMat)
             {
-                Optimize8ByJoiningCurves(out TransformFn, out UserData, out FreeUserData, ref Dest, ref InputFormat, ref OutputFormat, ref dwFlags);
+                Optimize8ByJoiningCurves(
+                    out TransformFn,
+                    out UserData,
+                    out FreeUserData,
+                    ref Dest,
+                    ref InputFormat,
+                    ref OutputFormat,
+                    ref dwFlags);
             }
             else
             {
-                if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 || cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
+                if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 ||
+                    cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
                     return false;
 
                 // In this particular optimization, cache does not help as it takes more time to deal with
@@ -229,7 +257,12 @@ public unsafe static partial class FastFloat
                 dwFlags |= cmsFLAGS_NOCACHE;
 
                 // Setup the optimization routines
-                UserData = XMatShaperSSEData.SetShaper(ContextID, mpeC1.TheCurves, res, Data2.Offset is null ? null : new VEC3(Data2.Offset), mpeC2.TheCurves);
+                UserData = XMatShaperSSEData.SetShaper(
+                    ContextID,
+                    mpeC1.TheCurves,
+                    res,
+                    Data2.Offset is null ? null : new VEC3(Data2.Offset),
+                    mpeC2.TheCurves);
                 FreeUserData = FreeDisposable;
 
                 TransformFn = MatShaperXform8SSE;

@@ -19,17 +19,18 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+
 using lcms2.testbed;
 using lcms2.types;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-
 namespace lcms2.ThreadedPlugin.testbed;
+
 internal static partial class Testbed
 {
     const uint FLAGS = cmsFLAGS_NOOPTIMIZE;
@@ -98,15 +99,20 @@ internal static partial class Testbed
 
     public static ILoggerFactory BuildDebugLogger()
     {
-        return LoggerFactory.Create(builder =>
-            builder
-                .SetMinimumLevel(LogLevel.Information)
-                .AddTestBedFormatter(options => { options.IncludeScopes = true; options.SingleLine = true; }));
+        return LoggerFactory.Create(
+            builder =>
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddTestBedFormatter(
+                        options =>
+                        {
+                            options.IncludeScopes = true;
+                            options.SingleLine = true;
+                        }));
     }
 
-    public static ILoggingBuilder AddTestBedFormatter(
-        this ILoggingBuilder builder,
-        Action<SimpleConsoleFormatterOptions> configure) =>
+    public static ILoggingBuilder AddTestBedFormatter(this ILoggingBuilder builder,
+                                                      Action<SimpleConsoleFormatterOptions> configure) =>
         builder.AddConsole(options => options.FormatterName = "TestBed")
                .AddConsoleFormatter<TestBedFormatter, SimpleConsoleFormatterOptions>(configure);
 
@@ -140,7 +146,7 @@ internal static partial class Testbed
         var Transfer = new ToneCurve[3];
 
         Transfer[0] = Transfer[1] = Transfer[2] = Gamma!;
-        var h = cmsCreateLinearizationDeviceLink(Signature.Colorspace.Rgb, Transfer);
+        var h = cmsCreateLinearizationDeviceLink(Signatures.Colorspace.Rgb, Transfer);
 
         cmsFreeToneCurve(Gamma);
 

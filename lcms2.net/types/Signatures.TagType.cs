@@ -26,7 +26,7 @@
 
 namespace lcms2.types;
 
-public partial struct Signature
+public static partial class Signatures
 {
     public static class TagType
     {
@@ -49,8 +49,7 @@ public partial struct Signature
         public static readonly Signature MultiLocalizedUnicode = new("mluc"u8);
         public static readonly Signature MultiProcessElement = new("mpet"u8);
 
-        [Obsolete("Use NamedColor2")]
-        public static readonly Signature NamedColor = new("ncol"u8);
+        [Obsolete("Use NamedColor2")] public static readonly Signature NamedColor = new("ncol"u8);
 
         public static readonly Signature NamedColor2 = new("ncl2"u8);
         public static readonly Signature ParametricCurve = new("para"u8);

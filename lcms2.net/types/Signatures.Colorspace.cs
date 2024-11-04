@@ -26,7 +26,7 @@
 
 namespace lcms2.types;
 
-public partial struct Signature
+public static partial class Signatures
 {
     public static class Colorspace
     {

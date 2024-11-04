@@ -87,7 +87,7 @@ public static partial class Lcms2
                                               out uint nOutputs)
     {
         // Only most common spaces
-        if (Space == Signature.Colorspace.Gray)
+        if (Space == Signatures.Colorspace.Gray)
         {
             White = GrayWhite;
             Black = GrayBlack;
@@ -96,7 +96,7 @@ public static partial class Lcms2
             return true;
         }
 
-        if (Space == Signature.Colorspace.Rgb)
+        if (Space == Signatures.Colorspace.Rgb)
         {
             White = RGBwhite;
             Black = RGBblack;
@@ -105,7 +105,7 @@ public static partial class Lcms2
             return true;
         }
 
-        if (Space == Signature.Colorspace.Lab)
+        if (Space == Signatures.Colorspace.Lab)
         {
             White = LABwhite;
             Black = LABblack;
@@ -114,7 +114,7 @@ public static partial class Lcms2
             return true;
         }
 
-        if (Space == Signature.Colorspace.Cmyk)
+        if (Space == Signatures.Colorspace.Cmyk)
         {
             White = CMYKwhite;
             Black = CMYKblack;
@@ -123,7 +123,7 @@ public static partial class Lcms2
             return true;
         }
 
-        if (Space == Signature.Colorspace.Cmy)
+        if (Space == Signatures.Colorspace.Cmy)
         {
             White = CMYwhite;
             Black = CMYblack;
@@ -142,132 +142,132 @@ public static partial class Lcms2
     internal static Signature _cmsICCcolorSpace(int OutNotation) =>
         OutNotation switch
         {
-            1 or PT_GRAY       => Signature.Colorspace.Gray,
-            2 or PT_RGB        => Signature.Colorspace.Rgb,
-            PT_CMY             => Signature.Colorspace.Cmy,
-            PT_CMYK            => Signature.Colorspace.Cmyk,
-            PT_YCbCr           => Signature.Colorspace.YCbCr,
-            PT_YUV             => Signature.Colorspace.Luv,
-            PT_XYZ             => Signature.Colorspace.XYZ,
-            PT_Lab or PT_LabV2 => Signature.Colorspace.Lab,
-            PT_YUVK            => Signature.Colorspace.LuvK,
-            PT_HSV             => Signature.Colorspace.Hsv,
-            PT_HLS             => Signature.Colorspace.Hls,
-            PT_Yxy             => Signature.Colorspace.Yxy,
-            PT_MCH1            => Signature.Colorspace.MCH1,
-            PT_MCH2            => Signature.Colorspace.MCH2,
-            PT_MCH3            => Signature.Colorspace.MCH3,
-            PT_MCH4            => Signature.Colorspace.MCH4,
-            PT_MCH5            => Signature.Colorspace.MCH5,
-            PT_MCH6            => Signature.Colorspace.MCH6,
-            PT_MCH7            => Signature.Colorspace.MCH7,
-            PT_MCH8            => Signature.Colorspace.MCH8,
-            PT_MCH9            => Signature.Colorspace.MCH9,
-            PT_MCH10           => Signature.Colorspace.MCHA,
-            PT_MCH11           => Signature.Colorspace.MCHB,
-            PT_MCH12           => Signature.Colorspace.MCHC,
-            PT_MCH13           => Signature.Colorspace.MCHD,
-            PT_MCH14           => Signature.Colorspace.MCHE,
-            PT_MCH15           => Signature.Colorspace.MCHF,
+            1 or PT_GRAY       => Signatures.Colorspace.Gray,
+            2 or PT_RGB        => Signatures.Colorspace.Rgb,
+            PT_CMY             => Signatures.Colorspace.Cmy,
+            PT_CMYK            => Signatures.Colorspace.Cmyk,
+            PT_YCbCr           => Signatures.Colorspace.YCbCr,
+            PT_YUV             => Signatures.Colorspace.Luv,
+            PT_XYZ             => Signatures.Colorspace.XYZ,
+            PT_Lab or PT_LabV2 => Signatures.Colorspace.Lab,
+            PT_YUVK            => Signatures.Colorspace.LuvK,
+            PT_HSV             => Signatures.Colorspace.Hsv,
+            PT_HLS             => Signatures.Colorspace.Hls,
+            PT_Yxy             => Signatures.Colorspace.Yxy,
+            PT_MCH1            => Signatures.Colorspace.MCH1,
+            PT_MCH2            => Signatures.Colorspace.MCH2,
+            PT_MCH3            => Signatures.Colorspace.MCH3,
+            PT_MCH4            => Signatures.Colorspace.MCH4,
+            PT_MCH5            => Signatures.Colorspace.MCH5,
+            PT_MCH6            => Signatures.Colorspace.MCH6,
+            PT_MCH7            => Signatures.Colorspace.MCH7,
+            PT_MCH8            => Signatures.Colorspace.MCH8,
+            PT_MCH9            => Signatures.Colorspace.MCH9,
+            PT_MCH10           => Signatures.Colorspace.MCHA,
+            PT_MCH11           => Signatures.Colorspace.MCHB,
+            PT_MCH12           => Signatures.Colorspace.MCHC,
+            PT_MCH13           => Signatures.Colorspace.MCHD,
+            PT_MCH14           => Signatures.Colorspace.MCHE,
+            PT_MCH15           => Signatures.Colorspace.MCHF,
             _                  => default,
         };
 
     internal static int _cmsLCMScolorSpace(Signature ProfileSpace)
     {
-        if (ProfileSpace == Signature.Colorspace.Gray)
+        if (ProfileSpace == Signatures.Colorspace.Gray)
             return PT_GRAY;
 
-        if (ProfileSpace == Signature.Colorspace.Rgb)
+        if (ProfileSpace == Signatures.Colorspace.Rgb)
             return PT_RGB;
 
-        if (ProfileSpace == Signature.Colorspace.Cmy)
+        if (ProfileSpace == Signatures.Colorspace.Cmy)
             return PT_CMY;
 
-        if (ProfileSpace == Signature.Colorspace.Cmyk)
+        if (ProfileSpace == Signatures.Colorspace.Cmyk)
             return PT_CMYK;
 
-        if (ProfileSpace == Signature.Colorspace.YCbCr)
+        if (ProfileSpace == Signatures.Colorspace.YCbCr)
             return PT_YCbCr;
 
-        if (ProfileSpace == Signature.Colorspace.Luv)
+        if (ProfileSpace == Signatures.Colorspace.Luv)
             return PT_YUV;
 
-        if (ProfileSpace == Signature.Colorspace.XYZ)
+        if (ProfileSpace == Signatures.Colorspace.XYZ)
             return PT_XYZ;
 
-        if (ProfileSpace == Signature.Colorspace.Lab)
+        if (ProfileSpace == Signatures.Colorspace.Lab)
             return PT_Lab;
 
-        if (ProfileSpace == Signature.Colorspace.LuvK)
+        if (ProfileSpace == Signatures.Colorspace.LuvK)
             return PT_YUVK;
 
-        if (ProfileSpace == Signature.Colorspace.Hsv)
+        if (ProfileSpace == Signatures.Colorspace.Hsv)
             return PT_HSV;
 
-        if (ProfileSpace == Signature.Colorspace.Hls)
+        if (ProfileSpace == Signatures.Colorspace.Hls)
             return PT_HLS;
 
-        if (ProfileSpace == Signature.Colorspace.Yxy)
+        if (ProfileSpace == Signatures.Colorspace.Yxy)
             return PT_Yxy;
 
-        if (ProfileSpace == Signature.Colorspace.Color1 ||
-            ProfileSpace == Signature.Colorspace.MCH1)
+        if (ProfileSpace == Signatures.Colorspace.Color1 ||
+            ProfileSpace == Signatures.Colorspace.MCH1)
             return PT_MCH1;
 
-        if (ProfileSpace == Signature.Colorspace.Color2 ||
-            ProfileSpace == Signature.Colorspace.MCH2)
+        if (ProfileSpace == Signatures.Colorspace.Color2 ||
+            ProfileSpace == Signatures.Colorspace.MCH2)
             return PT_MCH2;
 
-        if (ProfileSpace == Signature.Colorspace.Color3 ||
-            ProfileSpace == Signature.Colorspace.MCH3)
+        if (ProfileSpace == Signatures.Colorspace.Color3 ||
+            ProfileSpace == Signatures.Colorspace.MCH3)
             return PT_MCH3;
 
-        if (ProfileSpace == Signature.Colorspace.Color4 ||
-            ProfileSpace == Signature.Colorspace.MCH4)
+        if (ProfileSpace == Signatures.Colorspace.Color4 ||
+            ProfileSpace == Signatures.Colorspace.MCH4)
             return PT_MCH4;
 
-        if (ProfileSpace == Signature.Colorspace.Color5 ||
-            ProfileSpace == Signature.Colorspace.MCH5)
+        if (ProfileSpace == Signatures.Colorspace.Color5 ||
+            ProfileSpace == Signatures.Colorspace.MCH5)
             return PT_MCH5;
 
-        if (ProfileSpace == Signature.Colorspace.Color6 ||
-            ProfileSpace == Signature.Colorspace.MCH6)
+        if (ProfileSpace == Signatures.Colorspace.Color6 ||
+            ProfileSpace == Signatures.Colorspace.MCH6)
             return PT_MCH6;
 
-        if (ProfileSpace == Signature.Colorspace.Color7 ||
-            ProfileSpace == Signature.Colorspace.MCH7)
+        if (ProfileSpace == Signatures.Colorspace.Color7 ||
+            ProfileSpace == Signatures.Colorspace.MCH7)
             return PT_MCH7;
 
-        if (ProfileSpace == Signature.Colorspace.Color8 ||
-            ProfileSpace == Signature.Colorspace.MCH8)
+        if (ProfileSpace == Signatures.Colorspace.Color8 ||
+            ProfileSpace == Signatures.Colorspace.MCH8)
             return PT_MCH8;
 
-        if (ProfileSpace == Signature.Colorspace.Color9 ||
-            ProfileSpace == Signature.Colorspace.MCH9)
+        if (ProfileSpace == Signatures.Colorspace.Color9 ||
+            ProfileSpace == Signatures.Colorspace.MCH9)
             return PT_MCH9;
 
-        if (ProfileSpace == Signature.Colorspace.Color10 ||
-            ProfileSpace == Signature.Colorspace.MCHA)
+        if (ProfileSpace == Signatures.Colorspace.Color10 ||
+            ProfileSpace == Signatures.Colorspace.MCHA)
             return PT_MCH10;
 
-        if (ProfileSpace == Signature.Colorspace.Color11 ||
-            ProfileSpace == Signature.Colorspace.MCHB)
+        if (ProfileSpace == Signatures.Colorspace.Color11 ||
+            ProfileSpace == Signatures.Colorspace.MCHB)
             return PT_MCH11;
 
-        if (ProfileSpace == Signature.Colorspace.Color12 ||
-            ProfileSpace == Signature.Colorspace.MCHC)
+        if (ProfileSpace == Signatures.Colorspace.Color12 ||
+            ProfileSpace == Signatures.Colorspace.MCHC)
             return PT_MCH12;
 
-        if (ProfileSpace == Signature.Colorspace.Color13 ||
-            ProfileSpace == Signature.Colorspace.MCHD)
+        if (ProfileSpace == Signatures.Colorspace.Color13 ||
+            ProfileSpace == Signatures.Colorspace.MCHD)
             return PT_MCH13;
 
-        if (ProfileSpace == Signature.Colorspace.Color14 ||
-            ProfileSpace == Signature.Colorspace.MCHE)
+        if (ProfileSpace == Signatures.Colorspace.Color14 ||
+            ProfileSpace == Signatures.Colorspace.MCHE)
             return PT_MCH14;
 
-        if (ProfileSpace == Signature.Colorspace.Color15 ||
-            ProfileSpace == Signature.Colorspace.MCHF)
+        if (ProfileSpace == Signatures.Colorspace.Color15 ||
+            ProfileSpace == Signatures.Colorspace.MCHF)
             return PT_MCH15;
 
         return 0;
@@ -284,76 +284,76 @@ public static partial class Lcms2
 
     public static int cmsChannelsOfColorSpace(Signature Colorspace)
     {
-        if (Colorspace == Signature.Colorspace.MCH1 ||
-            Colorspace == Signature.Colorspace.Color1 ||
-            Colorspace == Signature.Colorspace.Gray)
+        if (Colorspace == Signatures.Colorspace.MCH1 ||
+            Colorspace == Signatures.Colorspace.Color1 ||
+            Colorspace == Signatures.Colorspace.Gray)
             return 1;
 
-        if (Colorspace == Signature.Colorspace.MCH2 ||
-            Colorspace == Signature.Colorspace.Color2)
+        if (Colorspace == Signatures.Colorspace.MCH2 ||
+            Colorspace == Signatures.Colorspace.Color2)
             return 2;
 
-        if (Colorspace == Signature.Colorspace.XYZ ||
-            Colorspace == Signature.Colorspace.Lab ||
-            Colorspace == Signature.Colorspace.Luv ||
-            Colorspace == Signature.Colorspace.YCbCr ||
-            Colorspace == Signature.Colorspace.Yxy ||
-            Colorspace == Signature.Colorspace.Rgb ||
-            Colorspace == Signature.Colorspace.Hsv ||
-            Colorspace == Signature.Colorspace.Hls ||
-            Colorspace == Signature.Colorspace.Cmy ||
-            Colorspace == Signature.Colorspace.MCH3 ||
-            Colorspace == Signature.Colorspace.Color3)
+        if (Colorspace == Signatures.Colorspace.XYZ ||
+            Colorspace == Signatures.Colorspace.Lab ||
+            Colorspace == Signatures.Colorspace.Luv ||
+            Colorspace == Signatures.Colorspace.YCbCr ||
+            Colorspace == Signatures.Colorspace.Yxy ||
+            Colorspace == Signatures.Colorspace.Rgb ||
+            Colorspace == Signatures.Colorspace.Hsv ||
+            Colorspace == Signatures.Colorspace.Hls ||
+            Colorspace == Signatures.Colorspace.Cmy ||
+            Colorspace == Signatures.Colorspace.MCH3 ||
+            Colorspace == Signatures.Colorspace.Color3)
             return 3;
 
-        if (Colorspace == Signature.Colorspace.LuvK ||
-            Colorspace == Signature.Colorspace.Cmyk ||
-            Colorspace == Signature.Colorspace.MCH4 ||
-            Colorspace == Signature.Colorspace.Color4)
+        if (Colorspace == Signatures.Colorspace.LuvK ||
+            Colorspace == Signatures.Colorspace.Cmyk ||
+            Colorspace == Signatures.Colorspace.MCH4 ||
+            Colorspace == Signatures.Colorspace.Color4)
             return 4;
 
-        if (Colorspace == Signature.Colorspace.MCH5 ||
-            Colorspace == Signature.Colorspace.Color5)
+        if (Colorspace == Signatures.Colorspace.MCH5 ||
+            Colorspace == Signatures.Colorspace.Color5)
             return 5;
 
-        if (Colorspace == Signature.Colorspace.MCH6 ||
-            Colorspace == Signature.Colorspace.Color6)
+        if (Colorspace == Signatures.Colorspace.MCH6 ||
+            Colorspace == Signatures.Colorspace.Color6)
             return 6;
 
-        if (Colorspace == Signature.Colorspace.MCH7 ||
-            Colorspace == Signature.Colorspace.Color7)
+        if (Colorspace == Signatures.Colorspace.MCH7 ||
+            Colorspace == Signatures.Colorspace.Color7)
             return 7;
 
-        if (Colorspace == Signature.Colorspace.MCH8 ||
-            Colorspace == Signature.Colorspace.Color8)
+        if (Colorspace == Signatures.Colorspace.MCH8 ||
+            Colorspace == Signatures.Colorspace.Color8)
             return 8;
 
-        if (Colorspace == Signature.Colorspace.MCH9 ||
-            Colorspace == Signature.Colorspace.Color9)
+        if (Colorspace == Signatures.Colorspace.MCH9 ||
+            Colorspace == Signatures.Colorspace.Color9)
             return 9;
 
-        if (Colorspace == Signature.Colorspace.MCHA ||
-            Colorspace == Signature.Colorspace.Color10)
+        if (Colorspace == Signatures.Colorspace.MCHA ||
+            Colorspace == Signatures.Colorspace.Color10)
             return 10;
 
-        if (Colorspace == Signature.Colorspace.MCHB ||
-            Colorspace == Signature.Colorspace.Color11)
+        if (Colorspace == Signatures.Colorspace.MCHB ||
+            Colorspace == Signatures.Colorspace.Color11)
             return 11;
 
-        if (Colorspace == Signature.Colorspace.MCHC ||
-            Colorspace == Signature.Colorspace.Color12)
+        if (Colorspace == Signatures.Colorspace.MCHC ||
+            Colorspace == Signatures.Colorspace.Color12)
             return 12;
 
-        if (Colorspace == Signature.Colorspace.MCHD ||
-            Colorspace == Signature.Colorspace.Color13)
+        if (Colorspace == Signatures.Colorspace.MCHD ||
+            Colorspace == Signatures.Colorspace.Color13)
             return 13;
 
-        if (Colorspace == Signature.Colorspace.MCHE ||
-            Colorspace == Signature.Colorspace.Color14)
+        if (Colorspace == Signatures.Colorspace.MCHE ||
+            Colorspace == Signatures.Colorspace.Color14)
             return 14;
 
-        if (Colorspace == Signature.Colorspace.MCHF ||
-            Colorspace == Signature.Colorspace.Color15)
+        if (Colorspace == Signatures.Colorspace.MCHF ||
+            Colorspace == Signatures.Colorspace.Color15)
             return 15;
 
         return -1;

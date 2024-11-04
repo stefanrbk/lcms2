@@ -26,14 +26,12 @@
 
 using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace lcms2.types;
 
-public readonly partial struct Signature : ICloneable, IEquatable<Signature>
+public readonly struct Signature : ICloneable, IEquatable<Signature>
 {
-    public static readonly Signature LcmsSignature = new("lcms"u8);
-    public static readonly Signature MagicNumber = new("ascp"u8);
-
     private readonly uint _value;
 
     [DebuggerStepThrough]
@@ -102,5 +100,33 @@ public readonly partial struct Signature : ICloneable, IEquatable<Signature>
     public static bool operator !=(Signature left, Signature right)
     {
         return !left.Equals(right);
+    }
+
+    public class Formatter : IFormatProvider, ICustomFormatter
+    {
+        public string Format(string? format, object? obj, IFormatProvider? provider)
+        {
+            if (obj is null)
+                return string.Empty;
+
+            if (obj is Signature value)
+            {
+                // Text output
+                if (format?.StartsWith("T", StringComparison.CurrentCultureIgnoreCase) ?? false)
+                    return value.ToString();
+
+                // Hex output
+                if (format?.StartsWith("X", StringComparison.CurrentCultureIgnoreCase) ?? false)
+                    return String.Format(provider, "{" + format + "}", (uint)obj);
+            }
+
+            // Use default for all other formatting
+            return obj is IFormattable formattable
+                       ? formattable.ToString(format, CultureInfo.CurrentCulture)
+                       : obj.ToString() ?? String.Empty;
+        }
+
+        public object? GetFormat(Type? formatType) =>
+            formatType == typeof(ICustomFormatter) ? this : (object?)null;
     }
 }

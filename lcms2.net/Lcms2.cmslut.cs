@@ -42,7 +42,7 @@ public static partial class Lcms2
     public static Stage? cmsStageAllocIdentity(Context? ContextID, uint nChannels) =>
         new(
             ContextID,
-            Signature.Stage.IdentityElem,
+            Signatures.Stage.IdentityElem,
             nChannels,
             nChannels,
             EvaluateIdentity,
@@ -268,7 +268,7 @@ public static partial class Lcms2
     {
         var NewMPE = new Stage(
             ContextID,
-            Signature.Stage.CurveSetElem,
+            Signatures.Stage.CurveSetElem,
             nChannels,
             nChannels,
             EvaluateCurves,
@@ -317,7 +317,7 @@ public static partial class Lcms2
 
         if (mpe is null)
             return null;
-        mpe.Implements = Signature.Stage.IdentityElem;
+        mpe.Implements = Signatures.Stage.IdentityElem;
         return mpe;
     }
 
@@ -426,7 +426,7 @@ public static partial class Lcms2
 
         var NewMPE = new Stage(
             ContextID,
-            Signature.Stage.MatrixElem,
+            Signatures.Stage.MatrixElem,
             Cols,
             Rows,
             EvaluateMatrix,
@@ -631,7 +631,7 @@ public static partial class Lcms2
 
         var NewMPE = new Stage(
             ContextID,
-            Signature.Stage.CLutElem,
+            Signatures.Stage.CLutElem,
             inputChan,
             outputChan,
             EvaluateCLUTfloatIn16,
@@ -740,7 +740,7 @@ public static partial class Lcms2
 
         var NewMPE = new Stage(
             ContextID,
-            Signature.Stage.CLutElem,
+            Signatures.Stage.CLutElem,
             inputChan,
             outputChan,
             EvaluateCLUTfloat,
@@ -827,7 +827,7 @@ public static partial class Lcms2
             return null;
         }
 
-        mpe.Implements = Signature.Stage.IdentityElem;
+        mpe.Implements = Signatures.Stage.IdentityElem;
         return mpe;
     }
 
@@ -1045,7 +1045,7 @@ public static partial class Lcms2
     }
 
     internal static Stage? _cmsStageAllocLab2XYZ(Context? ContextID) =>
-        new(ContextID, Signature.Stage.Lab2XYZElem, 3, 3, EvaluateLab2XYZ, null, null, null);
+        new(ContextID, Signatures.Stage.Lab2XYZElem, 3, 3, EvaluateLab2XYZ, null, null, null);
 
     internal static Stage? _cmsStageAllocLabV2ToV4curves(Context? ContextID)
     {
@@ -1080,7 +1080,7 @@ public static partial class Lcms2
 
         if (mpe is null)
             return null;
-        mpe.Implements = Signature.Stage.LabV2toV4Elem;
+        mpe.Implements = Signatures.Stage.LabV2toV4Elem;
         return mpe;
     }
 
@@ -1093,7 +1093,7 @@ public static partial class Lcms2
 
         if (mpe is null)
             return mpe;
-        mpe.Implements = Signature.Stage.LabV2toV4Elem;
+        mpe.Implements = Signatures.Stage.LabV2toV4Elem;
         return mpe;
     }
 
@@ -1106,7 +1106,7 @@ public static partial class Lcms2
 
         if (mpe is null)
             return mpe;
-        mpe.Implements = Signature.Stage.LabV4toV2Elem;
+        mpe.Implements = Signatures.Stage.LabV4toV2Elem;
         return mpe;
     }
 
@@ -1119,7 +1119,7 @@ public static partial class Lcms2
 
         if (mpe is null)
             return mpe;
-        mpe.Implements = Signature.Stage.Lab2FloatPCS;
+        mpe.Implements = Signatures.Stage.Lab2FloatPCS;
         return mpe;
     }
 
@@ -1132,7 +1132,7 @@ public static partial class Lcms2
 
         if (mpe is null)
             return mpe;
-        mpe.Implements = Signature.Stage.XYZ2FloatPCS;
+        mpe.Implements = Signatures.Stage.XYZ2FloatPCS;
         return mpe;
     }
 
@@ -1144,7 +1144,7 @@ public static partial class Lcms2
         var mpe = cmsStageAllocMatrix(ContextID, 3, 3, a1, o1);
         if (mpe is null)
             return mpe;
-        mpe.Implements = Signature.Stage.FloatPCS2Lab;
+        mpe.Implements = Signatures.Stage.FloatPCS2Lab;
         return mpe;
     }
 
@@ -1156,7 +1156,7 @@ public static partial class Lcms2
         var mpe = cmsStageAllocMatrix(ContextID, 3, 3, a1, null);
         if (mpe is null)
             return mpe;
-        mpe.Implements = Signature.Stage.FloatPCS2XYZ;
+        mpe.Implements = Signatures.Stage.FloatPCS2XYZ;
         return mpe;
     }
 
@@ -1170,7 +1170,7 @@ public static partial class Lcms2
     }
 
     internal static Stage? _cmsStageClipNegatives(Context? ContextID, uint nChannels) =>
-        new(ContextID, Signature.Stage.ClipNegativesElem, nChannels, nChannels, Clipper, null, null, null);
+        new(ContextID, Signatures.Stage.ClipNegativesElem, nChannels, nChannels, Clipper, null, null, null);
 
     private static void EvaluateXYZ2Lab(ReadOnlySpan<float> In, Span<float> Out, Stage _)
     {
@@ -1192,7 +1192,7 @@ public static partial class Lcms2
     }
 
     internal static Stage? _cmsStageAllocXYZ2Lab(Context? ContextID) =>
-        new(ContextID, Signature.Stage.XYZ2LabElem, 3, 3, EvaluateXYZ2Lab, null, null, null);
+        new(ContextID, Signatures.Stage.XYZ2LabElem, 3, 3, EvaluateXYZ2Lab, null, null, null);
 
     internal static Stage? _cmsStageAllocLabPrelin(Context? ContextID)
     {

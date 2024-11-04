@@ -171,9 +171,9 @@ public static partial class Lcms2
     {
         // Make sure the device class is adequate
         var devClass = cmsGetDeviceClass(Profile);
-        if (devClass == Signature.ProfileClass.Link ||
-            devClass == Signature.ProfileClass.Abstract ||
-            devClass == Signature.ProfileClass.NamedColor)
+        if (devClass == Signatures.ProfileClass.Link ||
+            devClass == Signatures.ProfileClass.Abstract ||
+            devClass == Signatures.ProfileClass.NamedColor)
             return new(0, 0, 0);
 
         // Make sure intent is adequate
@@ -195,8 +195,8 @@ public static partial class Lcms2
 
         // If output profile, discount ink-limiting and that's all
         if (Intent is INTENT_RELATIVE_COLORIMETRIC &&
-            cmsGetDeviceClass(Profile) == Signature.ProfileClass.Output &&
-            cmsGetColorSpace(Profile) == Signature.Colorspace.Cmyk)
+            cmsGetDeviceClass(Profile) == Signatures.ProfileClass.Output &&
+            cmsGetColorSpace(Profile) == Signatures.Colorspace.Cmyk)
             return BlackPointUsingPerceptualBlack(Profile);
 
         // Nope, compute BP using current intent.
@@ -278,9 +278,9 @@ public static partial class Lcms2
 
         // Make sure the device class is adequate
         var devClass = cmsGetDeviceClass(Profile);
-        if (devClass == Signature.ProfileClass.Link ||
-            devClass == Signature.ProfileClass.Abstract ||
-            devClass == Signature.ProfileClass.NamedColor)
+        if (devClass == Signatures.ProfileClass.Link ||
+            devClass == Signatures.ProfileClass.Abstract ||
+            devClass == Signatures.ProfileClass.NamedColor)
             goto Fail;
 
         // Make sure intent is adequate
@@ -303,9 +303,9 @@ public static partial class Lcms2
         // Check if the profile is lut based and gray, rgb, or cmyk (7.2 in Adobe's document)
         var ColorSpace = cmsGetColorSpace(Profile);
         if (!cmsIsCLUT(Profile, Intent, LCMS_USED_AS_OUTPUT) ||
-            (ColorSpace != Signature.Colorspace.Gray &&
-             ColorSpace != Signature.Colorspace.Rgb &&
-             ColorSpace != Signature.Colorspace.Cmyk))
+            (ColorSpace != Signatures.Colorspace.Gray &&
+             ColorSpace != Signatures.Colorspace.Rgb &&
+             ColorSpace != Signatures.Colorspace.Cmyk))
         {
             // In this case, handle as input case
             return cmsDetectBlackPoint(Profile, Intent);

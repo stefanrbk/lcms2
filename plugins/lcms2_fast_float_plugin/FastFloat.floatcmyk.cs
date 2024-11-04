@@ -19,13 +19,14 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
+using lcms2.state;
+using lcms2.types;
+
 namespace lcms2.FastFloatPlugin;
+
 public static partial class FastFloat
 {
     private static bool XFormSamplerFloatCMYK(ReadOnlySpan<float> In, Span<float> Out, object? Cargo)
@@ -77,8 +78,20 @@ public static partial class FastFloat
             var InputFormat = cmsGetTransformInputFormat(CMMcargo);
             var OutputFormat = cmsGetTransformOutputFormat(CMMcargo);
 
-            _cmsComputeComponentIncrements(InputFormat, Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-            _cmsComputeComponentIncrements(OutputFormat, Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+            _cmsComputeComponentIncrements(
+                InputFormat,
+                Stride.BytesPerPlaneIn,
+                out _,
+                out var nalpha,
+                SourceStartingOrder,
+                SourceIncrements);
+            _cmsComputeComponentIncrements(
+                OutputFormat,
+                Stride.BytesPerPlaneOut,
+                out _,
+                out nalpha,
+                DestStartingOrder,
+                DestIncrements);
 
             if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
                 nalpha = 0;
@@ -126,10 +139,14 @@ public static partial class FastFloat
                         var py = y * p.Domain[2];
                         var pz = k * p.Domain[3];
 
-                        var k0 = _cmsQuickFloor(pk); var rk = pk - k0;
-                        var x0 = _cmsQuickFloor(px); var rx = px - x0;
-                        var y0 = _cmsQuickFloor(py); var ry = py - y0;
-                        var z0 = _cmsQuickFloor(pz); var rz = pz - z0;
+                        var k0 = _cmsQuickFloor(pk);
+                        var rk = pk - k0;
+                        var x0 = _cmsQuickFloor(px);
+                        var rx = px - x0;
+                        var y0 = _cmsQuickFloor(py);
+                        var ry = py - y0;
+                        var z0 = _cmsQuickFloor(pz);
+                        var rz = pz - z0;
 
                         var K0 = (int)p.opta[3] * k0;
                         var K1 = K0 + ((c >= 1.0) ? 0 : (int)p.opta[3]);
@@ -152,57 +169,44 @@ public static partial class FastFloat
 
                             if (rx >= ry && ry >= rz)
                             {
-
                                 c1 = DENS(X1, Y0, Z0) - c0;
                                 c2 = DENS(X1, Y1, Z0) - DENS(X1, Y0, Z0);
                                 c3 = DENS(X1, Y1, Z1) - DENS(X1, Y1, Z0);
-
                             }
                             else if (rx >= rz && rz >= ry)
                             {
-
                                 c1 = DENS(X1, Y0, Z0) - c0;
                                 c2 = DENS(X1, Y1, Z1) - DENS(X1, Y0, Z1);
                                 c3 = DENS(X1, Y0, Z1) - DENS(X1, Y0, Z0);
-
                             }
                             else if (rz >= rx && rx >= ry)
                             {
-
                                 c1 = DENS(X1, Y0, Z1) - DENS(X0, Y0, Z1);
                                 c2 = DENS(X1, Y1, Z1) - DENS(X1, Y0, Z1);
                                 c3 = DENS(X0, Y0, Z1) - c0;
-
                             }
                             else if (ry >= rx && rx >= rz)
                             {
-
                                 c1 = DENS(X1, Y1, Z0) - DENS(X0, Y1, Z0);
                                 c2 = DENS(X0, Y1, Z0) - c0;
                                 c3 = DENS(X1, Y1, Z1) - DENS(X1, Y1, Z0);
-
                             }
                             else if (ry >= rz && rz >= rx)
                             {
-
                                 c1 = DENS(X1, Y1, Z1) - DENS(X0, Y1, Z1);
                                 c2 = DENS(X0, Y1, Z0) - c0;
                                 c3 = DENS(X0, Y1, Z1) - DENS(X0, Y1, Z0);
-
                             }
                             else if (rz >= ry && ry >= rx)
                             {
-
                                 c1 = DENS(X1, Y1, Z1) - DENS(X0, Y1, Z1);
                                 c2 = DENS(X0, Y1, Z1) - DENS(X0, Y0, Z1);
                                 c3 = DENS(X0, Y0, Z1) - c0;
-
                             }
                             else
                             {
                                 c1 = c2 = c3 = 0;
                             }
-
 
                             Tmp1[OutChan] = c0 + (c1 * rx) + (c2 * ry) + (c3 * rz);
                         }
@@ -216,51 +220,39 @@ public static partial class FastFloat
 
                             if (rx >= ry && ry >= rz)
                             {
-
                                 c1 = DENS(X1, Y0, Z0) - c0;
                                 c2 = DENS(X1, Y1, Z0) - DENS(X1, Y0, Z0);
                                 c3 = DENS(X1, Y1, Z1) - DENS(X1, Y1, Z0);
-
                             }
                             else if (rx >= rz && rz >= ry)
                             {
-
                                 c1 = DENS(X1, Y0, Z0) - c0;
                                 c2 = DENS(X1, Y1, Z1) - DENS(X1, Y0, Z1);
                                 c3 = DENS(X1, Y0, Z1) - DENS(X1, Y0, Z0);
-
                             }
                             else if (rz >= rx && rx >= ry)
                             {
-
                                 c1 = DENS(X1, Y0, Z1) - DENS(X0, Y0, Z1);
                                 c2 = DENS(X1, Y1, Z1) - DENS(X1, Y0, Z1);
                                 c3 = DENS(X0, Y0, Z1) - c0;
-
                             }
                             else if (ry >= rx && rx >= rz)
                             {
-
                                 c1 = DENS(X1, Y1, Z0) - DENS(X0, Y1, Z0);
                                 c2 = DENS(X0, Y1, Z0) - c0;
                                 c3 = DENS(X1, Y1, Z1) - DENS(X1, Y1, Z0);
-
                             }
                             else if (ry >= rz && rz >= rx)
                             {
-
                                 c1 = DENS(X1, Y1, Z1) - DENS(X0, Y1, Z1);
                                 c2 = DENS(X0, Y1, Z0) - c0;
                                 c3 = DENS(X0, Y1, Z1) - DENS(X0, Y1, Z0);
-
                             }
                             else if (rz >= ry && ry >= rx)
                             {
-
                                 c1 = DENS(X1, Y1, Z1) - DENS(X0, Y1, Z1);
                                 c2 = DENS(X0, Y1, Z1) - DENS(X0, Y0, Z1);
                                 c3 = DENS(X0, Y0, Z1) - c0;
-
                             }
                             else
                             {
@@ -331,7 +323,7 @@ public static partial class FastFloat
         var OriginalLut = Lut;
 
         var ContextID = cmsGetPipelineContextID(OriginalLut);
-        var nGridPoints = _cmsReasonableGridpointsByColorspace(Signature.Colorspace.Rgb, dwFlags);
+        var nGridPoints = _cmsReasonableGridpointsByColorspace(Signatures.Colorspace.Rgb, dwFlags);
 
         // Create the result LUT
         OptimizedLUT = cmsPipelineAlloc(ContextID, 4, cmsPipelineOutputChannels(OriginalLut));
@@ -339,7 +331,12 @@ public static partial class FastFloat
             goto Error;
 
         // Allocate the CLUT for result
-        var OptimizedCLUTmpe = cmsStageAllocCLutFloat(ContextID, nGridPoints, 4, cmsPipelineOutputChannels(OriginalLut), null);
+        var OptimizedCLUTmpe = cmsStageAllocCLutFloat(
+            ContextID,
+            nGridPoints,
+            4,
+            cmsPipelineOutputChannels(OriginalLut),
+            null);
 
         // Add the CLUT to the destination LUT
         cmsPipelineInsertStage(OptimizedLUT, StageLoc.AtBegin, OptimizedCLUTmpe);
@@ -386,6 +383,7 @@ file class FloatCMYKData(Context? context, InterpParams<float> p) : IDisposable
         if (!disposedValue)
         {
             if (disposing) { }
+
             disposedValue = true;
         }
     }
@@ -395,6 +393,7 @@ file class FloatCMYKData(Context? context, InterpParams<float> p) : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
     public static FloatCMYKData Alloc(Context? ContextID, InterpParams<float> p) =>
         new(ContextID, p);
 }

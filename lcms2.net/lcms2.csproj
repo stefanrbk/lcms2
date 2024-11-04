@@ -33,6 +33,7 @@
 			<AutoGen>True</AutoGen>
 			<DependentUpon>Strings.resx</DependentUpon>
 		</Compile>
+		<Compile Remove="types\Signature.Formatter.cs"/>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -44,6 +45,11 @@
 			<Generator>ResXFileCodeGenerator</Generator>
 			<LastGenOutput>Strings.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\lcms2Base\lcms2Base.csproj"/>
+		<ProjectReference Include="..\lcms2PDK\lcms2PDK.csproj"/>
 	</ItemGroup>
 
 	<!--<ItemGroup>

@@ -151,12 +151,12 @@ public static partial class Lcms2
                                                    uint dwFlags)
     {
         // Make sure CMYK -> CMYK
-        if (cmsGetColorSpace(Profiles[0]) != Signature.Colorspace.Cmyk ||
-            cmsGetColorSpace(Profiles[nProfiles - 1]) != Signature.Colorspace.Cmyk)
+        if (cmsGetColorSpace(Profiles[0]) != Signatures.Colorspace.Cmyk ||
+            cmsGetColorSpace(Profiles[nProfiles - 1]) != Signatures.Colorspace.Cmyk)
             return null;
 
         // Make sure last is an output profile
-        if (cmsGetDeviceClass(Profiles[nProfiles - 1]) != Signature.ProfileClass.Output)
+        if (cmsGetDeviceClass(Profiles[nProfiles - 1]) != Signatures.ProfileClass.Output)
             return null;
 
         // Create individual curves. BPC works also as each K to L* is
@@ -450,7 +450,7 @@ public static partial class Lcms2
         var ContextID = cmsGetProfileContextID(Profile);
 
         // TAC only works on output profiles
-        if (cmsGetDeviceClass(Profile) != Signature.ProfileClass.Output)
+        if (cmsGetDeviceClass(Profile) != Signatures.ProfileClass.Output)
             return 0;
 
         // Create a fake formatter for result
@@ -581,14 +581,14 @@ public static partial class Lcms2
         //var Y_normalized = stackalloc float[256];
         //var pool = Context.GetPool<float>(Profile.ContextID);
 
-        if (cmsGetColorSpace(Profile) != Signature.Colorspace.Rgb)
+        if (cmsGetColorSpace(Profile) != Signatures.Colorspace.Rgb)
             return -1;
 
         var cl = cmsGetDeviceClass(Profile);
-        if (cl != Signature.ProfileClass.Input &&
-            cl != Signature.ProfileClass.Display &&
-            cl != Signature.ProfileClass.Output &&
-            cl != Signature.ProfileClass.ColorSpace)
+        if (cl != Signatures.ProfileClass.Input &&
+            cl != Signatures.ProfileClass.Display &&
+            cl != Signatures.ProfileClass.Output &&
+            cl != Signatures.ProfileClass.ColorSpace)
             return -1;
 
         var ContextID = cmsGetProfileContextID(Profile);

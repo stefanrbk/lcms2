@@ -26,22 +26,16 @@
 
 namespace lcms2.types;
 
-public partial struct Signature
+public static partial class Signatures
 {
-    public static class Plugin
+    public static class ProfileClass
     {
-        public static readonly Signature Formatters = new("frmH"u8);
-        public static readonly Signature Interpolation = new("inpH"u8);
-        public static readonly Signature MagicNumber = new("acpp"u8);
-        public static readonly Signature MemHandler = new("memH"u8);
-        public static readonly Signature MultiProcessElement = new("mpeH"u8);
-        public static readonly Signature Mutex = new("mtxH"u8);
-        public static readonly Signature Optimization = new("optH"u8);
-        public static readonly Signature ParametricCurve = new("parH"u8);
-        public static readonly Signature RenderingIntent = new("intH"u8);
-        public static readonly Signature Tag = new("tagH"u8);
-        public static readonly Signature TagType = new("typH"u8);
-        public static readonly Signature Transform = new("xfmH"u8);
-        public static readonly Signature Parallelization = new("prlH"u8);
+        public static readonly Signature Input = new("scnr"u8);
+        public static readonly Signature Display = new("mntr"u8);
+        public static readonly Signature Output = new("ptrt"u8);
+        public static readonly Signature Link = new("link"u8);
+        public static readonly Signature Abstract = new("abst"u8);
+        public static readonly Signature ColorSpace = new("spac"u8);
+        public static readonly Signature NamedColor = new("nmcl"u8);
     }
 }

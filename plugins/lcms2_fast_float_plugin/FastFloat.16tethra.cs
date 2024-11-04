@@ -19,13 +19,14 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
+using lcms2.state;
+using lcms2.types;
+
 namespace lcms2.FastFloatPlugin;
+
 public static partial class FastFloat
 {
     private unsafe static void PerformanceEval16(Transform CMMcargo,
@@ -53,8 +54,20 @@ public static partial class FastFloat
             var inFormat = cmsGetTransformInputFormat(CMMcargo);
             var outFormat = cmsGetTransformOutputFormat(CMMcargo);
 
-            _cmsComputeComponentIncrements(inFormat, Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-            _cmsComputeComponentIncrements(outFormat, Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+            _cmsComputeComponentIncrements(
+                inFormat,
+                Stride.BytesPerPlaneIn,
+                out _,
+                out var nalpha,
+                SourceStartingOrder,
+                SourceIncrements);
+            _cmsComputeComponentIncrements(
+                outFormat,
+                Stride.BytesPerPlaneOut,
+                out _,
+                out nalpha,
+                DestStartingOrder,
+                DestIncrements);
 
             var in16 = T_BYTES(inFormat) is 2;
             var out16 = T_BYTES(outFormat) is 2;
@@ -332,18 +345,26 @@ public static partial class FastFloat
 
         // If this is a matrix-shaper, the default already does a good job
 
-        if (cmsPipelineCheckAndRetrieveStages(Lut,
-            Signature.Stage.CurveSetElem, out _,
-            Signature.Stage.MatrixElem, out _,
-            Signature.Stage.MatrixElem, out _,
-            Signature.Stage.CurveSetElem, out _))
+        if (cmsPipelineCheckAndRetrieveStages(
+                Lut,
+                Signatures.Stage.CurveSetElem,
+                out _,
+                Signatures.Stage.MatrixElem,
+                out _,
+                Signatures.Stage.MatrixElem,
+                out _,
+                Signatures.Stage.CurveSetElem,
+                out _))
         {
             return false;
         }
 
-        if (cmsPipelineCheckAndRetrieveStages(Lut,
-            Signature.Stage.CurveSetElem, out _,
-            Signature.Stage.CurveSetElem, out _))
+        if (cmsPipelineCheckAndRetrieveStages(
+                Lut,
+                Signatures.Stage.CurveSetElem,
+                out _,
+                Signatures.Stage.CurveSetElem,
+                out _))
         {
             return false;
         }
@@ -353,7 +374,13 @@ public static partial class FastFloat
         var ContextID = cmsGetPipelineContextID(Lut);
         var newFlags = dwFlags | cmsFLAGS_FORCE_CLUT;
 
-        if (!_cmsOptimizePipeline(ContextID, ref Lut, INTENT_PERCEPTUAL /* Don't care */, ref InputFormat, ref OutputFormat, ref newFlags))
+        if (!_cmsOptimizePipeline(
+                ContextID,
+                ref Lut,
+                INTENT_PERCEPTUAL /* Don't care */,
+                ref InputFormat,
+                ref OutputFormat,
+                ref newFlags))
             return false;
 
         var OptimizedCLUTmpe = cmsPipelineGetPtrToFirstStage(Lut);
@@ -362,7 +389,8 @@ public static partial class FastFloat
         var data = (StageCLutData<ushort>)cmsStageData(OptimizedCLUTmpe!)!;
 
         var p16 = Performance16Data.Alloc(ContextID, data.Params);
-        if (p16 is null) return false;
+        if (p16 is null)
+            return false;
 
         TransformFn = PerformanceEval16;
         UserData = p16;
@@ -387,6 +415,7 @@ file class Performance16Data(Context? context, InterpParams<ushort> p) : IDispos
         if (!disposedValue)
         {
             if (disposing) { }
+
             disposedValue = true;
         }
     }
@@ -396,6 +425,7 @@ file class Performance16Data(Context? context, InterpParams<ushort> p) : IDispos
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
     public static Performance16Data Alloc(Context? ContextID, InterpParams<ushort> p) =>
         new(ContextID, p);
 }

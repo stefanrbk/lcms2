@@ -26,7 +26,7 @@
 
 namespace lcms2.types;
 
-public partial struct Signature
+public static partial class Signatures
 {
     public static class Tag
     {
@@ -74,8 +74,7 @@ public partial struct Signature
         public static readonly Signature MediaWhitePoint = new("wtpt"u8);
         public static readonly Signature Meta = new("meta"u8);
 
-        [Obsolete("Use NamedColor2")]
-        public static readonly Signature NamedColor = new("ncol"u8);
+        [Obsolete("Use NamedColor2")] public static readonly Signature NamedColor = new("ncol"u8);
 
         public static readonly Signature NamedColor2 = new("ncl2"u8);
         public static readonly Signature OutputResponse = new("resp"u8);

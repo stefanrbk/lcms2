@@ -156,14 +156,14 @@ internal static partial class Testbed
 
         cmsSetProfileVersion(h, 4.3);
 
-        cmsWriteTag(h, Signature.Tag.ProfileDescription, mlu2);
+        cmsWriteTag(h, Signatures.Tag.ProfileDescription, mlu2);
         cmsCloseProfile(h);
         h = null;
         cmsMLUfree(mlu2);
 
         h = cmsOpenProfileFromFileTHR(DbgThread(), "mlucheck.icc", "r");
 
-        if (cmsReadTag(h, Signature.Tag.ProfileDescription) is not Mlu mlu3)
+        if (cmsReadTag(h, Signatures.Tag.ProfileDescription) is not Mlu mlu3)
         {
             logger.LogWarning("Profile didn't get the MLU");
             rc = false;
@@ -298,14 +298,14 @@ internal static partial class Testbed
         h = cmsOpenProfileFromFileTHR(DbgThread(), "namedcol.icc", "w");
         if (h == null)
             return false;
-        if (!cmsWriteTag(h, Signature.Tag.NamedColor2, nc))
+        if (!cmsWriteTag(h, Signatures.Tag.NamedColor2, nc))
             return false;
         cmsCloseProfile(h);
         cmsFreeNamedColorList(nc);
         nc = null;
 
         h = cmsOpenProfileFromFileTHR(DbgThread(), "namedcol.icc", "r");
-        nc2 = cmsReadTag(h, Signature.Tag.NamedColor2) is NamedColorList box ? box : null;
+        nc2 = cmsReadTag(h, Signatures.Tag.NamedColor2) is NamedColorList box ? box : null;
 
         if (cmsNamedColorCount(nc2) != 4096)
         {
@@ -392,9 +392,9 @@ internal static partial class Testbed
 
         // Set profile class
         cmsSetProfileVersion(hProfile, 4.3);
-        cmsSetDeviceClass(hProfile, Signature.ProfileClass.NamedColor);
-        cmsSetColorSpace(hProfile, Signature.Colorspace.Cmyk);
-        cmsSetPCS(hProfile, Signature.Colorspace.Lab);
+        cmsSetDeviceClass(hProfile, Signatures.ProfileClass.NamedColor);
+        cmsSetColorSpace(hProfile, Signatures.Colorspace.Cmyk);
+        cmsSetPCS(hProfile, Signatures.Colorspace.Lab);
         cmsSetHeaderRenderingIntent(hProfile, INTENT_PERCEPTUAL);
 
         // Add description and copyright only in english/US
@@ -404,11 +404,11 @@ internal static partial class Testbed
         cmsMLUsetWide(DescriptionMLU, "en"u8, "US"u8, "Profile description");
         cmsMLUsetWide(CopyrightMLU, "en"u8, "US"u8, "Profile copyright");
 
-        cmsWriteTag(hProfile, Signature.Tag.ProfileDescription, DescriptionMLU);
-        cmsWriteTag(hProfile, Signature.Tag.Copyright, CopyrightMLU);
+        cmsWriteTag(hProfile, Signatures.Tag.ProfileDescription, DescriptionMLU);
+        cmsWriteTag(hProfile, Signatures.Tag.Copyright, CopyrightMLU);
 
         // Set the media white point
-        cmsWriteTag(hProfile, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50));
+        cmsWriteTag(hProfile, Signatures.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50));
 
         // Populate one value, Colorant = CMYK values in 16 bits, PCS[] = Encoded Lab values (in V2 format!!)
         Lab.L = 50;
@@ -433,7 +433,7 @@ internal static partial class Testbed
         cmsAppendNamedColor(colors, "Kale 18-0107"u8, PCS, Colorant);
 
         // Write the colors database
-        cmsWriteTag(hProfile, Signature.Tag.NamedColor2, colors);
+        cmsWriteTag(hProfile, Signatures.Tag.NamedColor2, colors);
 
         // That will create the file
         cmsCloseProfile(hProfile);
