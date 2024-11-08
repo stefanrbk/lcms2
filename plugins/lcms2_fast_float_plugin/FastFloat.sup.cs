@@ -19,8 +19,7 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
+using lcms2.pdk;
 
 namespace lcms2.FastFloatPlugin;
 
@@ -183,11 +182,11 @@ public static partial class FastFloat
     private static readonly List<PluginBase> PluginList =
     [
         new PluginTransform(
-            Signatures.Plugin.MagicNumber,
+            PluginSignatures.MagicNumber,
             REQUIRED_LCMS_VERSION,
-            Signatures.Plugin.Transform,
+            PluginSignatures.Transform,
             new() { xform = Floating_Point_Transforms_Dispatcher }),
-        new PluginFormatters(Signatures.Plugin.MagicNumber, REQUIRED_LCMS_VERSION, Signatures.Plugin.Formatters)
+        new PluginFormatters(PluginSignatures.MagicNumber, REQUIRED_LCMS_VERSION, PluginSignatures.Formatters)
         {
             FormattersFactoryIn = Formatter_15Bit_Factory_In, FormattersFactoryOut = Formatter_15Bit_Factory_Out
         }

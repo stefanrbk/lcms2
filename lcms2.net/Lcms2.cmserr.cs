@@ -26,15 +26,10 @@
 
 using System.Diagnostics;
 
-using lcms2.state;
-
-using Microsoft.Extensions.Logging;
-
 namespace lcms2;
 
 public static partial class Lcms2
 {
-    internal const int MaxErrorMessageLen = 1024;
     internal const uint MaxMemoryForAlloc = 1024u * 1024u * 512u;
 
     public static int cmsstrcasecmp(ReadOnlySpan<char> s1, ReadOnlySpan<char> s2)
@@ -311,18 +306,6 @@ public static partial class Lcms2
         ctx.ErrorLogger = (LogErrorChunkType)((ICloneable)from).Clone();
     }
 
-    internal static ILoggerFactory DefaultLogErrorHandlerFunction()
-    {
-        return LoggerFactory.Create(
-            builder =>
-                builder
-                    .AddFilter("Microsoft", LogLevel.Warning)
-                    .AddFilter("System", LogLevel.Warning)
-                    .AddFilter("lcms2", LogLevel.Debug)
-                    .SetMinimumLevel(LogLevel.Error)
-                    .AddConsole());
-    }
-
     [DebuggerStepThrough]
     private static object defMtxCreate(Context? id) =>
         new Mutex(false);
@@ -367,51 +350,6 @@ public static partial class Lcms2
         ctx.MutexPlugin = (MutexPluginChunkType)((ICloneable)from).Clone();
     }
 
-    internal static bool _cmsRegisterMutexPlugin(Context? context, PluginBase? data)
-    {
-        var ctx = Context.Get(context).MutexPlugin;
-
-        if (data is PluginMutex Plugin)
-        {
-            ctx.MutexFactory = Plugin.Factory;
-            ctx.CreateFn = null;
-            ctx.DestroyFn = null;
-            ctx.LockFn = null;
-            ctx.UnlockFn = null;
-
-            return true;
-        }
-        else
-        {
-            var LegacyPlugin = (PluginLegacyMutex?)data;
-
-            if (data is null)
-            {
-                // Mo lock routines
-                ctx.CreateFn = null;
-                ctx.DestroyFn = null;
-                ctx.LockFn = null;
-                ctx.UnlockFn = null;
-                ctx.MutexFactory = null;
-
-                return true;
-            }
-
-            // Factory callback is required
-            if (LegacyPlugin!.CreateMutexPtr is null || LegacyPlugin.DestroyMutexPtr is null ||
-                LegacyPlugin.LockMutexPtr is null || LegacyPlugin.UnlockMutexPtr is null)
-                return false;
-
-            ctx.CreateFn = LegacyPlugin.CreateMutexPtr;
-            ctx.DestroyFn = LegacyPlugin.DestroyMutexPtr;
-            ctx.LockFn = LegacyPlugin.LockMutexPtr;
-            ctx.UnlockFn = LegacyPlugin.UnlockMutexPtr;
-            ctx.MutexFactory = null;
-
-            return true;
-        }
-    }
-
     private static readonly ParallelizationPluginChunkType globalParallelizationPluginChunk = new(0, 0, null);
 
     private static readonly ParallelizationPluginChunkType ParallelizationChunk = new(0, 0, null);
@@ -425,31 +363,5 @@ public static partial class Lcms2
                        : ParallelizationChunk;
 
         ctx.ParallelizationPlugin = (ParallelizationPluginChunkType)((ICloneable)from).Clone();
-    }
-
-    internal static bool _cmsRegisterParallelizationPlugin(Context? context, PluginBase? data)
-    {
-        var Plugin = (PluginParalellization?)data;
-        var ctx = Context.Get(context).ParallelizationPlugin;
-
-        if (data is null)
-        {
-            // Mo parallelization routines
-            ctx.MaxWorkers = 0;
-            ctx.WorkerFlags = 0;
-            ctx.SchedulerFn = null;
-
-            return true;
-        }
-
-        // Callback is required
-        if (Plugin!.SchedulerFn is null)
-            return false;
-
-        ctx.MaxWorkers = Plugin.MaxWorkers;
-        ctx.WorkerFlags = (int)Plugin.WorkerFlags;
-        ctx.SchedulerFn = Plugin.SchedulerFn;
-
-        return true;
     }
 }

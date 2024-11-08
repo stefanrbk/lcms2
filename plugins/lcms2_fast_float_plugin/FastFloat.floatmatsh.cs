@@ -21,7 +21,6 @@
 
 using System.Runtime.InteropServices;
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2.FastFloatPlugin;
@@ -40,25 +39,25 @@ public unsafe static partial class FastFloat
 
         var p = (VXMatShaperFloatData*)pPtr;
 
-        var SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        var SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        var DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        var DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        var SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        var SourceIncrements = stackalloc uint[Context.MaxChannels];
+        var DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        var DestIncrements = stackalloc uint[Context.MaxChannels];
 
         _cmsComputeComponentIncrements(
             cmsGetTransformInputFormat(CMMcargo),
             Stride.BytesPerPlaneIn,
             out _,
             out var nalpha,
-            new(SourceStartingOrder, cmsMAXCHANNELS),
-            new(SourceIncrements, cmsMAXCHANNELS));
+            new(SourceStartingOrder, Context.MaxChannels),
+            new(SourceIncrements, Context.MaxChannels));
         _cmsComputeComponentIncrements(
             cmsGetTransformOutputFormat(CMMcargo),
             Stride.BytesPerPlaneOut,
             out _,
             out nalpha,
-            new(DestStartingOrder, cmsMAXCHANNELS),
-            new(DestIncrements, cmsMAXCHANNELS));
+            new(DestStartingOrder, Context.MaxChannels),
+            new(DestIncrements, Context.MaxChannels));
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;

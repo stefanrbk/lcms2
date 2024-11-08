@@ -25,6 +25,7 @@
 //---------------------------------------------------------------------------------
 
 namespace lcms2;
+
 public static partial class Plugin
 {
     public const int VX = 0;
@@ -33,21 +34,16 @@ public static partial class Plugin
 
     public const uint cmsPluginMagicNumber = 0x61637070;              // 'acpp'
 
-    public const uint cmsPluginMemHandlerSig = 0x6D656D48;            // 'memH'
-    public const uint cmsPluginInterpolationSig = 0x696E7048;         // 'inpH'
-    public const uint cmsPluginParametricCurveSig = 0x70617248;       // 'parH'
-    public const uint cmsPluginFormattersSig = 0x66726D48;            // 'frmH
-    public const uint cmsPluginTagTypeSig = 0x74797048;               // 'typH'
-    public const uint cmsPluginTagSig = 0x74616748;                   // 'tagH'
-    public const uint cmsPluginRenderingIntentSig = 0x696E7448;       // 'intH'
-    public const uint cmsPluginMultiProcessElementSig = 0x6D706548;   // 'mpeH'
-    public const uint cmsPluginOptimizationSig = 0x6F707448;          // 'optH'
-    public const uint cmsPluginTransformSig = 0x7A666D48;             // 'xfmH'
-    public const uint cmsPluginMutexSig = 0x6D747A48;                 // 'mtxH'
-    public const uint cmsPluginParalellizationSig = 0x70726c48;       // 'prlH'
-
-    public const byte MAX_TYPES_IN_LCMS_PLUGIN = 20;
-
-    public const byte MAX_INPUT_DIMENSIONS = 15;
-
+    public const uint cmsPluginMemHandlerSig = 0x6D656D48;          // 'memH'
+    public const uint cmsPluginInterpolationSig = 0x696E7048;       // 'inpH'
+    public const uint cmsPluginParametricCurveSig = 0x70617248;     // 'parH'
+    public const uint cmsPluginFormattersSig = 0x66726D48;          // 'frmH
+    public const uint cmsPluginTagTypeSig = 0x74797048;             // 'typH'
+    public const uint cmsPluginTagSig = 0x74616748;                 // 'tagH'
+    public const uint cmsPluginRenderingIntentSig = 0x696E7448;     // 'intH'
+    public const uint cmsPluginMultiProcessElementSig = 0x6D706548; // 'mpeH'
+    public const uint cmsPluginOptimizationSig = 0x6F707448;        // 'optH'
+    public const uint cmsPluginTransformSig = 0x7A666D48;           // 'xfmH'
+    public const uint cmsPluginMutexSig = 0x6D747A48;               // 'mtxH'
+    public const uint cmsPluginParalellizationSig = 0x70726c48;     // 'prlH'
 }

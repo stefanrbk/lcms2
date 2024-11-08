@@ -27,8 +27,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using lcms2.io;
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2;
@@ -455,35 +453,6 @@ public static partial class Lcms2
 
     internal static readonly TagPluginChunkType globalTagPluginChunk = new();
 
-    private static bool RegisterTypesPlugin(Context? id, PluginBase? Data, Chunks pos)
-    {
-        var ctx = pos is Chunks.MPEPlugin
-                      ? Context.Get(id).MPEPlugin
-                      : Context.Get(id).TagTypePlugin;
-
-        // Calling the function with NULL as plug-in would unregister the plug in
-        if (Data is null)
-        {
-            // There is no need to set free the memory, as pool is destroyed as a whole.
-            ctx.List.Clear();
-            return true;
-        }
-
-        if (Data is not PluginTagType Plugin)
-            return false;
-
-        // Registering happens in plug-in memory pool.
-        //var pt = _cmsPluginMalloc<TagTypeLinkedList>(id);
-        //if (pt is null) return false;
-
-        //pt->Handler = Plugin!.Handler;
-        //pt->Next = ctx.TagTypes;
-
-        ctx.List.Add(Plugin.Handler);
-
-        return true;
-    }
-
     private static TagTypeHandler? GetHandler(Signature sig,
                                               TagTypeLinkedList? PluginLinkedList,
                                               TagTypeLinkedList DefaultLinkedList)
@@ -893,11 +862,11 @@ public static partial class Lcms2
 
         if (!io.ReadUint(out var Count))
             return null;
-        if (Count > cmsMAXCHANNELS)
+        if (Count > Context.MaxChannels)
             return null;
 
         //var ColorantOrder = GetArray<byte>(self.ContextID, cmsMAXCHANNELS);
-        var ColorantOrder = new byte[cmsMAXCHANNELS];
+        var ColorantOrder = new byte[Context.MaxChannels];
         //if (ColorantOrder is null) return null;
 
         // We use FF as end marker
@@ -921,7 +890,7 @@ public static partial class Lcms2
 
         var Count = 0u;
         // Get the length
-        for (var i = 0; i < cmsMAXCHANNELS; i++)
+        for (var i = 0; i < Context.MaxChannels; i++)
             if (ColorantOrder[i] is not 0xFF)
                 Count++;
 
@@ -937,7 +906,7 @@ public static partial class Lcms2
 
     private static byte[]? Type_ColorantOrderType_Dup(TagTypeHandler self, object? Ptr, uint _) =>
         Ptr is byte[] value
-            ? _cmsDupMem<byte>(self.ContextID, value, cmsMAXCHANNELS)
+            ? _cmsDupMem<byte>(self.ContextID, value, Context.MaxChannels)
             : null;
 
     private static void Type_ColorantOrderType_Free(TagTypeHandler self, object? Ptr)
@@ -1578,7 +1547,7 @@ public static partial class Lcms2
 
         if (Type > 4)
         {
-            LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown parametric curve type '{Type}'");
+            Context.LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown parametric curve type '{Type}'");
             return null;
         }
 
@@ -1606,7 +1575,7 @@ public static partial class Lcms2
 
         if (Curve.nSegments is 1 && typen < 1)
         {
-            LogError(
+            Context.LogError(
                 self.ContextID,
                 ErrorCodes.UnknownExtension,
                 "Multisegment or Inverted parametric curves cannot be written");
@@ -1615,7 +1584,7 @@ public static partial class Lcms2
 
         if (typen > 5)
         {
-            LogError(self.ContextID, ErrorCodes.UnknownExtension, "Unsupported parametric curve");
+            Context.LogError(self.ContextID, ErrorCodes.UnknownExtension, "Unsupported parametric curve");
             return false;
         }
 
@@ -1685,11 +1654,10 @@ public static partial class Lcms2
 
     #region Measurement
 
-    private static Box<IccMeasurementConditions>? Type_Measurement_Read(
-        TagTypeHandler _1,
-        IOHandler io,
-        out uint nItems,
-        uint _2)
+    private static Box<IccMeasurementConditions>? Type_Measurement_Read(TagTypeHandler _1,
+                                                                        IOHandler io,
+                                                                        out uint nItems,
+                                                                        uint _2)
     {
         IccMeasurementConditions mc = new();
 
@@ -1762,7 +1730,7 @@ public static partial class Lcms2
 
         if (RecLen is not 12)
         {
-            LogError(
+            Context.LogError(
                 self.ContextID,
                 ErrorCodes.UnknownExtension,
                 "multiLocalizedUnicodeType of len != 12 is not supported");
@@ -1957,9 +1925,9 @@ public static partial class Lcms2
 
         //var pool = Context.GetPool<ToneCurve>(ContextID);
         //ToneCurve[] Tables = pool.Rent(cmsMAXCHANNELS);
-        var Tables = new ToneCurve[cmsMAXCHANNELS];
+        var Tables = new ToneCurve[Context.MaxChannels];
 
-        if (nChannels is > cmsMAXCHANNELS or <= 0)
+        if (nChannels is > Context.MaxChannels or <= 0)
             goto Error2;
 
         //memset(Tables, 0, _sizeof<nint>() * cmsMAXCHANNELS);
@@ -2031,7 +1999,7 @@ public static partial class Lcms2
                 {
                     if (Tables.TheCurves[i].nEntries is not 256)
                     {
-                        LogError(ContextID, ErrorCodes.Range, "LUT8 needs 256 entries on prelinearization");
+                        Context.LogError(ContextID, ErrorCodes.Range, "LUT8 needs 256 entries on prelinearization");
                         return false;
                     }
                     else
@@ -2097,9 +2065,9 @@ public static partial class Lcms2
             goto Error;
 
         // Do some checking
-        if (InputChannels is 0 or > cmsMAXCHANNELS)
+        if (InputChannels is 0 or > Context.MaxChannels)
             goto Error;
-        if (OutputChannels is 0 or > cmsMAXCHANNELS)
+        if (OutputChannels is 0 or > Context.MaxChannels)
             goto Error;
 
         // Allocates an empty Pipeline
@@ -2200,7 +2168,7 @@ public static partial class Lcms2
         var mpe = NewLut.Elements;
         if (mpe is null)    // Should never be empty. Corrupted?
         {
-            LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, "empty LUT8 is not supported");
+            Context.LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, "empty LUT8 is not supported");
             return false;
         }
 
@@ -2233,7 +2201,7 @@ public static partial class Lcms2
         // That should be all
         if (mpe is not null)
         {
-            LogError(self.ContextID, ErrorCodes.UnknownExtension, "LUT is not suitable to be saved as LUT8");
+            Context.LogError(self.ContextID, ErrorCodes.UnknownExtension, "LUT is not suitable to be saved as LUT8");
             return false;
         }
 
@@ -2246,7 +2214,7 @@ public static partial class Lcms2
             {
                 if (clut.Params.nSamples[i] != clutPoints)
                 {
-                    LogError(
+                    Context.LogError(
                         self.ContextID,
                         ErrorCodes.UnknownExtension,
                         "LUT with different samples per dimension not suitable to be saved as LUT8");
@@ -2312,13 +2280,13 @@ public static partial class Lcms2
         if (nEntries <= 0)
             return true;
 
-        if (nEntries < 2 || nChannels > cmsMAXCHANNELS)
+        if (nEntries < 2 || nChannels > Context.MaxChannels)
             return false;
 
         // Init table to zero
         //memset(Tables, 0, _sizeof<nint>() * cmsMAXCHANNELS);
         //ToneCurve[] Tables = pool.Rent(cmsMAXCHANNELS);
-        var Tables = new ToneCurve[cmsMAXCHANNELS];
+        var Tables = new ToneCurve[Context.MaxChannels];
 
         for (var i = 0; i < nChannels; i++)
         {
@@ -2385,9 +2353,9 @@ public static partial class Lcms2
             goto Error;
 
         // Do some checking
-        if (InputChannels is 0 or > cmsMAXCHANNELS)
+        if (InputChannels is 0 or > Context.MaxChannels)
             goto Error;
-        if (OutputChannels is 0 or > cmsMAXCHANNELS)
+        if (OutputChannels is 0 or > Context.MaxChannels)
             goto Error;
 
         // Allocates an empty LUT
@@ -2505,7 +2473,7 @@ public static partial class Lcms2
         // That should be all
         if (mpe is not null)
         {
-            LogError(self.ContextID, ErrorCodes.UnknownExtension, "LUT is not suitable to be saved as LUT16");
+            Context.LogError(self.ContextID, ErrorCodes.UnknownExtension, "LUT is not suitable to be saved as LUT16");
             return false;
         }
 
@@ -2521,7 +2489,7 @@ public static partial class Lcms2
             {
                 if (clut.Params.nSamples[i] != clutPoints)
                 {
-                    LogError(
+                    Context.LogError(
                         self.ContextID,
                         ErrorCodes.UnknownExtension,
                         "LUT with different samples per dimension not suitable to be saved as LUT16");
@@ -2652,15 +2620,15 @@ public static partial class Lcms2
                                    uint InputChannels,
                                    uint OutputChannels)
     {
-        Span<byte> gridPoints8 = stackalloc byte[cmsMAXCHANNELS];  // Number of grid points in each dimension
-        Span<uint> GridPoints = stackalloc uint[cmsMAXCHANNELS];
+        Span<byte> gridPoints8 = stackalloc byte[Context.MaxChannels];  // Number of grid points in each dimension
+        Span<uint> GridPoints = stackalloc uint[Context.MaxChannels];
 
         if (!io.SeekFunc(io, Offset))
             return null;
-        if (io.ReadFunc(io, gridPoints8, cmsMAXCHANNELS, 1) is not 1)
+        if (io.ReadFunc(io, gridPoints8, Context.MaxChannels, 1) is not 1)
             return null;
 
-        for (var i = 0; i < cmsMAXCHANNELS; i++)
+        for (var i = 0; i < Context.MaxChannels; i++)
         {
             if (gridPoints8[i] is 1)
                 return null; // Imposible value, 0 for no CLUT and then 2 at least
@@ -2711,7 +2679,7 @@ public static partial class Lcms2
 
             default:
                 cmsStageFree(CLUT);
-                LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown precision of '{Precision}'");
+                Context.LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown precision of '{Precision}'");
                 return null;
         }
 
@@ -2731,7 +2699,7 @@ public static partial class Lcms2
         }
         else
         {
-            LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown curve type '{(BaseType)}'");
+            Context.LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown curve type '{(BaseType)}'");
             return null;
         }
     }
@@ -2741,14 +2709,14 @@ public static partial class Lcms2
         //var pool = Context.GetPool<ToneCurve>(self.ContextID);
         Stage? Lin = null;
 
-        if (nCurves > cmsMAXCHANNELS)
+        if (nCurves > Context.MaxChannels)
             return null;
 
         if (!io.SeekFunc(io, Offset))
             return null;
 
         //ToneCurve[] Curves = pool.Rent(cmsMAXCHANNELS);
-        var Curves = new ToneCurve[cmsMAXCHANNELS];
+        var Curves = new ToneCurve[Context.MaxChannels];
         for (var i = 0; i < nCurves; i++)
             Curves[i] = null!;
 
@@ -2799,9 +2767,9 @@ public static partial class Lcms2
             goto Error;      // Offset to first "A" curve
 
         // Do some checking
-        if (inputChan is 0 or > cmsMAXCHANNELS)
+        if (inputChan is 0 or > Context.MaxChannels)
             goto Error;
-        if (outputChan is 0 or > cmsMAXCHANNELS)
+        if (outputChan is 0 or > Context.MaxChannels)
             goto Error;
 
         // Allocates an empty LUT
@@ -2917,7 +2885,7 @@ public static partial class Lcms2
             }
             else
             {
-                LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown curve type '{(Type)}'");
+                Context.LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown curve type '{(Type)}'");
                 return false;
             }
 
@@ -2930,11 +2898,11 @@ public static partial class Lcms2
 
     private static bool WriteCLUT(TagTypeHandler self, IOHandler io, byte Precision, Stage mpe)
     {
-        Span<byte> gridPoints = stackalloc byte[cmsMAXCHANNELS]; // Number of grid points in each dimension.
+        Span<byte> gridPoints = stackalloc byte[Context.MaxChannels]; // Number of grid points in each dimension.
 
         if (mpe.Data is StageCLutData<float>)
         {
-            LogError(
+            Context.LogError(
                 self.ContextID,
                 ErrorCodes.NotSuitable,
                 "Cannot save floating point data, CLUT are 8 or 16 bit only");
@@ -2948,7 +2916,7 @@ public static partial class Lcms2
         for (var i = 0; i < CLUT.Params.nInputs; i++)
             gridPoints[i] = (byte)CLUT.Params.nSamples[i];
 
-        if (!io.WriteFunc(io, (uint)(cmsMAXCHANNELS * sizeof(byte)), gridPoints))
+        if (!io.WriteFunc(io, (uint)(Context.MaxChannels * sizeof(byte)), gridPoints))
             return false;
 
         if (!io.Write(Precision))
@@ -2975,7 +2943,7 @@ public static partial class Lcms2
                 break;
 
             default:
-                LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown precision of '{Precision}'");
+                Context.LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown precision of '{Precision}'");
                 return false;
         }
 
@@ -3024,7 +2992,7 @@ public static partial class Lcms2
                 Signatures.Stage.CurveSetElem,
                 out B))
         {
-            LogError(self.ContextID, ErrorCodes.NotSuitable, "LUT is not suitable to be saved as LutAToB");
+            Context.LogError(self.ContextID, ErrorCodes.NotSuitable, "LUT is not suitable to be saved as LutAToB");
             return false;
         }
 
@@ -3147,9 +3115,9 @@ public static partial class Lcms2
             goto Error;   // Offset to first "A" curve
 
         // Do some checking
-        if (inputChan is 0 or > cmsMAXCHANNELS)
+        if (inputChan is 0 or > Context.MaxChannels)
             goto Error;
-        if (outputChan is 0 or > cmsMAXCHANNELS)
+        if (outputChan is 0 or > Context.MaxChannels)
             goto Error;
 
         // Allocates an empty LUT
@@ -3251,7 +3219,7 @@ public static partial class Lcms2
                 Signatures.Stage.CurveSetElem,
                 out A))
         {
-            LogError(self.ContextID, ErrorCodes.NotSuitable, "LUT is not suitable to be saved as LutAToB");
+            Context.LogError(self.ContextID, ErrorCodes.NotSuitable, "LUT is not suitable to be saved as LutAToB");
             return false;
         }
 
@@ -3357,9 +3325,9 @@ public static partial class Lcms2
         if (!io.ReadUint(out var Count))
             return null;
 
-        if (Count > cmsMAXCHANNELS)
+        if (Count > Context.MaxChannels)
         {
-            LogError(self.ContextID, ErrorCodes.Range, $"Too many colorants '{Count}'");
+            Context.LogError(self.ContextID, ErrorCodes.Range, $"Too many colorants '{Count}'");
             return null;
         }
 
@@ -3432,7 +3400,7 @@ public static partial class Lcms2
         Span<byte> suffix = stackalloc byte[32]; // Suffix for each color name
         NamedColorList? v = null;
         Span<ushort> PCS = stackalloc ushort[3];
-        Span<ushort> Colorant = stackalloc ushort[cmsMAXCHANNELS];
+        Span<ushort> Colorant = stackalloc ushort[Context.MaxChannels];
         Span<byte> Root = stackalloc byte[33];
 
         nItems = 0;
@@ -3453,13 +3421,13 @@ public static partial class Lcms2
         v = cmsAllocNamedColorList(self.ContextID, count, nDeviceCoords, prefix, suffix);
         if (v is null)
         {
-            LogError(self.ContextID, ErrorCodes.Range, $"Too many named colors '{count}'");
+            Context.LogError(self.ContextID, ErrorCodes.Range, $"Too many named colors '{count}'");
             return null;
         }
 
-        if (nDeviceCoords > cmsMAXCHANNELS)
+        if (nDeviceCoords > Context.MaxChannels)
         {
-            LogError(self.ContextID, ErrorCodes.Range, $"Too many device coordinates '{nDeviceCoords}'");
+            Context.LogError(self.ContextID, ErrorCodes.Range, $"Too many device coordinates '{nDeviceCoords}'");
             goto Error;
         }
 
@@ -3494,7 +3462,7 @@ public static partial class Lcms2
         Span<byte> suffix = stackalloc byte[33];
         Span<byte> Root = stackalloc byte[MaxPath];
         Span<ushort> PCS = stackalloc ushort[3];
-        Span<ushort> Colorant = stackalloc ushort[cmsMAXCHANNELS];
+        Span<ushort> Colorant = stackalloc ushort[Context.MaxChannels];
 
         if (Ptr is not NamedColorList NamedColorList)
             return false;
@@ -4086,8 +4054,8 @@ public static partial class Lcms2
         if (!io.ReadUint(out sc.nChannels))
             goto Error;
 
-        if (sc.nChannels > cmsMAXCHANNELS - 1)
-            sc.nChannels = cmsMAXCHANNELS - 1;
+        if (sc.nChannels > Context.MaxChannels - 1)
+            sc.nChannels = Context.MaxChannels - 1;
 
         for (var i = 0; i < sc.nChannels; i++)
         {
@@ -4118,8 +4086,8 @@ public static partial class Lcms2
         if (!io.Write(sc.Value.nChannels))
             return false;
 
-        if (sc.Value.nChannels > cmsMAXCHANNELS - 1)
-            sc.Value.nChannels = cmsMAXCHANNELS - 1;
+        if (sc.Value.nChannels > Context.MaxChannels - 1)
+            sc.Value.nChannels = Context.MaxChannels - 1;
 
         for (var i = 0; i < sc.Value.nChannels; i++)
         {
@@ -4154,11 +4122,10 @@ public static partial class Lcms2
 
     #region ViewingConditions
 
-    private static Box<IccViewingConditions>? Type_ViewingConditions_Read(
-        TagTypeHandler _1,
-        IOHandler io,
-        out uint nItems,
-        uint _2)
+    private static Box<IccViewingConditions>? Type_ViewingConditions_Read(TagTypeHandler _1,
+                                                                          IOHandler io,
+                                                                          out uint nItems,
+                                                                          uint _2)
     {
         nItems = 0;
 
@@ -4227,7 +4194,7 @@ public static partial class Lcms2
         if (TypeHandler is null)
         {
             // An unknown element was found.
-            LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown MPE type '{(ElementSig)}' found.");
+            Context.LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown MPE type '{(ElementSig)}' found.");
             return false;
         }
 
@@ -4257,9 +4224,9 @@ public static partial class Lcms2
         if (!io.ReadUshort(out var OutputChans))
             return null;
 
-        if (InputChans is 0 or >= cmsMAXCHANNELS)
+        if (InputChans is 0 or >= Context.MaxChannels)
             return null;
-        if (OutputChans is 0 or >= cmsMAXCHANNELS)
+        if (OutputChans is 0 or >= Context.MaxChannels)
             return null;
 
         // Allocates an empty LUT
@@ -4345,7 +4312,10 @@ public static partial class Lcms2
             if (TypeHandler is null)
             {
                 // An unknown element was found.
-                LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Found unknown MPE type '{(ElementSig)}'");
+                Context.LogError(
+                    self.ContextID,
+                    cmsERROR_UNKNOWN_EXTENSION,
+                    $"Found unknown MPE type '{(ElementSig)}'");
                 goto Error;
             }
 
@@ -4435,7 +4405,7 @@ public static partial class Lcms2
 
                 if (nChannels is not 3)
                 {
-                    LogError(
+                    Context.LogError(
                         self.ContextID,
                         cmsERROR_UNKNOWN_EXTENSION,
                         $"Unsupported number of channels for VCGT '{nChannels}'");
@@ -4481,7 +4451,7 @@ public static partial class Lcms2
 
                         // Unsupported
                         default:
-                            LogError(
+                            Context.LogError(
                                 self.ContextID,
                                 cmsERROR_UNKNOWN_EXTENSION,
                                 $"Unsupported bit depth for VCGT '{nBytes * 8}'");
@@ -4535,7 +4505,10 @@ public static partial class Lcms2
 
             // Unsupported
             default:
-                LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported tag type for VCGT '{TagType}'");
+                Context.LogError(
+                    self.ContextID,
+                    cmsERROR_UNKNOWN_EXTENSION,
+                    $"Unsupported tag type for VCGT '{TagType}'");
                 goto Error;
         }
 
@@ -4595,7 +4568,7 @@ public static partial class Lcms2
                 for (var j = 0; j < 256; j++)
                 {
                     var v = cmsEvalToneCurveFloat(Curves[i], (float)(j / 255.0));
-                    var n = _cmsQuickSaturateWord(v * 65535.0);
+                    var n = QuickSaturateWord(v * 65535.0);
 
                     if (!io.Write(n))
                         return false;
@@ -4940,7 +4913,10 @@ public static partial class Lcms2
         // Check for valid lengths
         if (Length is not 16 and not 24 and not 32)
         {
-            LogError(self.ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unknown record length in dictionry '{Length}'");
+            Context.LogError(
+                self.ContextID,
+                cmsERROR_UNKNOWN_EXTENSION,
+                $"Unknown record length in dictionry '{Length}'");
             return null;
         }
 
@@ -4976,7 +4952,7 @@ public static partial class Lcms2
             bool rc;
             if (NameWCS is null || ValueWCS is null)
             {
-                LogError(self.ContextID, cmsERROR_CORRUPTION_DETECTED, "Bad dictionary Name/Value");
+                Context.LogError(self.ContextID, cmsERROR_CORRUPTION_DETECTED, "Bad dictionary Name/Value");
                 rc = false;
             }
             else
@@ -5540,7 +5516,7 @@ public static partial class Lcms2
             }
             else
             {
-                LogError(
+                Context.LogError(
                     self.ContextID,
                     cmsERROR_UNKNOWN_EXTENSION,
                     $"Unknown curve element type '{(ElementSig)}' found.");
@@ -5722,9 +5698,9 @@ public static partial class Lcms2
         if (!io.ReadUshort(out var OutputChans))
             return null;
 
-        if (InputChans >= cmsMAXCHANNELS)
+        if (InputChans >= Context.MaxChannels)
             return null;
-        if (OutputChans >= cmsMAXCHANNELS)
+        if (OutputChans >= Context.MaxChannels)
             return null;
 
         var nElems = (uint)InputChans * OutputChans;
@@ -5807,7 +5783,7 @@ public static partial class Lcms2
     private static Stage? Type_MPEclut_Read(TagTypeHandler self, IOHandler io, out uint nItems, uint _1)
     {
         Span<byte> Dimensions8 = stackalloc byte[16];
-        Span<uint> GridPoints = stackalloc uint[MAX_INPUT_DIMENSIONS];
+        Span<uint> GridPoints = stackalloc uint[Context.MaxInputDimensions];
         Stage? mpe = null;
 
         nItems = 0;
@@ -5820,16 +5796,16 @@ public static partial class Lcms2
         if (!io.ReadUshort(out var OutputChans))
             return null;
 
-        if (InputChans is 0 || InputChans >= cmsMAXCHANNELS)
+        if (InputChans is 0 || InputChans >= Context.MaxChannels)
             goto Error;
-        if (OutputChans is 0 || OutputChans >= cmsMAXCHANNELS)
+        if (OutputChans is 0 || OutputChans >= Context.MaxChannels)
             goto Error;
 
         if (io.ReadFunc(io, Dimensions8, sizeof(byte), 16) is not 16)
             goto Error;
 
         // Copy MAX_INPUT_DIMENSIONS at most. Expact to uint
-        var nMaxGrids = Math.Min(InputChans, MAX_INPUT_DIMENSIONS);
+        var nMaxGrids = Math.Min(InputChans, Context.MaxInputDimensions);
 
         for (var i = 0; i < nMaxGrids; i++)
         {
@@ -5868,7 +5844,7 @@ public static partial class Lcms2
             return false;
 
         // Check for maximum number of channels supported by lcms
-        if (mpe.InputChannels > MAX_INPUT_DIMENSIONS)
+        if (mpe.InputChannels > Context.MaxInputDimensions)
             return false;
 
         //// Only floats are supported in MPE
@@ -5928,12 +5904,6 @@ public static partial class Lcms2
         DupTagTypeList(ref ctx.MPEPlugin, from);
     }
 
-    internal static bool _cmsRegisterTagTypePlugin(Context? id, PluginBase? Data) =>
-        RegisterTypesPlugin(id, Data, Chunks.TagTypePlugin);
-
-    internal static bool _cmsRegisterMultiProcessElementPlugin(Context? id, PluginBase? Data) =>
-        RegisterTypesPlugin(id, Data, Chunks.MPEPlugin);
-
     internal static void DupTagList(ref TagPluginChunkType dest, in TagPluginChunkType? src) =>
         dest = (TagPluginChunkType)((ICloneable)src).Clone();
 
@@ -5946,31 +5916,6 @@ public static partial class Lcms2
                        : TagPluginChunk;
 
         DupTagList(ref ctx.TagPlugin, from);
-    }
-
-    internal static bool _cmsRegisterTagPlugin(Context? id, PluginBase? Data)
-    {
-        var TagPluginChunk = Context.Get(id).TagPlugin;
-
-        if (Data is null)
-        {
-            TagPluginChunk.List.Clear();
-            return true;
-        }
-
-        if (Data is not PluginTag Plugin)
-            return false;
-
-        //var pt = _cmsPluginMalloc<TagLinkedList>(id);
-        //if (pt == null) return false;
-
-        //pt->Signature = Plugin!.Signature;
-        //pt->Descriptor = Plugin.Descriptor;
-        //pt->Next = TagPluginChunk.Tag;
-
-        TagPluginChunk.List.Add(new(Plugin.Signature, Plugin.Descriptor));
-
-        return true;
     }
 
     #endregion Plugin

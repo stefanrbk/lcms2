@@ -26,7 +26,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2;
@@ -74,8 +73,8 @@ public static partial class Lcms2
     internal static readonly double[] PickYMatrix = new double[3] { 0, OutpAdj * CIEXYZ.D50.Y, 0, };
     internal static readonly double[] PickLstarMatrix = new double[3] { 1, 0, 0 };
 
-    internal const double InpAdj = 1 / MAX_ENCODEABLE_XYZ;
-    internal const double OutpAdj = MAX_ENCODEABLE_XYZ;
+    internal const double InpAdj = 1 / CIEXYZ.MaxEncodeableXYZ;
+    internal const double OutpAdj = CIEXYZ.MaxEncodeableXYZ;
 
     internal static bool _cmsReadMediaWhitePoint(out Box<CIEXYZ>? Dest, Profile Profile)
     {
@@ -861,7 +860,10 @@ public static partial class Lcms2
                        cmsIsIntentSupported(Profile, INTENT_RELATIVE_COLORIMETRIC, LCMS_USED_AS_OUTPUT);
 
             default:
-                LogError(cmsGetProfileContextID(Profile), cmsERROR_RANGE, $"Unexpected direction ({UsedDirection})");
+                Context.LogError(
+                    cmsGetProfileContextID(Profile),
+                    cmsERROR_RANGE,
+                    $"Unexpected direction ({UsedDirection})");
                 return false;
         }
 

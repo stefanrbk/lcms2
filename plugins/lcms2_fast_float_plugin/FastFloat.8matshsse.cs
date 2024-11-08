@@ -23,7 +23,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2.FastFloatPlugin;
@@ -40,10 +39,10 @@ public unsafe static partial class FastFloat
         if (CMMcargo.UserData is not XMatShaperSSEData p)
             return;
 
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
         var mat0 = Sse.LoadAlignedVector128(&p.Data->Mat[0 * 4]);
         var mat1 = Sse.LoadAlignedVector128(&p.Data->Mat[1 * 4]);

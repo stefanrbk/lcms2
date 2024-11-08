@@ -22,9 +22,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-using lcms2.state;
-using lcms2.types;
-
 namespace lcms2.FastFloatPlugin;
 
 public static partial class FastFloat
@@ -44,12 +41,12 @@ public static partial class FastFloat
             var TotalOut = p.nOutputs;
             var BaseTable = p.Table.Span;
 
-            var @out = stackalloc byte*[cmsMAXCHANNELS];
+            var @out = stackalloc byte*[Context.MaxChannels];
 
-            Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+            Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+            Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+            Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+            Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
             var inFormat = cmsGetTransformInputFormat(CMMcargo);
             var outFormat = cmsGetTransformOutputFormat(CMMcargo);
@@ -106,17 +103,17 @@ public static partial class FastFloat
                     gin += (int)SourceIncrements[1];
                     bin += (int)SourceIncrements[2];
 
-                    var fx = _cmsToFixedDomain(r * (int)p.Domain[0]);
-                    var fy = _cmsToFixedDomain(g * (int)p.Domain[1]);
-                    var fz = _cmsToFixedDomain(b * (int)p.Domain[2]);
+                    var fx = Conversions.ToFixedDomain(r * (int)p.Domain[0]);
+                    var fy = Conversions.ToFixedDomain(g * (int)p.Domain[1]);
+                    var fz = Conversions.ToFixedDomain(b * (int)p.Domain[2]);
 
-                    var x0 = FIXED_TO_INT(fx);
-                    var y0 = FIXED_TO_INT(fy);
-                    var z0 = FIXED_TO_INT(fz);
+                    var x0 = Conversions.FIXED_TO_INT(fx);
+                    var y0 = Conversions.FIXED_TO_INT(fy);
+                    var z0 = Conversions.FIXED_TO_INT(fz);
 
-                    var rx = FIXED_REST_TO_INT(fx);
-                    var ry = FIXED_REST_TO_INT(fy);
-                    var rz = FIXED_REST_TO_INT(fz);
+                    var rx = Conversions.FIXED_REST_TO_INT(fx);
+                    var ry = Conversions.FIXED_REST_TO_INT(fy);
+                    var rz = Conversions.FIXED_REST_TO_INT(fz);
 
                     var X0 = (int)p.opta[2] * x0;
                     var X1 = r is (ushort)0xffffu ? 0 : (int)p.opta[2];
@@ -316,8 +313,8 @@ public static partial class FastFloat
         UserData = null;
         TransformFn = null!;
 
-        Span<float> In = stackalloc float[cmsMAXCHANNELS];
-        Span<float> Out = stackalloc float[cmsMAXCHANNELS];
+        Span<float> In = stackalloc float[Context.MaxChannels];
+        Span<float> Out = stackalloc float[Context.MaxChannels];
 
         // For empty transforms, do nothing
         if (Lut is null)

@@ -24,19 +24,16 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 namespace lcms2;
+
 public static partial class Plugin
 {
-    public static Pipeline? _cmsDefaultICCintents(
-        Context? ContextID,
-        uint nProfiles,
-        ReadOnlySpan<uint> TheIntents,
-        Profile[] Profiles,
-        ReadOnlySpan<bool> BPC,
-        ReadOnlySpan<double> AdaptationStates,
-        uint dwFlags) =>
-        Intent.ICCDefault(ContextID, nProfiles, TheIntents, Profiles, BPC, AdaptationStates, dwFlags);
+    public static Pipeline? _cmsDefaultICCintents(Context? ContextID,
+                                                  uint nProfiles,
+                                                  ReadOnlySpan<uint> TheIntents,
+                                                  Profile[] Profiles,
+                                                  ReadOnlySpan<bool> BPC,
+                                                  ReadOnlySpan<double> AdaptationStates,
+                                                  uint dwFlags) =>
+        IntentFunctions.ICCDefault(ContextID, nProfiles, TheIntents, Profiles, BPC, AdaptationStates, dwFlags);
 }

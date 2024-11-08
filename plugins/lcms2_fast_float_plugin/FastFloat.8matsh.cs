@@ -22,7 +22,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-using lcms2.state;
 using lcms2.types;
 
 using S1Fixed14Number = System.Int32;
@@ -41,10 +40,10 @@ public unsafe static partial class FastFloat
         if (CMMcargo.UserData is not XMatShaper8Data p)
             return;
 
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
         _cmsComputeComponentIncrements(
             cmsGetTransformInputFormat(CMMcargo),

@@ -22,7 +22,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2.FastFloatPlugin;
@@ -65,15 +64,15 @@ public static partial class FastFloat
             var p = pcmyk.p;
             var TotalOut = p.nOutputs;
 
-            var @out = stackalloc byte*[cmsMAXCHANNELS];
+            var @out = stackalloc byte*[Context.MaxChannels];
 
-            Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+            Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+            Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+            Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+            Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-            Span<float> Tmp1 = stackalloc float[cmsMAXCHANNELS];
-            Span<float> Tmp2 = stackalloc float[cmsMAXCHANNELS];
+            Span<float> Tmp1 = stackalloc float[Context.MaxChannels];
+            Span<float> Tmp2 = stackalloc float[Context.MaxChannels];
 
             var InputFormat = cmsGetTransformInputFormat(CMMcargo);
             var OutputFormat = cmsGetTransformOutputFormat(CMMcargo);
@@ -139,13 +138,13 @@ public static partial class FastFloat
                         var py = y * p.Domain[2];
                         var pz = k * p.Domain[3];
 
-                        var k0 = _cmsQuickFloor(pk);
+                        var k0 = Conversions.QuickFloor(pk);
                         var rk = pk - k0;
-                        var x0 = _cmsQuickFloor(px);
+                        var x0 = Conversions.QuickFloor(px);
                         var rx = px - x0;
-                        var y0 = _cmsQuickFloor(py);
+                        var y0 = Conversions.QuickFloor(py);
                         var ry = py - y0;
-                        var z0 = _cmsQuickFloor(pz);
+                        var z0 = Conversions.QuickFloor(pz);
                         var rz = pz - z0;
 
                         var K0 = (int)p.opta[3] * k0;

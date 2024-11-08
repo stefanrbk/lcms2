@@ -27,7 +27,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2;
@@ -86,7 +85,7 @@ public static partial class Lcms2
     {
         var contextAlarmCodes = Context.Get(context).AlarmCodes;
         _cmsAssert(contextAlarmCodes); // Can't happen
-        for (var i = 0; i < cmsMAXCHANNELS; i++)
+        for (var i = 0; i < Context.MaxChannels; i++)
             contextAlarmCodes.AlarmCodes[i] = AlarmCodesP[i];
     }
 
@@ -94,7 +93,7 @@ public static partial class Lcms2
     {
         var contextAlarmCodes = Context.Get(context).AlarmCodes;
         _cmsAssert(contextAlarmCodes); // Can't happen
-        for (var i = 0; i < cmsMAXCHANNELS; i++)
+        for (var i = 0; i < Context.MaxChannels; i++)
             AlarmCodesP[i] = contextAlarmCodes.AlarmCodes[i];
     }
 
@@ -627,8 +626,8 @@ public static partial class Lcms2
         //var pool = Context.GetPool<float>(p.ContextID);
         //float[] fIn = pool.Rent(cmsMAXCHANNELS);
         //float[] fOut = pool.Rent(cmsMAXCHANNELS);
-        var fIn = new float[cmsMAXCHANNELS];
-        var fOut = new float[cmsMAXCHANNELS];
+        var fIn = new float[Context.MaxChannels];
+        var fOut = new float[Context.MaxChannels];
         Span<float> OutOfGamut = stackalloc float[1];
 
         _cmsHandleExtraChannels(p, @in, @out, PixelsPerLine, LineCount, Stride);
@@ -659,7 +658,7 @@ public static partial class Lcms2
                     if (OutOfGamut[0] > 0.0)
                     {
                         // Certainly, out of gamut
-                        for (nuint c = 0; c < cmsMAXCHANNELS; c++)
+                        for (nuint c = 0; c < Context.MaxChannels; c++)
                             fOut[c] = -1.0f;
                     }
                     else
@@ -694,7 +693,7 @@ public static partial class Lcms2
     {
         //var pool = Context.GetPool<float>(p.ContextID);
         //var fIn = pool.Rent(cmsMAXCHANNELS);
-        var fIn = new float[cmsMAXCHANNELS];
+        var fIn = new float[Context.MaxChannels];
 
         _cmsHandleExtraChannels(p, @in, @out, PixelsPerLine, LineCount, Stride);
 
@@ -728,7 +727,7 @@ public static partial class Lcms2
                                   Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
-        var wIn = new ushort[cmsMAXCHANNELS];
+        var wIn = new ushort[Context.MaxChannels];
 
         _cmsHandleExtraChannels(p, @in, @out, PixelsPerLine, LineCount, Stride);
 
@@ -762,8 +761,8 @@ public static partial class Lcms2
                                            Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
-        var wIn = new ushort[cmsMAXCHANNELS];
-        var wOut = new ushort[cmsMAXCHANNELS];
+        var wIn = new ushort[Context.MaxChannels];
+        var wOut = new ushort[Context.MaxChannels];
 
         _cmsHandleExtraChannels(p, @in, @out, PixelsPerLine, LineCount, Stride);
 
@@ -820,8 +819,8 @@ public static partial class Lcms2
                                                      Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
-        var wIn = new ushort[cmsMAXCHANNELS];
-        var wOut = new ushort[cmsMAXCHANNELS];
+        var wIn = new ushort[Context.MaxChannels];
+        var wOut = new ushort[Context.MaxChannels];
 
         _cmsHandleExtraChannels(p, @in, @out, PixelsPerLine, LineCount, Stride);
 
@@ -858,9 +857,9 @@ public static partial class Lcms2
                                     Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
-        var wIn = new ushort[cmsMAXCHANNELS];
-        var wOut = new ushort[cmsMAXCHANNELS];
-        Cache Cache = new() { CacheIn = new ushort[cmsMAXCHANNELS], CacheOut = new ushort[cmsMAXCHANNELS] };
+        var wIn = new ushort[Context.MaxChannels];
+        var wOut = new ushort[Context.MaxChannels];
+        Cache Cache = new() { CacheIn = new ushort[Context.MaxChannels], CacheOut = new ushort[Context.MaxChannels] };
 
         _cmsHandleExtraChannels(p, @in, @out, PixelsPerLine, LineCount, Stride);
 
@@ -884,16 +883,16 @@ public static partial class Lcms2
             {
                 accum = p.FromInput(p, wIn, accum, Stride.BytesPerPlaneIn);
 
-                if (memcmp(wIn.AsSpan(..cmsMAXCHANNELS), Cache.CacheIn.AsSpan(..cmsMAXCHANNELS)) is 0)
+                if (memcmp(wIn.AsSpan(..Context.MaxChannels), Cache.CacheIn.AsSpan(..Context.MaxChannels)) is 0)
                 {
-                    memcpy(wOut.AsSpan(..cmsMAXCHANNELS), Cache.CacheOut.AsSpan(..cmsMAXCHANNELS));
+                    memcpy(wOut.AsSpan(..Context.MaxChannels), Cache.CacheOut.AsSpan(..Context.MaxChannels));
                 }
                 else
                 {
                     p.Lut.Eval16Fn(wIn, wOut, p.Lut.Data);
 
-                    memcpy(Cache.CacheIn.AsSpan(..cmsMAXCHANNELS), wIn.AsSpan(..cmsMAXCHANNELS));
-                    memcpy(Cache.CacheOut.AsSpan(..cmsMAXCHANNELS), wOut.AsSpan(..cmsMAXCHANNELS));
+                    memcpy(Cache.CacheIn.AsSpan(..Context.MaxChannels), wIn.AsSpan(..Context.MaxChannels));
+                    memcpy(Cache.CacheOut.AsSpan(..Context.MaxChannels), wOut.AsSpan(..Context.MaxChannels));
                 }
 
                 output = p.ToOutput(p, wIn, output, Stride.BytesPerPlaneOut);
@@ -917,9 +916,9 @@ public static partial class Lcms2
                                               Stride Stride)
     {
         //var pool = Context.GetPool<ushort>(p.ContextID);
-        var wIn = new ushort[cmsMAXCHANNELS];
-        var wOut = new ushort[cmsMAXCHANNELS];
-        Cache Cache = new() { CacheIn = new ushort[cmsMAXCHANNELS], CacheOut = new ushort[cmsMAXCHANNELS] };
+        var wIn = new ushort[Context.MaxChannels];
+        var wOut = new ushort[Context.MaxChannels];
+        Cache Cache = new() { CacheIn = new ushort[Context.MaxChannels], CacheOut = new ushort[Context.MaxChannels] };
 
         _cmsHandleExtraChannels(p, @in, @out, PixelsPerLine, LineCount, Stride);
 
@@ -943,16 +942,16 @@ public static partial class Lcms2
             {
                 accum = p.FromInput(p, wIn, accum, Stride.BytesPerPlaneIn);
 
-                if (memcmp(wIn.AsSpan(..cmsMAXCHANNELS), Cache.CacheIn.AsSpan(..cmsMAXCHANNELS)) is 0)
+                if (memcmp(wIn.AsSpan(..Context.MaxChannels), Cache.CacheIn.AsSpan(..Context.MaxChannels)) is 0)
                 {
-                    memcpy(wOut.AsSpan(..cmsMAXCHANNELS), Cache.CacheOut.AsSpan(..cmsMAXCHANNELS));
+                    memcpy(wOut.AsSpan(..Context.MaxChannels), Cache.CacheOut.AsSpan(..Context.MaxChannels));
                 }
                 else
                 {
                     TransformOnePixelWithGamutCheck(p, wIn, wOut);
 
-                    memcpy(Cache.CacheIn.AsSpan(..cmsMAXCHANNELS), wIn.AsSpan(..cmsMAXCHANNELS));
-                    memcpy(Cache.CacheOut.AsSpan(..cmsMAXCHANNELS), wOut.AsSpan(..cmsMAXCHANNELS));
+                    memcpy(Cache.CacheIn.AsSpan(..Context.MaxChannels), wIn.AsSpan(..Context.MaxChannels));
+                    memcpy(Cache.CacheOut.AsSpan(..Context.MaxChannels), wOut.AsSpan(..Context.MaxChannels));
                 }
 
                 output = p.ToOutput(p, wIn, output, Stride.BytesPerPlaneOut);
@@ -1006,41 +1005,6 @@ public static partial class Lcms2
         }
     }
 
-    internal static bool _cmsRegisterTransformPlugin(Context? id, PluginBase? Data)
-    {
-        var ctx = Context.Get(id).TransformPlugin;
-
-        if (Data is null)
-        {
-            // Free the chain. Memory is safely freed at exit
-            ctx.List.Clear();
-            return true;
-        }
-
-        if (Data is not PluginTransform Plugin)
-            return false;
-
-        // Factory callback is required
-        if (Plugin!.factories.xform is null)
-            return false;
-
-        //var fl = _cmsPluginMalloc<TransformCollection>(id);
-        //if (fl is null) return false;
-
-        // Check for full xform plug-ins previous to 2.8, we would need an adapter in that case
-        //fl->OldXform = Plugin.ExpectedVersion < 2080;
-
-        // Copy the parameters
-        //fl->Factory = Plugin.factories.xform;
-        ctx.List.Add(
-            (Plugin.ExpectedVersion < 2080)
-                ? new TransformFunc(Plugin.factories.legacy_xform)
-                : new TransformFunc(Plugin.factories.xform));
-
-        // All is ok
-        return true;
-    }
-
     private static void ParalellizeIfSuitable(Transform p)
     {
         var ctx = Context.Get(p.ContextID).ParallelizationPlugin;
@@ -1083,8 +1047,8 @@ public static partial class Lcms2
         //p.Lut = lut;
 
         var p = new Transform() { Lut = lut };
-        p.Cache.CacheIn = new ushort[cmsMAXCHANNELS];
-        p.Cache.CacheOut = new ushort[cmsMAXCHANNELS];
+        p.Cache.CacheIn = new ushort[Context.MaxChannels];
+        p.Cache.CacheOut = new ushort[Context.MaxChannels];
 
         // Let's see if any plug-in wants to do the transform by itself
         if (p.Lut is not null)
@@ -1177,7 +1141,7 @@ public static partial class Lcms2
 
             if (p.FromInputFloat is null || p.ToOutputFloat is null)
             {
-                LogError(ContextID, cmsERROR_UNKNOWN_EXTENSION, "Unsupported raster format");
+                Context.LogError(ContextID, cmsERROR_UNKNOWN_EXTENSION, "Unsupported raster format");
                 cmsDeleteTransform(p);
                 return null;
             }
@@ -1203,7 +1167,7 @@ public static partial class Lcms2
 
                 if (p.FromInput is null || p.ToOutput is null)
                 {
-                    LogError(ContextID, cmsERROR_UNKNOWN_EXTENSION, "Unsupported raster format");
+                    Context.LogError(ContextID, cmsERROR_UNKNOWN_EXTENSION, "Unsupported raster format");
                     cmsDeleteTransform(p);
                     return null;
                 }
@@ -1230,7 +1194,7 @@ public static partial class Lcms2
         {
             if (T_EXTRA(InputFormat) != T_EXTRA(OutputFormat))
             {
-                LogError(ContextID, cmsERROR_NOT_SUITABLE, "Mismatched alpha channels");
+                Context.LogError(ContextID, cmsERROR_NOT_SUITABLE, "Mismatched alpha channels");
                 cmsDeleteTransform(p);
                 return null;
             }
@@ -1360,7 +1324,11 @@ public static partial class Lcms2
         // Safeguard
         if (nProfiles is 0 or >= 255)
         {
-            LogError(ContextID, cmsERROR_RANGE, "Wrong number of profiles. 1..255 expected, {0} found.", nProfiles);
+            Context.LogError(
+                ContextID,
+                cmsERROR_RANGE,
+                "Wrong number of profiles. 1..255 expected, {0} found.",
+                nProfiles);
             return null;
         }
 
@@ -1387,20 +1355,20 @@ public static partial class Lcms2
         // Mark entry/exit spaces
         if (!GetXFormColorSpaces(nProfiles, Profiles, out EntryColorSpace, out ExitColorSpace))
         {
-            LogError(ContextID, cmsERROR_NULL, "NULL input profiles on transform");
+            Context.LogError(ContextID, cmsERROR_NULL, "NULL input profiles on transform");
             return null;
         }
 
         // Check if proper colorspaces
         if (!IsProperColorSpace(EntryColorSpace, InputFormat))
         {
-            LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Wrong input color space on transform");
+            Context.LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Wrong input color space on transform");
             return null;
         }
 
         if (!IsProperColorSpace(ExitColorSpace, OutputFormat))
         {
-            LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Wrong output color space on transform");
+            Context.LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Wrong output color space on transform");
             return null;
         }
 
@@ -1418,7 +1386,7 @@ public static partial class Lcms2
         var Lut = _cmsLinkProfiles(ContextID, nProfiles, Intents, Profiles, BPC, AdaptationStates, dwFlags);
         if (Lut is null)
         {
-            LogError(ContextID, cmsERROR_NOT_SUITABLE, "Couldn't link the profiles");
+            Context.LogError(ContextID, cmsERROR_NOT_SUITABLE, "Couldn't link the profiles");
             return null;
         }
 
@@ -1427,7 +1395,7 @@ public static partial class Lcms2
             ((uint)cmsChannelsOfColorSpace(ExitColorSpace) != cmsPipelineOutputChannels(Lut)))
         {
             cmsPipelineFree(Lut);
-            LogError(ContextID, cmsERROR_NOT_SUITABLE, "Channel count douesn't match. Profile is corrupted");
+            Context.LogError(ContextID, cmsERROR_NOT_SUITABLE, "Channel count douesn't match. Profile is corrupted");
             return null;
         }
 
@@ -1527,7 +1495,10 @@ public static partial class Lcms2
 
         if (nProfiles is <= 0 or > 255)
         {
-            LogError(ContextID, cmsERROR_RANGE, $"Wrong number of profiles. 1..255 expected, {nProfiles} found.");
+            Context.LogError(
+                ContextID,
+                cmsERROR_RANGE,
+                $"Wrong number of profiles. 1..255 expected, {nProfiles} found.");
             return null;
         }
 
@@ -1663,7 +1634,7 @@ public static partial class Lcms2
         // We only can afford to change formatters if previous transform is at least 16 bits
         if ((xform.dwOriginalFlags & cmsFLAGS_CAN_CHANGE_FORMATTER) is 0)
         {
-            LogError(
+            Context.LogError(
                 xform.ContextID,
                 cmsERROR_NOT_SUITABLE,
                 "cmsChangeBuffersFormat works only on transforms created originally with at least 16 bits of precision");
@@ -1675,7 +1646,7 @@ public static partial class Lcms2
 
         if (FromInput is null || ToOutput is null)
         {
-            LogError(xform.ContextID, cmsERROR_UNKNOWN_EXTENSION, "Unsupported raster format");
+            Context.LogError(xform.ContextID, cmsERROR_UNKNOWN_EXTENSION, "Unsupported raster format");
             return false;
         }
 

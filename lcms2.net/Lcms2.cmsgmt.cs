@@ -24,9 +24,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 namespace lcms2;
 
 public static partial class Lcms2
@@ -216,8 +213,8 @@ public static partial class Lcms2
     {
         Span<CIELab> LabIn = stackalloc CIELab[2];
         Span<CIELab> LabOut = stackalloc CIELab[2];
-        Span<ushort> Proof = stackalloc ushort[cmsMAXCHANNELS];
-        Span<ushort> Proof2 = stackalloc ushort[cmsMAXCHANNELS];
+        Span<ushort> Proof = stackalloc ushort[Context.MaxChannels];
+        Span<ushort> Proof2 = stackalloc ushort[Context.MaxChannels];
 
         if (Cargo is not Box<GamutChain> t)
             return false;
@@ -259,7 +256,7 @@ public static partial class Lcms2
             {
                 // dE1 is big and dE2 is small, clearly out of gamut
                 if (dE1 > t.Value.Threshold && dE2 < t.Value.Threshold)
-                    Out[0] = (ushort)_cmsQuickFloor((dE1 - t.Value.Threshold) + 0.5);
+                    Out[0] = (ushort)QuickFloor((dE1 - t.Value.Threshold) + 0.5);
                 else
                 {
                     // dE1 is big and dE2 is also big, could be due to perceptual mapping
@@ -267,7 +264,7 @@ public static partial class Lcms2
                     ErrorRatio = dE2 is 0 ? dE1 : dE1 / dE2;
 
                     Out[0] = (ushort)(ErrorRatio > t.Value.Threshold
-                                          ? (ushort)_cmsQuickFloor((ErrorRatio - t.Value.Threshold) + 0.5)
+                                          ? (ushort)QuickFloor((ErrorRatio - t.Value.Threshold) + 0.5)
                                           : 0);
                 }
             }
@@ -295,7 +292,10 @@ public static partial class Lcms2
 
         if (nGamutPCSposition is <= 0 or > 255)
         {
-            LogError(ContextID, cmsERROR_RANGE, $"Wrong position of PCS. 1..255 expected, {nGamutPCSposition} found.");
+            Context.LogError(
+                ContextID,
+                cmsERROR_RANGE,
+                $"Wrong position of PCS. 1..255 expected, {nGamutPCSposition} found.");
             return null;
         }
 
@@ -414,7 +414,7 @@ public static partial class Lcms2
         if (Cargo is not Box<TACestimator> bp)
             return false;
 
-        Span<float> RoundTrip = stackalloc float[cmsMAXCHANNELS];
+        Span<float> RoundTrip = stackalloc float[Context.MaxChannels];
         uint i;
         float Sum;
 
@@ -444,9 +444,9 @@ public static partial class Lcms2
             new()
             {
                 //MaxInput = pool.Rent(cmsMAXCHANNELS)
-                MaxInput = new float[cmsMAXCHANNELS],
+                MaxInput = new float[Context.MaxChannels],
             });
-        Span<uint> GridPoints = stackalloc uint[MAX_INPUT_DIMENSIONS];
+        Span<uint> GridPoints = stackalloc uint[Context.MaxInputDimensions];
         var ContextID = cmsGetProfileContextID(Profile);
 
         // TAC only works on output profiles
@@ -464,7 +464,7 @@ public static partial class Lcms2
         bp.Value.MaxTAC = 0;  // Initial TAC is 0
 
         // for safety
-        if (bp.Value.nOutputChans >= cmsMAXCHANNELS)
+        if (bp.Value.nOutputChans >= Context.MaxChannels)
             return 0;
 
         var hLab = cmsCreateLab4ProfileTHR(ContextID, null);
@@ -558,7 +558,7 @@ public static partial class Lcms2
 
             if (Double.IsNaN(Lab.a))
             {
-                LogError(null, cmsERROR_RANGE, "Invalid angle");
+                Context.LogError(null, cmsERROR_RANGE, "Invalid angle");
                 return false;
             }
         }

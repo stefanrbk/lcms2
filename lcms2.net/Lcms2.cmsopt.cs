@@ -26,7 +26,6 @@
 
 using System.Runtime.CompilerServices;
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2;
@@ -34,7 +33,7 @@ namespace lcms2;
 public static partial class Lcms2
 {
     internal static readonly OptimizationCollection DefaultOptimization = new(
-        new OPToptimizeFn[]
+        new OptimizeFn[]
         {
             new(OptimizeByJoiningCurves),
             new(OptimizeMatrixShaper),
@@ -531,8 +530,8 @@ public static partial class Lcms2
         if (D is not Prelin16Data p16)
             return;
 
-        Span<ushort> StageABC = stackalloc ushort[MAX_INPUT_DIMENSIONS];
-        Span<ushort> StageDEF = stackalloc ushort[cmsMAXCHANNELS];
+        Span<ushort> StageABC = stackalloc ushort[Context.MaxInputDimensions];
+        Span<ushort> StageDEF = stackalloc ushort[Context.MaxChannels];
 
         for (var i = 0; i < p16.nInputs; i++)
             p16.EvalCurveIn16[i](Input[i..], StageABC[i..], p16.ParamsCurveIn16[i]);
@@ -630,12 +629,12 @@ public static partial class Lcms2
         if (Cargo is not Pipeline Lut)
             return false;
 
-        Span<float> InFloat = stackalloc float[cmsMAXCHANNELS];
-        Span<float> OutFloat = stackalloc float[cmsMAXCHANNELS];
+        Span<float> InFloat = stackalloc float[Context.MaxChannels];
+        Span<float> OutFloat = stackalloc float[Context.MaxChannels];
 
         _cmsAssert(
-            Lut.InputChannels < cmsMAXCHANNELS,
-            Lut.OutputChannels < cmsMAXCHANNELS);
+            Lut.InputChannels < Context.MaxChannels,
+            Lut.OutputChannels < Context.MaxChannels);
 
         // From 16 bit to floating point
         for (var i = 0; i < Lut.InputChannels; i++)
@@ -646,7 +645,7 @@ public static partial class Lcms2
 
         // Back to 16 bit representation
         for (var i = 0; i < Lut.OutputChannels; i++)
-            Out[i] = _cmsQuickSaturateWord(OutFloat[i] * 65535.0);
+            Out[i] = QuickSaturateWord(OutFloat[i] * 65535.0);
 
         // Always succeed
         return true;
@@ -681,7 +680,7 @@ public static partial class Lcms2
 
         if (CLUT.Type != Signatures.Stage.CLutElem)
         {
-            LogError(CLUT.ContextID, cmsERROR_INTERNAL, "(internal) Attempt to PatchLUT on non-lut stage");
+            Context.LogError(CLUT.ContextID, cmsERROR_INTERNAL, "(internal) Attempt to PatchLUT on non-lut stage");
             return false;
         }
 
@@ -753,7 +752,7 @@ public static partial class Lcms2
                 break;
 
             default:
-                LogError(
+                Context.LogError(
                     CLUT.ContextID,
                     cmsERROR_INTERNAL,
                     $"(internal) {nChannelsIn} Channels are not supported on PatchLUT");
@@ -781,9 +780,9 @@ public static partial class Lcms2
 
     private static bool FixWhiteMisalignment(Pipeline Lut, Signature EntryColorSpace, Signature ExitColorSpace)
     {
-        Span<ushort> WhiteIn = stackalloc ushort[cmsMAXCHANNELS];
-        Span<ushort> WhiteOut = stackalloc ushort[cmsMAXCHANNELS];
-        Span<ushort> ObtainedOut = stackalloc ushort[cmsMAXCHANNELS];
+        Span<ushort> WhiteIn = stackalloc ushort[Context.MaxChannels];
+        Span<ushort> WhiteOut = stackalloc ushort[Context.MaxChannels];
+        Span<ushort> ObtainedOut = stackalloc ushort[Context.MaxChannels];
 
         if (!_cmsEndPointsBySpace(EntryColorSpace, out var WhitePointIn, out _, out var nIns))
             return false;
@@ -1051,7 +1050,7 @@ public static partial class Lcms2
         var beta = Val - (Slope * AtBegin);
 
         for (var i = 0; i < AtBegin; i++)
-            g.Table16[i] = _cmsQuickSaturateWord((i * Slope) + beta);
+            g.Table16[i] = QuickSaturateWord((i * Slope) + beta);
 
         // Compute slope and offset for the end
         Val = g.Table16[AtEnd];
@@ -1059,7 +1058,7 @@ public static partial class Lcms2
         beta = Val - (Slope * AtEnd);
 
         for (var i = AtEnd; i < g.nEntries; i++)
-            g.Table16[i] = _cmsQuickSaturateWord((i * Slope) + beta);
+            g.Table16[i] = QuickSaturateWord((i * Slope) + beta);
     }
 
     private static Prelin8Data? PrelinOpt8alloc(Context? ContextID, InterpParams<ushort> p, Span<ToneCurve> G)
@@ -1091,9 +1090,9 @@ public static partial class Lcms2
             }
 
             // Move to 0..1.0 in fixed domain
-            var v1 = _cmsToFixedDomain((int)(Input[0] * p.Domain[0]));
-            var v2 = _cmsToFixedDomain((int)(Input[1] * p.Domain[1]));
-            var v3 = _cmsToFixedDomain((int)(Input[2] * p.Domain[2]));
+            var v1 = ToFixedDomain((int)(Input[0] * p.Domain[0]));
+            var v2 = ToFixedDomain((int)(Input[1] * p.Domain[1]));
+            var v3 = ToFixedDomain((int)(Input[2] * p.Domain[2]));
 
             // Store the precalculated table of nodes
             p8.X0[i] = p.opta[0] * (uint)FIXED_TO_INT(v1);
@@ -1227,8 +1226,8 @@ public static partial class Lcms2
                                                          ref uint dwFlags)
     {
         //var pool = Context.GetPool<ToneCurve>(Lut.ContextID);
-        Span<float> In = stackalloc float[cmsMAXCHANNELS];
-        Span<float> Out = stackalloc float[cmsMAXCHANNELS];
+        Span<float> In = stackalloc float[Context.MaxChannels];
+        Span<float> Out = stackalloc float[Context.MaxChannels];
         Pipeline? OptimizedLUT = null, LutPlusCurves = null;
 
         // This is a lossy optimization! does not apply in floating-point cases
@@ -1266,8 +1265,8 @@ public static partial class Lcms2
         //memset(TransReverse, 0, _sizeof<nint>() * cmsMAXCHANNELS);
         //ToneCurve[] Trans = pool.Rent(cmsMAXCHANNELS);
         //ToneCurve[] TransReverse = pool.Rent(cmsMAXCHANNELS);
-        var Trans = new ToneCurve[cmsMAXCHANNELS];
-        var TransReverse = new ToneCurve[cmsMAXCHANNELS];
+        var Trans = new ToneCurve[Context.MaxChannels];
+        var TransReverse = new ToneCurve[Context.MaxChannels];
 
         // If the last stage of the original lut are curves, and those curves are
         // degenerated, it is likely the transform is squeezing and clipping
@@ -1305,7 +1304,7 @@ public static partial class Lcms2
             {
                 var curve = Trans[t];
                 if (curve.Table16 is not null)
-                    curve.Table16[i] = _cmsQuickSaturateWord(Out[t] * 65535.0);
+                    curve.Table16[i] = QuickSaturateWord(Out[t] * 65535.0);
             }
         }
 
@@ -1575,8 +1574,8 @@ public static partial class Lcms2
                                                 ref uint OutputFormat,
                                                 ref uint dwFlags)
     {
-        Span<float> InFloat = stackalloc float[cmsMAXCHANNELS];
-        Span<float> OutFloat = stackalloc float[cmsMAXCHANNELS];
+        Span<float> InFloat = stackalloc float[Context.MaxChannels];
+        Span<float> OutFloat = stackalloc float[Context.MaxChannels];
 
         Stage? ObtainedCurves = null;
         Pipeline? Dest = null;
@@ -1623,7 +1622,7 @@ public static partial class Lcms2
             cmsPipelineEvalFloat(InFloat, OutFloat, Src);
 
             for (var j = 0; j < Src.InputChannels; j++)
-                GammaTables[j].Table16[i] = _cmsQuickSaturateWord(OutFloat[j] * 65535.0);
+                GammaTables[j].Table16[i] = QuickSaturateWord(OutFloat[j] * 65535.0);
         }
 
         ObtainedCurves = cmsStageAllocToneCurves(Src.ContextID, Src.InputChannels, GammaTables);
@@ -1776,14 +1775,14 @@ public static partial class Lcms2
                 // first we compute the resulting byte and then we store the byte times
                 // 257. This quantization allows to round very quick by doing a >> 8, but
                 // since the low byte is always equal to msb, we can do a & 0xff and this works!
-                var w = _cmsQuickSaturateWord(Val * 65535.0);
+                var w = QuickSaturateWord(Val * 65535.0);
                 var b = FROM_16_TO_8(w);
 
                 Table[i] = FROM_8_TO_16(b);
             }
             else
             {
-                Table[i] = _cmsQuickSaturateWord(Val * 65535.0);
+                Table[i] = QuickSaturateWord(Val * 65535.0);
             }
         }
     }
@@ -2008,34 +2007,6 @@ public static partial class Lcms2
                        : OptimizationPluginChunk;
 
         DupPluginOptimizationList(ref ctx.OptimizationPlugin, from);
-    }
-
-    internal static bool _cmsRegisterOptimizationPlugin(Context? id, PluginBase? Data)
-    {
-        var ctx = Context.Get(id).OptimizationPlugin;
-        if (Data is not PluginOptimization Plugin)
-        {
-            ctx.List.Clear();
-            return true;
-        }
-
-        // Optimizer callback is required
-        if (Plugin.OptimizePtr is null)
-            return false;
-
-        //var fl = _cmsPluginMalloc<OptimizationCollection>(id);
-        //if (fl is null) return false;
-
-        // Copy the parameters
-        //fl->OptimizePtr = Plugin.OptimizePtr;
-
-        // Keep linked list
-        //fl->Next = ctx.OptimizationCollection;
-
-        ctx.List.Add(Plugin.OptimizePtr);
-
-        // All is ok
-        return true;
     }
 
     internal static bool _cmsOptimizePipeline(Context? ContextID,

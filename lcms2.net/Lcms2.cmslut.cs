@@ -27,7 +27,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2;
@@ -53,7 +52,7 @@ public static partial class Lcms2
     private static void FromFloatTo16(ReadOnlySpan<float> In, Span<ushort> Out, uint n)
     {
         for (var i = 0; i < n; i++)
-            Out[i] = _cmsQuickSaturateWord(In[i] * 65535.0f);
+            Out[i] = QuickSaturateWord(In[i] * 65535.0f);
     }
 
     private static void From16ToFloat(ReadOnlySpan<ushort> In, Span<float> Out, uint n)
@@ -480,11 +479,11 @@ public static partial class Lcms2
         if (mpe.Data is not StageCLutData<ushort> Data)
             return;
 
-        Span<ushort> In16 = stackalloc ushort[MAX_STAGE_CHANNELS];
-        Span<ushort> Out16 = stackalloc ushort[MAX_STAGE_CHANNELS];
+        Span<ushort> In16 = stackalloc ushort[Stage.MaxChannels];
+        Span<ushort> Out16 = stackalloc ushort[Stage.MaxChannels];
 
-        _cmsAssert(mpe.InputChannels <= MAX_STAGE_CHANNELS);
-        _cmsAssert(mpe.OutputChannels <= MAX_STAGE_CHANNELS);
+        _cmsAssert(mpe.InputChannels <= Stage.MaxChannels);
+        _cmsAssert(mpe.OutputChannels <= Stage.MaxChannels);
 
         FromFloatTo16(In, In16, mpe.InputChannels);
         Data.Params.Interpolation.Lerp16?.Invoke(In16, Out16, Data.Params);
@@ -619,12 +618,12 @@ public static partial class Lcms2
     {
         _cmsAssert(clutPoints);
 
-        if (inputChan > MAX_INPUT_DIMENSIONS)
+        if (inputChan > Context.MaxInputDimensions)
         {
-            LogError(
+            Context.LogError(
                 ContextID,
                 ErrorCodes.Range,
-                $"Too many input channels ({inputChan} channels, max={MAX_INPUT_DIMENSIONS})");
+                $"Too many input channels ({inputChan} channels, max={Context.MaxInputDimensions})");
 
             return null;
         }
@@ -697,10 +696,10 @@ public static partial class Lcms2
                                                 uint outputChan,
                                                 ReadOnlySpan<ushort> Table)
     {
-        Span<uint> Dimensions = stackalloc uint[MAX_INPUT_DIMENSIONS];
+        Span<uint> Dimensions = stackalloc uint[Context.MaxInputDimensions];
 
         // Our resulting LUT would be same gridpoints on all dimensions
-        for (var i = 0; i < MAX_INPUT_DIMENSIONS; i++)
+        for (var i = 0; i < Context.MaxInputDimensions; i++)
             Dimensions[i] = nGridPoints;
 
         return cmsStageAllocCLut16bitGranular(ContextID, Dimensions, inputChan, outputChan, Table);
@@ -712,10 +711,10 @@ public static partial class Lcms2
                                                 uint outputChan,
                                                 ReadOnlySpan<float> Table)
     {
-        Span<uint> Dimensions = stackalloc uint[MAX_INPUT_DIMENSIONS];
+        Span<uint> Dimensions = stackalloc uint[Context.MaxInputDimensions];
 
         // Our resulting LUT would be same gridpoints on all dimensions
-        for (var i = 0; i < MAX_INPUT_DIMENSIONS; i++)
+        for (var i = 0; i < Context.MaxInputDimensions; i++)
             Dimensions[i] = nGridPoints;
 
         return cmsStageAllocCLutFloatGranular(ContextID, Dimensions, inputChan, outputChan, Table);
@@ -729,12 +728,12 @@ public static partial class Lcms2
     {
         _cmsAssert(clutPoints);
 
-        if (inputChan > MAX_INPUT_DIMENSIONS)
+        if (inputChan > Context.MaxInputDimensions)
         {
-            LogError(
+            Context.LogError(
                 ContextID,
                 ErrorCodes.Range,
-                $"Too many input channels ({inputChan} channels, max={MAX_INPUT_DIMENSIONS})");
+                $"Too many input channels ({inputChan} channels, max={Context.MaxInputDimensions})");
             return null;
         }
 
@@ -812,9 +811,9 @@ public static partial class Lcms2
 
     internal static Stage? _cmsStageAllocIdentityCLut(Context? ContextID, uint nChan)
     {
-        Span<uint> Dimensions = stackalloc uint[MAX_INPUT_DIMENSIONS];
+        Span<uint> Dimensions = stackalloc uint[Context.MaxInputDimensions];
 
-        for (var i = 0; i < MAX_INPUT_DIMENSIONS; i++)
+        for (var i = 0; i < Context.MaxInputDimensions; i++)
             Dimensions[i] = 2;
 
         var mpe = cmsStageAllocCLut16bitGranular(ContextID, Dimensions, nChan, nChan, null);
@@ -835,13 +834,13 @@ public static partial class Lcms2
     internal static ushort _cmsQuantizeVal(double i, uint MaxSamples)
     {
         var x = (i * 65535.0) / (MaxSamples - 1);
-        return _cmsQuickSaturateWord(x);
+        return QuickSaturateWord(x);
     }
 
     public static bool cmsStageSampleCLut16bit(Stage? mpe, SAMPLER16 Sampler, object? Cargo, SamplerFlag dwFlags)
     {
-        Span<ushort> In = stackalloc ushort[MAX_INPUT_DIMENSIONS + 1];
-        Span<ushort> Out = stackalloc ushort[MAX_INPUT_DIMENSIONS];
+        Span<ushort> In = stackalloc ushort[Context.MaxInputDimensions + 1];
+        Span<ushort> Out = stackalloc ushort[Context.MaxInputDimensions];
 
         if (mpe?.Data is not StageCLutData<ushort> clut)
             return false;
@@ -854,9 +853,9 @@ public static partial class Lcms2
             return false;
         if (nOutputs <= 0)
             return false;
-        if (nInputs > MAX_INPUT_DIMENSIONS)
+        if (nInputs > Context.MaxInputDimensions)
             return false;
-        if (nOutputs >= MAX_STAGE_CHANNELS)
+        if (nOutputs >= Stage.MaxChannels)
             return false;
 
         var nTotalPoints = CubeSize(nSamples, nInputs);
@@ -885,7 +884,7 @@ public static partial class Lcms2
             if (!Sampler(In, Out, Cargo))
                 return false;
 
-            if (dwFlags.IsUnset(SamplerFlag.Inspect))
+            if (!dwFlags.HasFlag(SamplerFlag.Inspect))
             {
                 if (!clut.TUshort.IsEmpty)
                 {
@@ -902,8 +901,8 @@ public static partial class Lcms2
 
     public static bool cmsStageSampleCLutFloat(Stage? mpe, SAMPLERFLOAT Sampler, object? Cargo, SamplerFlag dwFlags)
     {
-        Span<float> In = stackalloc float[MAX_INPUT_DIMENSIONS + 1];
-        Span<float> Out = stackalloc float[MAX_INPUT_DIMENSIONS];
+        Span<float> In = stackalloc float[Context.MaxInputDimensions + 1];
+        Span<float> Out = stackalloc float[Context.MaxInputDimensions];
 
         if (mpe?.Data is not StageCLutData<float> clut)
             return false;
@@ -916,9 +915,9 @@ public static partial class Lcms2
             return false;
         if (nOutputs <= 0)
             return false;
-        if (nInputs > MAX_INPUT_DIMENSIONS)
+        if (nInputs > Context.MaxInputDimensions)
             return false;
-        if (nOutputs >= MAX_STAGE_CHANNELS)
+        if (nOutputs >= Stage.MaxChannels)
             return false;
 
         var nTotalPoints = CubeSize(nSamples, nInputs);
@@ -964,9 +963,9 @@ public static partial class Lcms2
 
     public static bool cmsSliceSpace16(uint nInputs, ReadOnlySpan<uint> clutPoints, SAMPLER16 Sampler, object? Cargo)
     {
-        Span<ushort> In = stackalloc ushort[cmsMAXCHANNELS];
+        Span<ushort> In = stackalloc ushort[Context.MaxChannels];
 
-        if (nInputs >= cmsMAXCHANNELS)
+        if (nInputs >= Context.MaxChannels)
             return false;
 
         var nTotalPoints = CubeSize(clutPoints, nInputs);
@@ -996,9 +995,9 @@ public static partial class Lcms2
                                           SAMPLERFLOAT Sampler,
                                           object? Cargo)
     {
-        Span<float> In = stackalloc float[cmsMAXCHANNELS];
+        Span<float> In = stackalloc float[Context.MaxChannels];
 
-        if (nInputs >= cmsMAXCHANNELS)
+        if (nInputs >= Context.MaxChannels)
             return false;
 
         var nTotalPoints = CubeSize(clutPoints, nInputs);
@@ -1027,7 +1026,7 @@ public static partial class Lcms2
     {
         CIELab Lab;
         CIEXYZ XYZ;
-        const double XYZadj = MAX_ENCODEABLE_XYZ;
+        const double XYZadj = CIEXYZ.MaxEncodeableXYZ;
 
         // V4 rules
         Lab.L = In[0] * 100.0;
@@ -1176,7 +1175,7 @@ public static partial class Lcms2
     {
         CIELab Lab;
         CIEXYZ XYZ;
-        const double XYZadj = MAX_ENCODEABLE_XYZ;
+        const double XYZadj = CIEXYZ.MaxEncodeableXYZ;
 
         // From 0..1.0 to XYZ
         XYZ.X = In[0] * XYZadj;
@@ -1299,49 +1298,49 @@ public static partial class Lcms2
     {
         if (D is not Pipeline lut)
             return;
-        Span<float> Storage = stackalloc float[2 * MAX_STAGE_CHANNELS];
+        Span<float> Storage = stackalloc float[2 * Stage.MaxChannels];
         var Phase = 0;
 
-        From16ToFloat(In, Storage[(Phase * MAX_STAGE_CHANNELS)..], lut.InputChannels);
+        From16ToFloat(In, Storage[(Phase * Stage.MaxChannels)..], lut.InputChannels);
 
         for (var mpe = lut.Elements;
              mpe is not null;
              mpe = mpe.Next)
         {
             var NextPhase = Phase ^ 1;
-            mpe.EvalPtr(Storage[(Phase * MAX_STAGE_CHANNELS)..], Storage[(NextPhase * MAX_STAGE_CHANNELS)..], mpe);
+            mpe.EvalPtr(Storage[(Phase * Stage.MaxChannels)..], Storage[(NextPhase * Stage.MaxChannels)..], mpe);
             Phase = NextPhase;
         }
 
-        FromFloatTo16(Storage[(Phase * MAX_STAGE_CHANNELS)..], Out, lut.OutputChannels);
+        FromFloatTo16(Storage[(Phase * Stage.MaxChannels)..], Out, lut.OutputChannels);
     }
 
     internal static void _LUTevalFloat(ReadOnlySpan<float> In, Span<float> Out, object? D)
     {
         if (D is not Pipeline lut)
             return;
-        Span<float> Storage = stackalloc float[2 * MAX_STAGE_CHANNELS];
+        Span<float> Storage = stackalloc float[2 * Stage.MaxChannels];
         var Phase = 0;
 
-        memmove(Storage[(Phase * MAX_STAGE_CHANNELS)..], In, lut.InputChannels);
+        memmove(Storage[(Phase * Stage.MaxChannels)..], In, lut.InputChannels);
 
         for (var mpe = lut.Elements;
              mpe is not null;
              mpe = mpe.Next)
         {
             var NextPhase = Phase ^ 1;
-            mpe.EvalPtr(Storage[(Phase * MAX_STAGE_CHANNELS)..], Storage[(NextPhase * MAX_STAGE_CHANNELS)..], mpe);
+            mpe.EvalPtr(Storage[(Phase * Stage.MaxChannels)..], Storage[(NextPhase * Stage.MaxChannels)..], mpe);
             Phase = NextPhase;
         }
 
-        memmove(Out, Storage[(Phase * MAX_STAGE_CHANNELS)..], lut.OutputChannels);
+        memmove(Out, Storage[(Phase * Stage.MaxChannels)..], lut.OutputChannels);
     }
 
     public static Pipeline? cmsPipelineAlloc(Context? ContextID, uint InputChannels, uint OutputChannels)
     {
         // A value of zero in channels is allowed as a placeholder
-        if (InputChannels >= cmsMAXCHANNELS ||
-            OutputChannels >= cmsMAXCHANNELS)
+        if (InputChannels >= Context.MaxChannels ||
+            OutputChannels >= Context.MaxChannels)
             return null;
 
         var NewLUT = new Pipeline(ContextID, InputChannels, OutputChannels, _LUTeval16, _LUTevalFloat);

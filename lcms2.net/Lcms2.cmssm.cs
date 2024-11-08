@@ -24,26 +24,46 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Runtime.CompilerServices;
 
 using static System.Math;
 
 namespace lcms2;
+
 public static partial class Lcms2
 {
     internal const byte SECTORS = 16;
 
     private readonly record struct _spiral(int AdvX, int AdvY);
+
     private static readonly _spiral[] Spiral = new _spiral[]
     {
-        new(0,  -1), new(+1, -1), new(+1,  0), new(+1, +1), new(0,  +1), new(-1, +1),
-        new(-1,  0), new(-1, -1), new(-1, -2), new(0,  -2), new(+1, -2), new(+2, -2),
-        new(+2, -1), new(+2,  0), new(+2, +1), new(+2, +2), new(+1, +2), new(0,  +2),
-        new(-1, +2), new(-2, +2), new(-2, +1), new(-2, 0),  new(-2, -1), new(-2, -2)
+        new(0,  -1),
+        new(+1, -1),
+        new(+1,  0),
+        new(+1, +1),
+        new(0,  +1),
+        new(-1, +1),
+        new(-1,  0),
+        new(-1, -1),
+        new(-1, -2),
+        new(0,  -2),
+        new(+1, -2),
+        new(+2, -2),
+        new(+2, -1),
+        new(+2,  0),
+        new(+2, +1),
+        new(+2, +2),
+        new(+1, +2),
+        new(0,  +2),
+        new(-1, +2),
+        new(-2, +2),
+        new(-2, +1),
+        new(-2, 0),
+        new(-2, -1),
+        new(-2, -2)
     };
+
     private static readonly int NSTEPS = Spiral.Length;
 
     internal record struct Spherical(double r, double alpha, double theta);
@@ -59,7 +79,8 @@ public static partial class Lcms2
     internal static double _cmsAtan2(double y, double x)
     {
         // Deal with undefined case
-        if (x is 0 && y is 0) return 0;
+        if (x is 0 && y is 0)
+            return 0;
 
         var a = Atan2(y, x) * 180.0 / M_PI;
 
@@ -120,12 +141,12 @@ public static partial class Lcms2
     {
         VEC3 vA, vU;
         vA = new VEC3(a.X, a.Y, a.Z);
-        vU = new VEC3(b.X - a.X,
-                      b.Y - a.Y,
-                      b.Z - a.Z);
+        vU = new VEC3(
+            b.X - a.X,
+            b.Y - a.Y,
+            b.Z - a.Z);
 
         return new(vA, vU);
-
     }
 
     private static VEC3 GetPointOfLine(Line line, double t) =>
@@ -149,13 +170,13 @@ public static partial class Lcms2
         var d = u1.Dot(w0);
         var e = u2.Dot(w0);
 
-        var D = a * c - b * b;      // Denominator
-        sD = tD = D;                // default sD = D >= 0
+        var D = a * c - b * b; // Denominator
+        sD = tD = D;           // default sD = D >= 0
 
         if (D < MATRIX_DET_TOLERANCE)   // the lines are almost parallel
         {
-            sN = 0.0;       // force using point P0 on segment S1
-            sD = 1.0;       // to prevent possible division by 0.0 later
+            sN = 0.0; // force using point P0 on segment S1
+            sD = 1.0; // to prevent possible division by 0.0 later
             tN = e;
             tD = c;
         }
@@ -180,7 +201,6 @@ public static partial class Lcms2
 
         if (tN < 0.0)           // tc < 0 => the t=0 edge is visible
         {
-
             tN = 0.0;
 
             // recompute sc for this edge
@@ -196,7 +216,6 @@ public static partial class Lcms2
         }
         else if (tN > tD)      // tc > 1 => the t=1 edge is visible
         {
-
             tN = tD;
 
             // recompute sc for this edge
@@ -264,7 +283,7 @@ public static partial class Lcms2
 
         if (sp.r < 0 || sp.alpha < 0 || sp.theta < 0)
         {
-            LogError(gbd.ContextID, cmsERROR_RANGE, "spherical value out of range");
+            Context.LogError(gbd.ContextID, cmsERROR_RANGE, "spherical value out of range");
             //return null;
             return ref Unsafe.NullRef<GBDPoint>();
         }
@@ -274,7 +293,7 @@ public static partial class Lcms2
 
         if (alpha is < 0 or >= SECTORS || theta is < 0 or >= SECTORS)
         {
-            LogError(gbd.ContextID, cmsERROR_RANGE, "quadrant out of range");
+            Context.LogError(gbd.ContextID, cmsERROR_RANGE, "quadrant out of range");
             //return null;
             return ref Unsafe.NullRef<GBDPoint>();
         }
@@ -287,7 +306,8 @@ public static partial class Lcms2
     {
         // Get pointer to the sector
         ref var ptr = ref GetPoint(gbd, Lab, out var sp);
-        if (Unsafe.AreSame(ref ptr, ref Unsafe.NullRef<GBDPoint>())) return false;
+        if (Unsafe.AreSame(ref ptr, ref Unsafe.NullRef<GBDPoint>()))
+            return false;
 
         // If no samples at this sector, add it
         if (ptr.Type is GP_EMPTY)
@@ -312,10 +332,12 @@ public static partial class Lcms2
     {
         // Get pointer to the sector
         ref var ptr = ref GetPoint(gbd, Lab, out var sp);
-        if (Unsafe.AreSame(ref ptr, ref Unsafe.NullRef<GBDPoint>())) return false;
+        if (Unsafe.AreSame(ref ptr, ref Unsafe.NullRef<GBDPoint>()))
+            return false;
 
         // If no samples at this sector, return no data
-        if (ptr.Type is GP_EMPTY) return false;
+        if (ptr.Type is GP_EMPTY)
+            return false;
 
         // In gamut only if radius is greater
         return (sp.r <= ptr.p.r);
@@ -335,11 +357,14 @@ public static partial class Lcms2
             t %= SECTORS;
 
             // Cycle at the begin
-            if (a < 0) a = SECTORS + a;
-            if (t < 0) t = SECTORS + t;
+            if (a < 0)
+                a = SECTORS + a;
+            if (t < 0)
+                t = SECTORS + t;
 
             ref var pt = ref gbd.GamutPtr(t, a);
-            if (Unsafe.AreSame(ref pt, ref Unsafe.NullRef<GBDPoint>())) continue;
+            if (Unsafe.AreSame(ref pt, ref Unsafe.NullRef<GBDPoint>()))
+                continue;
 
             if (pt.Type is not GP_EMPTY)
                 Close[nSectors++] = pt;
@@ -356,8 +381,10 @@ public static partial class Lcms2
 
         // Is that point already specified?
         ref var ptr = ref gbd.GamutPtr(theta, alpha);
-        if (Unsafe.AreSame(ref ptr, ref Unsafe.NullRef<GBDPoint>())) return true;
-        if (ptr.Type is not GP_EMPTY) return true;
+        if (Unsafe.AreSame(ref ptr, ref Unsafe.NullRef<GBDPoint>()))
+            return true;
+        if (ptr.Type is not GP_EMPTY)
+            return true;
 
         // Fill close points
         var nCloseSectors = FindNearSectors(gbd, alpha, theta, Close);
@@ -409,11 +436,7 @@ public static partial class Lcms2
             }
         }
 
-        gbd.GamutPtr(theta, alpha) = new GBDPoint
-        {
-            p = closel,
-            Type = GP_MODELED
-        };
+        gbd.GamutPtr(theta, alpha) = new GBDPoint { p = closel, Type = GP_MODELED };
 
         return true;
     }
@@ -424,17 +447,20 @@ public static partial class Lcms2
 
         // Interpolate black
         for (var alpha = 0; alpha < SECTORS; alpha++)
-            if (!InterpolateMissingSector(gbd, alpha, 0)) return false;
+            if (!InterpolateMissingSector(gbd, alpha, 0))
+                return false;
 
         // Interpolate white
         for (var alpha = 0; alpha < SECTORS; alpha++)
-            if (!InterpolateMissingSector(gbd, alpha, SECTORS - 1)) return false;
+            if (!InterpolateMissingSector(gbd, alpha, SECTORS - 1))
+                return false;
 
         // Interpolate Mid
         for (var theta = 1; theta < SECTORS; theta++)
         {
             for (var alpha = 0; alpha < SECTORS; alpha++)
-                if (!InterpolateMissingSector(gbd, alpha, theta)) return false;
+                if (!InterpolateMissingSector(gbd, alpha, theta))
+                    return false;
         }
 
         // Done
@@ -519,7 +545,8 @@ public static partial class Lcms2
             for (var j = 0; j < SECTORS; j++)
             {
                 ref var pt = ref gbd.GamutPtr(i, j);
-                if (Unsafe.AreSame(ref pt, ref Unsafe.NullRef<GBDPoint>())) pt = new();
+                if (Unsafe.AreSame(ref pt, ref Unsafe.NullRef<GBDPoint>()))
+                    pt = new();
                 var ptp = pt.p;
                 var v = ToCartesian(ptp);
 
@@ -543,15 +570,22 @@ public static partial class Lcms2
             for (var j = 0; j < SECTORS; j++)
             {
                 ref var pt = ref gbd.GamutPtr(i, j);
-                if (Unsafe.AreSame(ref pt, ref Unsafe.NullRef<GBDPoint>())) pt = new();
+                if (Unsafe.AreSame(ref pt, ref Unsafe.NullRef<GBDPoint>()))
+                    pt = new();
                 var ptp = pt.p;
                 var v = ToCartesian(ptp);
 
                 switch (pt.Type)
                 {
-                    case GP_EMPTY: fp.Write("\t\t\t\t\t{0:g} {1:g} {2:g}", 0.0, 0.0, 0.0); break;
-                    case GP_MODELED: fp.Write("\t\t\t\t\t{0:g} {1:g} {2:g}", 1.0, .5, .5); break;
-                    default: fp.Write("\t\t\t\t\t{0:g} {1:g} {2:g}", 1.0, 1.0, 1.0); break;
+                    case GP_EMPTY:
+                        fp.Write("\t\t\t\t\t{0:g} {1:g} {2:g}", 0.0, 0.0, 0.0);
+                        break;
+                    case GP_MODELED:
+                        fp.Write("\t\t\t\t\t{0:g} {1:g} {2:g}", 1.0, .5, .5);
+                        break;
+                    default:
+                        fp.Write("\t\t\t\t\t{0:g} {1:g} {2:g}", 1.0, 1.0, 1.0);
+                        break;
                 }
 
                 if ((j == SECTORS - 1) && (i == SECTORS - 1))
@@ -562,7 +596,6 @@ public static partial class Lcms2
         }
 
         fp.WriteLine("\t\t\t}");
-
 
         fp.WriteLine("\t\t\t}");
         fp.WriteLine("\t\t}");

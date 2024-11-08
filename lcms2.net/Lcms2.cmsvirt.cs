@@ -24,7 +24,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2;
@@ -367,9 +366,9 @@ public static partial class Lcms2
 
         var Ratio = Math.Max(0, SumCMYK > InkLimit ? 1 - ((SumCMYK - InkLimit) / SumCMY) : 1);
 
-        Out[0] = _cmsQuickSaturateWord(In[0] * Ratio); // C
-        Out[1] = _cmsQuickSaturateWord(In[1] * Ratio); // M
-        Out[2] = _cmsQuickSaturateWord(In[2] * Ratio); // Y
+        Out[0] = QuickSaturateWord(In[0] * Ratio); // C
+        Out[1] = QuickSaturateWord(In[1] * Ratio); // M
+        Out[2] = QuickSaturateWord(In[2] * Ratio); // Y
 
         Out[3] = In[3];                                 // K (untouched)
 
@@ -380,13 +379,13 @@ public static partial class Lcms2
     {
         if (ColorSpace != Signatures.Colorspace.Cmyk)
         {
-            LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "InkLimiting: Only CMYK currently supported");
+            Context.LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "InkLimiting: Only CMYK currently supported");
             return null;
         }
 
         if (Limit is < 1 or > 400)
         {
-            LogError(ContextID, cmsERROR_RANGE, "InkLimiting: Limit should be between 0..400");
+            Context.LogError(ContextID, cmsERROR_RANGE, "InkLimiting: Limit should be between 0..400");
             Limit = Math.Max(1, Math.Min(400, Limit));
         }
 
@@ -834,7 +833,7 @@ public static partial class Lcms2
                                                             uint TempSrc,
                                                             uint TempDest)
     {
-        Span<uint> Dimensions = stackalloc uint[MAX_INPUT_DIMENSIONS];
+        Span<uint> Dimensions = stackalloc uint[Context.MaxInputDimensions];
         BCHSWADJUSTS bchsw = new();
         Pipeline? Pipeline = null;
 
@@ -869,7 +868,7 @@ public static partial class Lcms2
             return null;
         }
 
-        for (var i = 0; i < MAX_INPUT_DIMENSIONS; i++)
+        for (var i = 0; i < Context.MaxInputDimensions; i++)
             Dimensions[i] = nLUTPoints;
         var CLUT = cmsStageAllocCLut16bitGranular(ContextID, Dimensions, 3, 3, null);
         if (CLUT is null)

@@ -24,9 +24,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Runtime.CompilerServices;
 
 using static System.BitConverter;
@@ -39,7 +36,7 @@ public static partial class Lcms2
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static byte _cmsQuickSaturateByte(double d) =>
-        (byte)_cmsQuickSaturateWord(Math.Max(Math.Min(d + 0.5, 255), 0));
+        (byte)QuickSaturateWord(Math.Max(Math.Min(d + 0.5, 255), 0));
 
     private static uint trueBytesSize(uint Format) =>
         PixelSize(Format);
@@ -96,10 +93,10 @@ public static partial class Lcms2
         dst[0] = _cmsQuickSaturateByte(ToSingle(src) * 255.0);
 
     private static void fromFLTto16(Span<byte> dst, ReadOnlySpan<byte> src) =>
-        TryWriteBytes(dst, _cmsQuickSaturateWord(ToSingle(src) * 65535f));
+        TryWriteBytes(dst, QuickSaturateWord(ToSingle(src) * 65535f));
 
     private static void fromFLTto16SE(Span<byte> dst, ReadOnlySpan<byte> src) =>
-        TryWriteBytes(dst, CHANGE_ENDIAN(_cmsQuickSaturateWord(ToSingle(src) * 65535f)));
+        TryWriteBytes(dst, CHANGE_ENDIAN(QuickSaturateWord(ToSingle(src) * 65535f)));
 
     private static void copy32(Span<byte> dst, ReadOnlySpan<byte> src) =>
         src[..4].CopyTo(dst);
@@ -114,10 +111,10 @@ public static partial class Lcms2
         dst[0] = _cmsQuickSaturateByte((double)ToHalf(src) * 255.0);
 
     private static void fromHLFto16(Span<byte> dst, ReadOnlySpan<byte> src) =>
-        TryWriteBytes(dst, _cmsQuickSaturateWord((float)ToHalf(src) * 65535f));
+        TryWriteBytes(dst, QuickSaturateWord((float)ToHalf(src) * 65535f));
 
     private static void fromHLFto16SE(Span<byte> dst, ReadOnlySpan<byte> src) =>
-        TryWriteBytes(dst, CHANGE_ENDIAN(_cmsQuickSaturateWord((float)ToHalf(src) * 65535f)));
+        TryWriteBytes(dst, CHANGE_ENDIAN(QuickSaturateWord((float)ToHalf(src) * 65535f)));
 
     private static void fromHLFtoFLT(Span<byte> dst, ReadOnlySpan<byte> src) =>
         TryWriteBytes(dst, (float)ToHalf(src));
@@ -129,13 +126,13 @@ public static partial class Lcms2
         dst[0] = _cmsQuickSaturateByte(ToDouble(src) * 255.0);
 
     private static void fromDBLto16(Span<byte> dst, ReadOnlySpan<byte> src) =>
-        TryWriteBytes(dst, _cmsQuickSaturateWord(ToDouble(src) * 65535f));
+        TryWriteBytes(dst, QuickSaturateWord(ToDouble(src) * 65535f));
 
     private static void fromDBLto16SE(Span<byte> dst, ReadOnlySpan<byte> src) =>
-        TryWriteBytes(dst, CHANGE_ENDIAN(_cmsQuickSaturateWord(ToDouble(src) * 65535f)));
+        TryWriteBytes(dst, CHANGE_ENDIAN(QuickSaturateWord(ToDouble(src) * 65535f)));
 
     private static void fromDBLtoFLT(Span<byte> dst, ReadOnlySpan<byte> src) =>
-        TryWriteBytes(dst,(float)ToDouble(src));
+        TryWriteBytes(dst, (float)ToDouble(src));
 
     private static void fromDBLtoHLF(Span<byte> dst, ReadOnlySpan<byte> src) =>
         TryWriteBytes(dst, (Half)ToDouble(src));
@@ -146,15 +143,15 @@ public static partial class Lcms2
     private static int FormatterPos(uint frm) =>
         (T_BYTES(frm), T_FLOAT(frm) is not 0) switch
         {
-            (0, true) => 5,     // DBL
-            (2, true) => 3,     // HLF
-            (4, true) => 4,     // FLT
+            (0, true) => 5, // DBL
+            (2, true) => 3, // HLF
+            (4, true) => 4, // FLT
             (2, false) =>
                 T_ENDIAN16(frm) is not 0
-                    ? 2         // 16SE
-                    : 1,        // 16
-            (1, false) => 0,    // 8
-            _ => -1             // not recognized
+                    ? 2      // 16SE
+                    : 1,     // 16
+            (1, false) => 0, // 8
+            _          => -1 // not recognized
         };
 
     private static readonly FormatterAlphaFn[,] FormattersAlpha = new FormatterAlphaFn[,]
@@ -174,16 +171,18 @@ public static partial class Lcms2
 
         if (in_n is < 0 or > 5 || out_n is < 0 or > 5)
         {
-            LogError(id, cmsERROR_UNKNOWN_EXTENSION, "Unrecognized alpha channel width");
+            Context.LogError(id, cmsERROR_UNKNOWN_EXTENSION, "Unrecognized alpha channel width");
             return null;
         }
 
         return FormattersAlpha[in_n, out_n];
     }
 
-    private static bool ComputeIncrementsForChunky(uint Format, Span<uint> ComponentStartingOrder, Span<uint> ComponentPointerIncrements)
+    private static bool ComputeIncrementsForChunky(uint Format,
+                                                   Span<uint> ComponentStartingOrder,
+                                                   Span<uint> ComponentPointerIncrements)
     {
-        Span<uint> channels = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> channels = stackalloc uint[Context.MaxChannels];
         var extra = T_EXTRA(Format);
         var nchannels = T_CHANNELS(Format);
         var total_chans = nchannels + extra;
@@ -191,7 +190,7 @@ public static partial class Lcms2
         var pixelSize = channelSize * total_chans;
 
         // Sanity check
-        if (total_chans is <= 0 or >= cmsMAXCHANNELS)
+        if (total_chans is <= 0 or >= Context.MaxChannels)
             return false;
 
         //memset(channels, 0, cmsMAXCHANNELS * sizeof(uint));
@@ -226,16 +225,19 @@ public static partial class Lcms2
         return true;
     }
 
-    private static bool ComputeIncrementsForPlanar(uint Format, uint BytesPerPlane, Span<uint> ComponentStartingOrder, Span<uint> ComponentPointerIncrements)
+    private static bool ComputeIncrementsForPlanar(uint Format,
+                                                   uint BytesPerPlane,
+                                                   Span<uint> ComponentStartingOrder,
+                                                   Span<uint> ComponentPointerIncrements)
     {
-        Span<uint> channels = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> channels = stackalloc uint[Context.MaxChannels];
         var extra = T_EXTRA(Format);
         var nchannels = T_CHANNELS(Format);
         var total_chans = nchannels + extra;
         var channelSize = PixelSize(Format);
 
         // Sanity check
-        if (total_chans is <= 0 or >= cmsMAXCHANNELS)
+        if (total_chans is <= 0 or >= Context.MaxChannels)
             return false;
 
         //memset(channels, 0, cmsMAXCHANNELS * sizeof(uint));
@@ -267,11 +269,18 @@ public static partial class Lcms2
         return true;
     }
 
-    private static bool ComputeComponentIncrements(uint Format, uint BytesPerPlane, Span<uint> ComponentStartingOrder, Span<uint> ComponentPointerIncrements)
+    private static bool ComputeComponentIncrements(uint Format,
+                                                   uint BytesPerPlane,
+                                                   Span<uint> ComponentStartingOrder,
+                                                   Span<uint> ComponentPointerIncrements)
     {
         if (T_PLANAR(Format) is not 0)
         {
-            return ComputeIncrementsForPlanar(Format, BytesPerPlane, ComponentStartingOrder, ComponentPointerIncrements);
+            return ComputeIncrementsForPlanar(
+                Format,
+                BytesPerPlane,
+                ComponentStartingOrder,
+                ComponentPointerIncrements);
         }
         else
         {
@@ -279,12 +288,17 @@ public static partial class Lcms2
         }
     }
 
-    internal static void _cmsHandleExtraChannels(Transform p, ReadOnlySpan<byte> @in, Span<byte> @out, uint PixelsPerLine, uint LineCount, Stride Stride)
+    internal static void _cmsHandleExtraChannels(Transform p,
+                                                 ReadOnlySpan<byte> @in,
+                                                 Span<byte> @out,
+                                                 uint PixelsPerLine,
+                                                 uint LineCount,
+                                                 Stride Stride)
     {
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
         // Make sure we need some copy
         if ((p.dwOriginalFlags & cmsFLAGS_COPY_ALPHA) is 0)
@@ -300,7 +314,8 @@ public static partial class Lcms2
             return;
 
         // Anything to do?
-        if (nExtra is 0) return;
+        if (nExtra is 0)
+            return;
 
         // Compute the increments
         if (!ComputeComponentIncrements(p.InputFormat, Stride.BytesPerPlaneIn, SourceStartingOrder, SourceIncrements))
@@ -310,7 +325,8 @@ public static partial class Lcms2
 
         // Check for conversions 8, 16, half, float, double
         var copyValueFn = _cmsGetFormatterAlpha(p.ContextID, p.InputFormat, p.OutputFormat);
-        if (copyValueFn is null) return;
+        if (copyValueFn is null)
+            return;
 
         if (nExtra is 1)    // Optimized routine for copying a single extra channel quickly
         {
@@ -338,10 +354,10 @@ public static partial class Lcms2
         }
         else            // General case with more than one extra channel
         {
-            Span<int> SourcePtr = stackalloc int[cmsMAXCHANNELS];
-            Span<int> DestPtr = stackalloc int[cmsMAXCHANNELS];
-            Span<nuint> SourceStrideIncrements = stackalloc nuint[cmsMAXCHANNELS];
-            Span<nuint> DestStrideIncrements = stackalloc nuint[cmsMAXCHANNELS];
+            Span<int> SourcePtr = stackalloc int[Context.MaxChannels];
+            Span<int> DestPtr = stackalloc int[Context.MaxChannels];
+            Span<nuint> SourceStrideIncrements = stackalloc nuint[Context.MaxChannels];
+            Span<nuint> DestStrideIncrements = stackalloc nuint[Context.MaxChannels];
 
             //memset(SourceStrideIncrements, 0, sizeof(uint) * cmsMAXCHANNELS);
             //memset(DestStrideIncrements, 0, sizeof(uint) * cmsMAXCHANNELS);

@@ -28,7 +28,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2;
@@ -453,14 +452,14 @@ public static partial class Lcms2
         if (ExtraFirst)
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(FROM_8_TO_16(accum[0]));
+                alpha_factor = (uint)ToFixedDomain(FROM_8_TO_16(accum[0]));
 
             ptr += (int)Extra;
         }
         else
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(FROM_8_TO_16(accum[(int)nChan]));
+                alpha_factor = (uint)ToFixedDomain(FROM_8_TO_16(accum[(int)nChan]));
         }
 
         for (var i = 0; i < nChan; i++)
@@ -510,14 +509,14 @@ public static partial class Lcms2
         if (ExtraFirst)
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(FROM_8_TO_16(accum[0]));
+                alpha_factor = (uint)ToFixedDomain(FROM_8_TO_16(accum[0]));
 
             ptr += (int)(Extra * Stride);
         }
         else
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(FROM_8_TO_16(accum[(int)(nChan * Stride)]));
+                alpha_factor = (uint)ToFixedDomain(FROM_8_TO_16(accum[(int)(nChan * Stride)]));
         }
 
         for (var i = 0; i < nChan; i++)
@@ -813,7 +812,7 @@ public static partial class Lcms2
 
         var acc = MemoryMarshal.Cast<byte, ushort>(accum);
         var alpha = ExtraFirst ? acc[0] : acc[nChan];
-        var alpha_factor = (uint)_cmsToFixedDomain(alpha);
+        var alpha_factor = (uint)ToFixedDomain(alpha);
 
         var ptr = 0;
 
@@ -894,7 +893,7 @@ public static partial class Lcms2
 
         var acc = MemoryMarshal.Cast<byte, ushort>(accum);
         var alpha = ExtraFirst ? acc[0] : acc[(nChan * (int)Stride) / 2];
-        var alpha_factor = (uint)_cmsToFixedDomain(alpha);
+        var alpha_factor = (uint)ToFixedDomain(alpha);
 
         var ptr = 0;
 
@@ -1277,7 +1276,7 @@ public static partial class Lcms2
                                 ? acc[(i + start) * (int)Stride]
                                 : acc[i + start]);
 
-            var vi = _cmsQuickSaturateWord(v * maximum);
+            var vi = QuickSaturateWord(v * maximum);
 
             if (Reverse)
                 vi = REVERSE_FLAVOR_16(vi);
@@ -1316,7 +1315,7 @@ public static partial class Lcms2
                         ? acc[(i + start) * (int)Stride]
                         : acc[i + start];
 
-            var vi = _cmsQuickSaturateWord(v * maximum);
+            var vi = QuickSaturateWord(v * maximum);
 
             if (Reverse)
                 vi = REVERSE_FLAVOR_16(vi);
@@ -1337,7 +1336,7 @@ public static partial class Lcms2
     {
         var Inks = MemoryMarshal.Cast<byte, double>(accum);
 
-        wIn[0] = wIn[1] = wIn[2] = _cmsQuickSaturateWord(Inks[0] * 65535.0);
+        wIn[0] = wIn[1] = wIn[2] = QuickSaturateWord(Inks[0] * 65535.0);
 
         return accum[sizeof(double)..];
     }
@@ -1555,17 +1554,17 @@ public static partial class Lcms2
         {
             Stride /= PixelSize(info.InputFormat);
 
-            wIn[0] = (float)(acc[0] / MAX_ENCODEABLE_XYZ);
-            wIn[1] = (float)(acc[(int)Stride] / MAX_ENCODEABLE_XYZ);
-            wIn[2] = (float)(acc[(int)Stride * 2] / MAX_ENCODEABLE_XYZ);
+            wIn[0] = (float)(acc[0] / CIEXYZ.MaxEncodeableXYZ);
+            wIn[1] = (float)(acc[(int)Stride] / CIEXYZ.MaxEncodeableXYZ);
+            wIn[2] = (float)(acc[(int)Stride * 2] / CIEXYZ.MaxEncodeableXYZ);
 
             return accum[sizeof(double)..];
         }
         else
         {
-            wIn[0] = (float)(acc[0] / MAX_ENCODEABLE_XYZ);
-            wIn[1] = (float)(acc[1] / MAX_ENCODEABLE_XYZ);
-            wIn[2] = (float)(acc[2] / MAX_ENCODEABLE_XYZ);
+            wIn[0] = (float)(acc[0] / CIEXYZ.MaxEncodeableXYZ);
+            wIn[1] = (float)(acc[1] / CIEXYZ.MaxEncodeableXYZ);
+            wIn[2] = (float)(acc[2] / CIEXYZ.MaxEncodeableXYZ);
 
             return accum[(sizeof(double) * (3 + T_EXTRA(info.InputFormat)))..];
         }
@@ -1582,17 +1581,17 @@ public static partial class Lcms2
         {
             Stride /= PixelSize(info.InputFormat);
 
-            wIn[0] = (float)(acc[0] / MAX_ENCODEABLE_XYZ);
-            wIn[1] = (float)(acc[(int)Stride] / MAX_ENCODEABLE_XYZ);
-            wIn[2] = (float)(acc[(int)Stride * 2] / MAX_ENCODEABLE_XYZ);
+            wIn[0] = (float)(acc[0] / CIEXYZ.MaxEncodeableXYZ);
+            wIn[1] = (float)(acc[(int)Stride] / CIEXYZ.MaxEncodeableXYZ);
+            wIn[2] = (float)(acc[(int)Stride * 2] / CIEXYZ.MaxEncodeableXYZ);
 
             return accum[sizeof(float)..];
         }
         else
         {
-            wIn[0] = (float)(acc[0] / MAX_ENCODEABLE_XYZ);
-            wIn[1] = (float)(acc[1] / MAX_ENCODEABLE_XYZ);
-            wIn[2] = (float)(acc[2] / MAX_ENCODEABLE_XYZ);
+            wIn[0] = (float)(acc[0] / CIEXYZ.MaxEncodeableXYZ);
+            wIn[1] = (float)(acc[1] / CIEXYZ.MaxEncodeableXYZ);
+            wIn[2] = (float)(acc[2] / CIEXYZ.MaxEncodeableXYZ);
 
             return accum[(sizeof(float) * (3 + T_EXTRA(info.InputFormat)))..];
         }
@@ -1674,14 +1673,14 @@ public static partial class Lcms2
         if (ExtraFirst)
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(FROM_8_TO_16(output[0]));
+                alpha_factor = (uint)ToFixedDomain(FROM_8_TO_16(output[0]));
 
             ptr += Extra;
         }
         else
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(FROM_8_TO_16(output[nChan]));
+                alpha_factor = (uint)ToFixedDomain(FROM_8_TO_16(output[nChan]));
         }
 
         for (var i = 0; i < nChan; i++)
@@ -1720,14 +1719,14 @@ public static partial class Lcms2
         if (ExtraFirst)
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(acc[ptr]);
+                alpha_factor = (uint)ToFixedDomain(acc[ptr]);
 
             ptr += Extra;
         }
         else
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(acc[nChan]);
+                alpha_factor = (uint)ToFixedDomain(acc[nChan]);
         }
 
         for (var i = 0; i < nChan; i++)
@@ -1768,14 +1767,14 @@ public static partial class Lcms2
         if (ExtraFirst)
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(FROM_8_TO_16(output[0]));
+                alpha_factor = (uint)ToFixedDomain(FROM_8_TO_16(output[0]));
 
             ptr += Extra * (int)Stride;
         }
         else
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(FROM_8_TO_16(output[nChan * (int)Stride]));
+                alpha_factor = (uint)ToFixedDomain(FROM_8_TO_16(output[nChan * (int)Stride]));
         }
 
         for (var i = 0; i < nChan; i++)
@@ -1812,14 +1811,14 @@ public static partial class Lcms2
         if (ExtraFirst)
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(acc[0]);
+                alpha_factor = (uint)ToFixedDomain(acc[0]);
 
             ptr += Extra * (int)Stride;
         }
         else
         {
             if (Premul && Extra is not 0)
-                alpha_factor = (uint)_cmsToFixedDomain(acc[nChan * (int)Stride]);
+                alpha_factor = (uint)ToFixedDomain(acc[nChan * (int)Stride]);
         }
 
         for (var i = 0; i < nChan; i++)
@@ -2556,7 +2555,7 @@ public static partial class Lcms2
             if (Reverse)
                 v = 65535.0 - v;
 
-            output[(i + start) * (Planar ? (int)Stride : 1)] = FROM_16_TO_8(_cmsQuickSaturateWord(v));
+            output[(i + start) * (Planar ? (int)Stride : 1)] = FROM_16_TO_8(QuickSaturateWord(v));
         }
 
         if (Extra is 0 && SwapFirst)
@@ -2590,7 +2589,7 @@ public static partial class Lcms2
             if (Reverse)
                 v = 65535.0 - v;
 
-            o[(i + start) * (Planar ? (int)Stride : 1)] = _cmsQuickSaturateWord(v);
+            o[(i + start) * (Planar ? (int)Stride : 1)] = QuickSaturateWord(v);
         }
 
         if (Extra is 0 && SwapFirst)
@@ -2804,17 +2803,17 @@ public static partial class Lcms2
         {
             Stride /= PixelSize(info.OutputFormat);
 
-            Out[0] = (float)(wOut[0] * MAX_ENCODEABLE_XYZ);
-            Out[(int)Stride] = (float)(wOut[1] * MAX_ENCODEABLE_XYZ);
-            Out[(int)Stride * 2] = (float)(wOut[2] * MAX_ENCODEABLE_XYZ);
+            Out[0] = (float)(wOut[0] * CIEXYZ.MaxEncodeableXYZ);
+            Out[(int)Stride] = (float)(wOut[1] * CIEXYZ.MaxEncodeableXYZ);
+            Out[(int)Stride * 2] = (float)(wOut[2] * CIEXYZ.MaxEncodeableXYZ);
 
             return output[sizeof(float)..];
         }
         else
         {
-            Out[0] = (float)(wOut[0] * MAX_ENCODEABLE_XYZ);
-            Out[1] = (float)(wOut[1] * MAX_ENCODEABLE_XYZ);
-            Out[2] = (float)(wOut[2] * MAX_ENCODEABLE_XYZ);
+            Out[0] = (float)(wOut[0] * CIEXYZ.MaxEncodeableXYZ);
+            Out[1] = (float)(wOut[1] * CIEXYZ.MaxEncodeableXYZ);
+            Out[2] = (float)(wOut[2] * CIEXYZ.MaxEncodeableXYZ);
 
             return output[((3 + T_EXTRA(info.OutputFormat)) * sizeof(float))..];
         }
@@ -2831,17 +2830,17 @@ public static partial class Lcms2
         {
             Stride /= PixelSize(info.OutputFormat);
 
-            Out[0] = wOut[0] * MAX_ENCODEABLE_XYZ;
-            Out[(int)Stride] = wOut[1] * MAX_ENCODEABLE_XYZ;
-            Out[(int)Stride * 2] = wOut[2] * MAX_ENCODEABLE_XYZ;
+            Out[0] = wOut[0] * CIEXYZ.MaxEncodeableXYZ;
+            Out[(int)Stride] = wOut[1] * CIEXYZ.MaxEncodeableXYZ;
+            Out[(int)Stride * 2] = wOut[2] * CIEXYZ.MaxEncodeableXYZ;
 
             return output[sizeof(double)..];
         }
         else
         {
-            Out[0] = wOut[0] * MAX_ENCODEABLE_XYZ;
-            Out[1] = wOut[1] * MAX_ENCODEABLE_XYZ;
-            Out[2] = wOut[2] * MAX_ENCODEABLE_XYZ;
+            Out[0] = wOut[0] * CIEXYZ.MaxEncodeableXYZ;
+            Out[1] = wOut[1] * CIEXYZ.MaxEncodeableXYZ;
+            Out[2] = wOut[2] * CIEXYZ.MaxEncodeableXYZ;
 
             return output[((3 + T_EXTRA(info.OutputFormat)) * sizeof(double))..];
         }
@@ -2873,7 +2872,7 @@ public static partial class Lcms2
             if (Reverse)
                 v = maximum - v;
 
-            wIn[index] = _cmsQuickSaturateWord((double)v * maximum);
+            wIn[index] = QuickSaturateWord((double)v * maximum);
         }
 
         if (Extra is 0 && SwapFirst)
@@ -3080,27 +3079,6 @@ public static partial class Lcms2
                        : FormattersPluginChunk;
 
         DupFormatterFactoryList(ref ctx.FormattersPlugin, from);
-    }
-
-    internal static bool _cmsRegisterFormattersPlugin(Context? ContextID, PluginBase? Data)
-    {
-        var ctx = Context.Get(ContextID).FormattersPlugin;
-
-        // Reset to build-in defaults
-        if (Data is not PluginFormatters Plugin)
-        {
-            ctx.FactoryInList.Clear();
-            ctx.FactoryOutList.Clear();
-            return true;
-        }
-
-        if (Plugin.FormattersFactoryIn is not null)
-            ctx.FactoryInList.Add(Plugin.FormattersFactoryIn);
-
-        if (Plugin.FormattersFactoryOut is not null)
-            ctx.FactoryOutList.Add(Plugin.FormattersFactoryOut);
-
-        return true;
     }
 
     internal static FormatterIn _cmsGetFormatterIn(Context? ContextID, uint Type, PackFlags dwFlags)

@@ -27,9 +27,6 @@
 using System.Diagnostics;
 using System.Text;
 
-using lcms2.state;
-using lcms2.types;
-
 namespace lcms2;
 
 public static partial class Lcms2
@@ -195,7 +192,7 @@ public static partial class Lcms2
 
     [DebuggerStepThrough]
     private static ushort strTo16(ReadOnlySpan<byte> str) =>
-        AdjustEndianess(BitConverter.ToUInt16(str));
+        AdjustEndianness(BitConverter.ToUInt16(str));
 
     //[DebuggerStepThrough]
     //private static void strFrom16(byte* str, ushort n)
@@ -793,7 +790,7 @@ public static partial class Lcms2
                                                          ReadOnlySpan<byte> Prefix,
                                                          ReadOnlySpan<byte> Suffix)
     {
-        if (ColorantCount > cmsMAXCHANNELS)
+        if (ColorantCount > Context.MaxChannels)
             return null;
 
         var v = new NamedColorList(ContextID) { List = null!, nColors = 0, ContextID = ContextID };
@@ -998,11 +995,11 @@ public static partial class Lcms2
     {
         if (mpe.Data is not NamedColorList NamedColorList)
             return;
-        var index = _cmsQuickSaturateWord(In[0] * 65535.0);
+        var index = QuickSaturateWord(In[0] * 65535.0);
 
         if (index >= NamedColorList.nColors)
         {
-            LogError(NamedColorList.ContextID, ErrorCodes.Range, $"Color {index} out of range");
+            Context.LogError(NamedColorList.ContextID, ErrorCodes.Range, $"Color {index} out of range");
             Out[0] = Out[1] = Out[2] = 0f;
         }
         else
@@ -1019,11 +1016,11 @@ public static partial class Lcms2
         if (mpe.Data is not NamedColorList NamedColorList)
             return;
 
-        var index = _cmsQuickSaturateWord(In[0] * 65535.0);
+        var index = QuickSaturateWord(In[0] * 65535.0);
 
         if (index >= NamedColorList.nColors)
         {
-            LogError(NamedColorList.ContextID, ErrorCodes.Range, $"Color {index} out of range");
+            Context.LogError(NamedColorList.ContextID, ErrorCodes.Range, $"Color {index} out of range");
             for (var j = 0; j < NamedColorList.ColorantCount; j++)
                 Out[j] = 0.0f;
         }

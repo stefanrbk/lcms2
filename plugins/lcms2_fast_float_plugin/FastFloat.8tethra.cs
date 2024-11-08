@@ -21,7 +21,6 @@
 
 using System.Diagnostics;
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2.FastFloatPlugin;
@@ -56,12 +55,12 @@ public static partial class FastFloat
             var TotalOut = p.nOutputs;
             var LutTable = p.Table.Span;
 
-            var @out = stackalloc byte*[cmsMAXCHANNELS];
+            var @out = stackalloc byte*[Context.MaxChannels];
 
-            Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+            Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+            Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+            Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+            Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
             _cmsComputeComponentIncrements(
                 cmsGetTransformInputFormat(CMMcargo),
@@ -262,8 +261,8 @@ public static partial class FastFloat
         UserData = null;
         TransformFn = null!;
 
-        Span<float> In = stackalloc float[cmsMAXCHANNELS];
-        Span<float> Out = stackalloc float[cmsMAXCHANNELS];
+        Span<float> In = stackalloc float[Context.MaxChannels];
+        Span<float> Out = stackalloc float[Context.MaxChannels];
         Pipeline? OptimizedLUT = null, LutPlusCurves = null;
 
         // For empty transforms, do nothing
@@ -298,12 +297,12 @@ public static partial class FastFloat
         //var usPool = Context.GetPool<ushort>(ContextID);
 
         //var TransArray = tcPool.Rent(cmsMAXCHANNELS);
-        var TransArray = new ToneCurve[cmsMAXCHANNELS];
-        var Trans = TransArray.AsSpan(..cmsMAXCHANNELS);
+        var TransArray = new ToneCurve[Context.MaxChannels];
+        var Trans = TransArray.AsSpan(..Context.MaxChannels);
 
         //var TransReverseArray = tcPool.Rent(cmsMAXCHANNELS);
-        var TransReverseArray = new ToneCurve[cmsMAXCHANNELS];
-        var TransReverse = TransReverseArray.AsSpan(..cmsMAXCHANNELS);
+        var TransReverseArray = new ToneCurve[Context.MaxChannels];
+        var TransReverse = TransReverseArray.AsSpan(..Context.MaxChannels);
 
         //var MyTableArray = uaPool.Rent(3);
         var MyTableArray = new ushort[3][];
@@ -575,19 +574,19 @@ file class Performance8Data : IDisposable
             }
 
             // Move to 0..1.0 in fixed domain
-            var v1 = _cmsToFixedDomain(Input[0] * (int)p.Domain[0]);
-            var v2 = _cmsToFixedDomain(Input[1] * (int)p.Domain[1]);
-            var v3 = _cmsToFixedDomain(Input[2] * (int)p.Domain[2]);
+            var v1 = Conversions.ToFixedDomain(Input[0] * (int)p.Domain[0]);
+            var v2 = Conversions.ToFixedDomain(Input[1] * (int)p.Domain[1]);
+            var v3 = Conversions.ToFixedDomain(Input[2] * (int)p.Domain[2]);
 
             // Store the precalculated table of nodes
-            p8.X0[i] = (uint)(p.opta[2] * FIXED_TO_INT(v1));
-            p8.Y0[i] = (uint)(p.opta[1] * FIXED_TO_INT(v2));
-            p8.Z0[i] = (uint)(p.opta[0] * FIXED_TO_INT(v3));
+            p8.X0[i] = (uint)(p.opta[2] * Conversions.FIXED_TO_INT(v1));
+            p8.Y0[i] = (uint)(p.opta[1] * Conversions.FIXED_TO_INT(v2));
+            p8.Z0[i] = (uint)(p.opta[0] * Conversions.FIXED_TO_INT(v3));
 
             // Store the precalculated table of offsets
-            p8.rx[i] = (ushort)FIXED_REST_TO_INT(v1);
-            p8.ry[i] = (ushort)FIXED_REST_TO_INT(v2);
-            p8.rz[i] = (ushort)FIXED_REST_TO_INT(v3);
+            p8.rx[i] = (ushort)Conversions.FIXED_REST_TO_INT(v1);
+            p8.ry[i] = (ushort)Conversions.FIXED_REST_TO_INT(v2);
+            p8.rz[i] = (ushort)Conversions.FIXED_REST_TO_INT(v3);
         }
 
         return p8;

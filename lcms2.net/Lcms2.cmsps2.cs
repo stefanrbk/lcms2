@@ -26,8 +26,6 @@
 
 using System.Text;
 
-using lcms2.io;
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2;
@@ -599,7 +597,7 @@ public static partial class Lcms2
 
         for (var i = 0u; i < sc.Pipeline.Params.nInputs; i++)
         {
-            if (i < MAX_INPUT_DIMENSIONS)
+            if (i < Context.MaxInputDimensions)
                 m.PrintF(" {0:d} ", sc.Pipeline.Params.nSamples[i]);
         }
 
@@ -754,7 +752,7 @@ public static partial class Lcms2
 
                 cmsDoTransform(xform, Gray, XYZ, 1);
 
-                Out.Table16[i] = _cmsQuickSaturateWord(XYZ[0].Y * 65535.0);
+                Out.Table16[i] = QuickSaturateWord(XYZ[0].Y * 65535.0);
             }
         }
 
@@ -789,7 +787,7 @@ public static partial class Lcms2
 
         if (xform is null)
         {
-            LogError(m.ContextID, cmsERROR_COLORSPACE_CHECK, "Cannot create transform Profile -> Lab");
+            Context.LogError(m.ContextID, cmsERROR_COLORSPACE_CHECK, "Cannot create transform Profile -> Lab");
             return false;
         }
 
@@ -833,7 +831,7 @@ public static partial class Lcms2
 
             default:
                 cmsDeleteTransform(xform);
-                LogError(
+                Context.LogError(
                     m.ContextID,
                     cmsERROR_COLORSPACE_CHECK,
                     "Only 3, 4 channels are supported for CSA. This profile has {0} channels.",
@@ -870,13 +868,13 @@ public static partial class Lcms2
             var Mat = GetPtrToMatrix(Matrix)!;
 
             for (var i = 0; i < 9; i++)
-                Mat[i] *= MAX_ENCODEABLE_XYZ;
+                Mat[i] *= CIEXYZ.MaxEncodeableXYZ;
 
             rc = EmitCIEBasedABC(m, Mat, _cmsStageGetPtrToCurveSet(Shaper), BlackPointAdaptedToD50);
         }
         else
         {
-            LogError(
+            Context.LogError(
                 m.ContextID,
                 cmsERROR_COLORSPACE_CHECK,
                 "Profile is not suitable for CSA. Unsupported colorspace.");
@@ -960,7 +958,7 @@ public static partial class Lcms2
             if (ColorSpace != Signatures.Colorspace.XYZ &&
                 ColorSpace != Signatures.Colorspace.Lab)
             {
-                LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Invalid output color space");
+                Context.LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Invalid output color space");
                 goto Error;
             }
 
@@ -1136,7 +1134,10 @@ public static partial class Lcms2
 
         if (xform is null)
         {
-            LogError(m.ContextID, cmsERROR_COLORSPACE_CHECK, "Cannot create transform Lab -> Profile in CRD creation");
+            Context.LogError(
+                m.ContextID,
+                cmsERROR_COLORSPACE_CHECK,
+                "Cannot create transform Lab -> Profile in CRD creation");
             return false;
         }
 
@@ -1146,7 +1147,7 @@ public static partial class Lcms2
         if (DeviceLink is null)
         {
             cmsDeleteTransform(xform);
-            LogError(m.ContextID, cmsERROR_CORRUPTION_DETECTED, "Cannot access link for CRD");
+            Context.LogError(m.ContextID, cmsERROR_CORRUPTION_DETECTED, "Cannot access link for CRD");
             return false;
         }
 
@@ -1162,7 +1163,7 @@ public static partial class Lcms2
         {
             cmsPipelineFree(DeviceLink);
             cmsDeleteTransform(xform);
-            LogError(m.ContextID, cmsERROR_CORRUPTION_DETECTED, "Cannot create CLUT table for CRD");
+            Context.LogError(m.ContextID, cmsERROR_CORRUPTION_DETECTED, "Cannot create CLUT table for CRD");
             return false;
         }
 
@@ -1228,8 +1229,8 @@ public static partial class Lcms2
         Span<byte> Buff = stackalloc byte[32];
 
         Colorant[0] = 0;
-        if (nColorant > cmsMAXCHANNELS)
-            nColorant = cmsMAXCHANNELS;
+        if (nColorant > Context.MaxChannels)
+            nColorant = Context.MaxChannels;
 
         var format = "{0:f3}"u8;
         for (var j = 0; j < nColorant; j++)
@@ -1269,7 +1270,7 @@ public static partial class Lcms2
         var nColors = cmsNamedColorCount(NamedColorList);
 
         Span<ushort> In = stackalloc ushort[1];
-        Span<ushort> Out = stackalloc ushort[cmsMAXCHANNELS];
+        Span<ushort> Out = stackalloc ushort[Context.MaxChannels];
         for (var i = 0u; i < nColors; i++)
         {
             In[0] = (ushort)i;

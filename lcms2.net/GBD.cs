@@ -24,14 +24,13 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-
 namespace lcms2;
 
 public class GBD
 {
     internal Context? ContextID;
     internal GBDPoint[] Gamut;
+
     internal ref GBDPoint GamutPtr(int theta, int alpha) =>
         ref Gamut[theta * SECTORS + alpha];
 }

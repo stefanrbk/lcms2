@@ -1,7 +1,5 @@
 ﻿using LanguageExt;
 
-using lcms2.types;
-
 namespace lcms2;
 
 public static class WhitePoint
@@ -25,7 +23,7 @@ public static class WhitePoint
             x = (-2.0064 * (1E9 / T3)) + (1.9018 * (1E6 / T2)) + (0.24748 * (1E3 / T)) + 0.237040;
         else
         {
-            LogError(null, ErrorCodes.Range, "cmsWhitePointFromTemp: invalid temp");
+            Context.LogError(null, ErrorCodes.Range, "cmsWhitePointFromTemp: invalid temp");
             return Option<CIExyY>.None;
         }
 

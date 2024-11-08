@@ -19,9 +19,8 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-
 namespace lcms2.ThreadedPlugin;
+
 public static partial class Threaded
 {
     private record ThreadAdaptorParam(Transform2Fn worker, WorkSlice param);

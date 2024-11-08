@@ -24,10 +24,8 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 namespace lcms2;
+
 public static partial class Plugin
 {
     // Moved to MD5.Transform
@@ -68,7 +66,7 @@ public static partial class Plugin
     //    STEP(F1, ref d, a, b, c, @in[13] + 0xfd987193, 12);
     //    STEP(F1, ref c, d, a, b, @in[14] + 0xa679438e, 17);
     //    STEP(F1, ref b, c, d, a, @in[15] + 0x49b40821, 22);
-                             
+
     //    STEP(F2, ref a, b, c, d, @in[1] + 0xf61e2562, 5);
     //    STEP(F2, ref d, a, b, c, @in[6] + 0xc040b340, 9);
     //    STEP(F2, ref c, d, a, b, @in[11] + 0x265e5a51, 14);
@@ -85,7 +83,7 @@ public static partial class Plugin
     //    STEP(F2, ref d, a, b, c, @in[2] + 0xfcefa3f8, 9);
     //    STEP(F2, ref c, d, a, b, @in[7] + 0x676f02d9, 14);
     //    STEP(F2, ref b, c, d, a, @in[12] + 0x8d2a4c8a, 20);
-                             
+
     //    STEP(F3, ref a, b, c, d, @in[5] + 0xfffa3942, 4);
     //    STEP(F3, ref d, a, b, c, @in[8] + 0x8771f681, 11);
     //    STEP(F3, ref c, d, a, b, @in[11] + 0x6d9d6122, 16);
@@ -102,7 +100,7 @@ public static partial class Plugin
     //    STEP(F3, ref d, a, b, c, @in[12] + 0xe6db99e5, 11);
     //    STEP(F3, ref c, d, a, b, @in[15] + 0x1fa27cf8, 16);
     //    STEP(F3, ref b, c, d, a, @in[2] + 0xc4ac5665, 23);
-                             
+
     //    STEP(F4, ref a, b, c, d, @in[0] + 0xf4292244, 6);
     //    STEP(F4, ref d, a, b, c, @in[7] + 0x432aff97, 10);
     //    STEP(F4, ref c, d, a, b, @in[14] + 0xab9423a7, 15);
@@ -232,7 +230,7 @@ public static partial class Plugin
 
         //_cmsFree(ctx->ContextID, ctx);
         return (Handle is MD5 md5)
-            ? md5.Finish()
-            : default;
+                   ? md5.Finish()
+                   : default;
     }
 }
