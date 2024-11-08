@@ -19,18 +19,19 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
+using lcms2.types;
+
 namespace lcms2.FastFloatPlugin;
+
 public static partial class FastFloat
 {
     internal const ushort SIGMOID_POINTS = 1024;
 
-    public static uint TYPE_SIGMOID => 109;
+    public static uint TYPE_SIGMOID =>
+        109;
 
     [DebuggerStepThrough, MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float LinLerp1D(float Value, ReadOnlySpan<float> LutTable)
@@ -47,7 +48,7 @@ public static partial class FastFloat
         {
             Value *= SIGMOID_POINTS - 1;
 
-            var cell0 = _cmsQuickFloor(Value);
+            var cell0 = Conversions.QuickFloor(Value);
             var cell1 = cell0 + 1;
 
             var rest = Value - cell0;
@@ -96,18 +97,30 @@ public static partial class FastFloat
             var p = pfloat.p;
             var TotalOut = p.nOutputs;
 
-            var @out = stackalloc byte*[cmsMAXCHANNELS];
+            var @out = stackalloc byte*[Context.MaxChannels];
 
-            Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-            Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+            Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+            Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+            Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+            Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
             var InputFormat = cmsGetTransformInputFormat(CMMcargo);
             var OutputFormat = cmsGetTransformOutputFormat(CMMcargo);
 
-            _cmsComputeComponentIncrements(InputFormat, Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-            _cmsComputeComponentIncrements(OutputFormat, Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+            _cmsComputeComponentIncrements(
+                InputFormat,
+                Stride.BytesPerPlaneIn,
+                out _,
+                out var nalpha,
+                SourceStartingOrder,
+                SourceIncrements);
+            _cmsComputeComponentIncrements(
+                OutputFormat,
+                Stride.BytesPerPlaneOut,
+                out _,
+                out nalpha,
+                DestStartingOrder,
+                DestIncrements);
 
             if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
                 nalpha = 0;
@@ -142,8 +155,12 @@ public static partial class FastFloat
                         // Decode Lab and go across sigmoids on a*/b*
                         var l = fclamp100(BitConverter.ToSingle(Input[lin..])) / 100f;
 
-                        var a = LinLerp1D((fclamp128(BitConverter.ToSingle(Input[ain..])) + 128.0f) / 255.0f, pfloat.sigmoidIn);
-                        var b = LinLerp1D((fclamp128(BitConverter.ToSingle(Input[bin..])) + 128.0f) / 255.0f, pfloat.sigmoidIn);
+                        var a = LinLerp1D(
+                            (fclamp128(BitConverter.ToSingle(Input[ain..])) + 128.0f) / 255.0f,
+                            pfloat.sigmoidIn);
+                        var b = LinLerp1D(
+                            (fclamp128(BitConverter.ToSingle(Input[bin..])) + 128.0f) / 255.0f,
+                            pfloat.sigmoidIn);
 
                         lin += (int)SourceIncrements[0];
                         ain += (int)SourceIncrements[1];
@@ -153,9 +170,12 @@ public static partial class FastFloat
                         var py = a * p.Domain[1];
                         var pz = b * p.Domain[2];
 
-                        var x0 = _cmsQuickFloor(px); var rx = px - x0;
-                        var y0 = _cmsQuickFloor(py); var ry = py - y0;
-                        var z0 = _cmsQuickFloor(pz); var rz = pz - z0;
+                        var x0 = Conversions.QuickFloor(px);
+                        var rx = px - x0;
+                        var y0 = Conversions.QuickFloor(py);
+                        var ry = py - y0;
+                        var z0 = Conversions.QuickFloor(pz);
+                        var rz = pz - z0;
 
                         var X0 = (int)p.opta[2] * x0;
                         var X1 = X0 + ((l >= 1.0f) ? 0 : (int)p.opta[2]);
@@ -175,51 +195,39 @@ public static partial class FastFloat
 
                             if (rx >= ry && ry >= rz)
                             {
-
                                 c1 = DENS(X1, Y0, Z0) - c0;
                                 c2 = DENS(X1, Y1, Z0) - DENS(X1, Y0, Z0);
                                 c3 = DENS(X1, Y1, Z1) - DENS(X1, Y1, Z0);
-
                             }
                             else if (rx >= rz && rz >= ry)
                             {
-
                                 c1 = DENS(X1, Y0, Z0) - c0;
                                 c2 = DENS(X1, Y1, Z1) - DENS(X1, Y0, Z1);
                                 c3 = DENS(X1, Y0, Z1) - DENS(X1, Y0, Z0);
-
                             }
                             else if (rz >= rx && rx >= ry)
                             {
-
                                 c1 = DENS(X1, Y0, Z1) - DENS(X0, Y0, Z1);
                                 c2 = DENS(X1, Y1, Z1) - DENS(X1, Y0, Z1);
                                 c3 = DENS(X0, Y0, Z1) - c0;
-
                             }
                             else if (ry >= rx && rx >= rz)
                             {
-
                                 c1 = DENS(X1, Y1, Z0) - DENS(X0, Y1, Z0);
                                 c2 = DENS(X0, Y1, Z0) - c0;
                                 c3 = DENS(X1, Y1, Z1) - DENS(X1, Y1, Z0);
-
                             }
                             else if (ry >= rz && rz >= rx)
                             {
-
                                 c1 = DENS(X1, Y1, Z1) - DENS(X0, Y1, Z1);
                                 c2 = DENS(X0, Y1, Z0) - c0;
                                 c3 = DENS(X0, Y1, Z1) - DENS(X0, Y1, Z0);
-
                             }
                             else if (rz >= ry && ry >= rx)
                             {
-
                                 c1 = DENS(X1, Y1, Z1) - DENS(X0, Y1, Z1);
                                 c2 = DENS(X0, Y1, Z1) - DENS(X0, Y0, Z1);
                                 c3 = DENS(X0, Y0, Z1) - c0;
-
                             }
                             else
                             {
@@ -312,10 +320,16 @@ public static partial class FastFloat
 
         // Create the result LUT
         OptimizedLUT = cmsPipelineAlloc(ContextID, 3, cmsPipelineOutputChannels(OriginalLut));
-        if (OptimizedLUT is null) goto Error;
+        if (OptimizedLUT is null)
+            goto Error;
 
         // Allocate the CLUT for result
-        var OptimizedCLUTmpe = cmsStageAllocCLutFloat(ContextID, nGridPoints, 3, cmsPipelineOutputChannels(OriginalLut), null);
+        var OptimizedCLUTmpe = cmsStageAllocCLutFloat(
+            ContextID,
+            nGridPoints,
+            3,
+            cmsPipelineOutputChannels(OriginalLut),
+            null);
 
         // Add the CLUT to the destination LUT
         cmsPipelineInsertStage(OptimizedLUT, StageLoc.AtBegin, OptimizedCLUTmpe);
@@ -402,6 +416,7 @@ file class LabCLUTData : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
     public static LabCLUTData Alloc(Context? ContextID, InterpParams<float> p)
     {
         var fd = new LabCLUTData(ContextID, p);

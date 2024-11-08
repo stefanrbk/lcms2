@@ -24,14 +24,14 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-
 namespace lcms2.types;
 
 public struct Screening(Context? context)
 {
     public uint Flag;
     public uint nChannels;
-    internal readonly ScreeningChannel[] channels = new ScreeningChannel[cmsMAXCHANNELS * 4];
-    public readonly Span<ScreeningChannel> Channels => channels.AsSpan(/*..(cmsMAXCHANNELS * 4)*/);
+    internal readonly ScreeningChannel[] channels = new ScreeningChannel[Context.MaxChannels * 4];
+
+    public readonly Span<ScreeningChannel> Channels =>
+        channels.AsSpan( /*..(cmsMAXCHANNELS * 4)*/);
 }

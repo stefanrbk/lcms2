@@ -19,12 +19,12 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Runtime.InteropServices;
 
+using lcms2.types;
+
 namespace lcms2.FastFloatPlugin;
+
 public unsafe static partial class FastFloat
 {
     private static void MatShaperFloat(Transform CMMcargo,
@@ -39,13 +39,25 @@ public unsafe static partial class FastFloat
 
         var p = (VXMatShaperFloatData*)pPtr;
 
-        var SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        var SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        var DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        var DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        var SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        var SourceIncrements = stackalloc uint[Context.MaxChannels];
+        var DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        var DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, new(SourceStartingOrder, cmsMAXCHANNELS), new(SourceIncrements, cmsMAXCHANNELS));
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, new(DestStartingOrder, cmsMAXCHANNELS), new(DestIncrements, cmsMAXCHANNELS));
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            new(SourceStartingOrder, Context.MaxChannels),
+            new(SourceIncrements, Context.MaxChannels));
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            new(DestStartingOrder, Context.MaxChannels),
+            new(DestIncrements, Context.MaxChannels));
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -152,10 +164,16 @@ public unsafe static partial class FastFloat
         MAT3 res = default;
 
         // Check for shaper-matrix-matrix-shaper structure, that is what this optimizer stands for
-        if (!cmsPipelineCheckAndRetrieveStages(Src, Signature.Stage.CurveSetElem, out var Curve1,
-                                                    Signature.Stage.MatrixElem, out var Matrix1,
-                                                    Signature.Stage.MatrixElem, out var Matrix2,
-                                                    Signature.Stage.CurveSetElem, out var Curve2))
+        if (!cmsPipelineCheckAndRetrieveStages(
+                Src,
+                Signatures.Stage.CurveSetElem,
+                out var Curve1,
+                Signatures.Stage.MatrixElem,
+                out var Matrix1,
+                Signatures.Stage.MatrixElem,
+                out var Matrix2,
+                Signatures.Stage.CurveSetElem,
+                out var Curve2))
         {
             return false;
         }
@@ -202,7 +220,10 @@ public unsafe static partial class FastFloat
         {
             if (nChans is 1)
             {
-                cmsPipelineInsertStage(Dest, StageLoc.AtEnd, cmsStageAllocMatrix(ContextID, 1, 1, factor, Data2.Offset));
+                cmsPipelineInsertStage(
+                    Dest,
+                    StageLoc.AtEnd,
+                    cmsStageAllocMatrix(ContextID, 1, 1, factor, Data2.Offset));
             }
             else
             {
@@ -216,11 +237,19 @@ public unsafe static partial class FastFloat
             // If identity on matrix, we can further optimize the curves, so call the join curves routine
             if (IdentityMat)
             {
-                OptimizeFloatByJoiningCurves(out TransformFn, out UserData, out FreeUserData, ref Dest, ref InputFormat, ref OutputFormat, ref dwFlags);
+                OptimizeFloatByJoiningCurves(
+                    out TransformFn,
+                    out UserData,
+                    out FreeUserData,
+                    ref Dest,
+                    ref InputFormat,
+                    ref OutputFormat,
+                    ref dwFlags);
             }
             else
             {
-                if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 || cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
+                if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 ||
+                    cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
                     return false;
 
                 // In this particular optimization, cache does not help as it takes more time to deal with
@@ -228,7 +257,12 @@ public unsafe static partial class FastFloat
                 dwFlags |= cmsFLAGS_NOCACHE;
 
                 // Setup the optimization routines
-                UserData = (nuint)VXMatShaperFloatData.SetShaper(ContextID, mpeC1.TheCurves, res, Data2.Offset is null ? null : new VEC3(Data2.Offset), mpeC2.TheCurves);
+                UserData = (nuint)VXMatShaperFloatData.SetShaper(
+                    ContextID,
+                    mpeC1.TheCurves,
+                    res,
+                    Data2.Offset is null ? null : new VEC3(Data2.Offset),
+                    mpeC2.TheCurves);
                 FreeUserData = FreeDisposable;
 
                 TransformFn = MatShaperFloat;

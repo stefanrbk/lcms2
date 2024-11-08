@@ -24,12 +24,10 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.cgats;
-using lcms2.state;
-using lcms2.types;
-
 using System.Runtime.CompilerServices;
 using System.Text;
+
+using lcms2.cgats;
 
 using static lcms2.cgats.CGATS;
 
@@ -115,7 +113,10 @@ public static partial class Lcms2
         return false;
     }
 
-    private static bool BuildAbsolutePath(ReadOnlySpan<byte> relPath, ReadOnlySpan<byte> basePath, Span<byte> buffer, uint MaxLen)
+    private static bool BuildAbsolutePath(ReadOnlySpan<byte> relPath,
+                                          ReadOnlySpan<byte> basePath,
+                                          Span<byte> buffer,
+                                          uint MaxLen)
     {
         // Already absolute?
         if (isabsolutepath(relPath))
@@ -130,10 +131,12 @@ public static partial class Lcms2
         buffer[(int)MaxLen - 1] = 0;
 
         var tail = strrchr(buffer, DIR_CHAR);
-        if (tail.IsEmpty) return false;
+        if (tail.IsEmpty)
+            return false;
 
         var len = (uint)(buffer.Length - tail.Length);
-        if (len >= MaxLen) return false;
+        if (len >= MaxLen)
+            return false;
 
         // No need to assure zero terminator over here
         strncpy(tail[1..], relPath, MaxLen - len);
@@ -165,10 +168,16 @@ public static partial class Lcms2
         snprintf(Buffer, 255, Txt, args);
         Buffer[255] = 0;
 
-        snprintf(ErrMsg, 1023, "{0}: Line {1}, {2}"u8, SpanToString(it8.FileStack[it8.IncludeSP].FileName), it8.lineno, SpanToString(Buffer));
+        snprintf(
+            ErrMsg,
+            1023,
+            "{0}: Line {1}, {2}"u8,
+            SpanToString(it8.FileStack[it8.IncludeSP].FileName),
+            it8.lineno,
+            SpanToString(Buffer));
         ErrMsg[1023] = 0;
         it8.sy = SYMBOL.SSYNERROR;
-        LogError(it8.ContextID, cmsERROR_CORRUPTION_DETECTED, SpanToString(ErrMsg));
+        Context.LogError(it8.ContextID, cmsERROR_CORRUPTION_DETECTED, SpanToString(ErrMsg));
         return false;
     }
 
@@ -204,7 +213,8 @@ public static partial class Lcms2
         else
         {
             it8.ch = it8.Source.Span[0];
-            if (it8.ch is not 0) it8.Source = it8.Source.Length is not 1 ? it8.Source[1..] : default;
+            if (it8.ch is not 0)
+                it8.Source = it8.Source.Length is not 1 ? it8.Source[1..] : default;
         }
     }
 
@@ -217,9 +227,12 @@ public static partial class Lcms2
         {
             var x = (l + r) / 2;
             var res = cmsstrcasecmp(id, TabKeys[x - 1].id);
-            if (res is 0) return TabKeys[x - 1].sy;
-            if (res < 0) r = x - 1;
-            else l = x + 1;
+            if (res is 0)
+                return TabKeys[x - 1].sy;
+            if (res < 0)
+                r = x - 1;
+            else
+                l = x + 1;
         }
 
         return SYMBOL.SUNDEFINED;
@@ -240,8 +253,8 @@ public static partial class Lcms2
 
         if (it8.ch is '.')     // Decimal point
         {
-            var frac = 0.0;     // fraction
-            var prec = 0;         // precision
+            var frac = 0.0; // fraction
+            var prec = 0;   // precision
 
             NextCh(it8);
 
@@ -258,15 +271,18 @@ public static partial class Lcms2
         // Exponent, example 34.00E+20
         if (Char.ToUpper((char)it8.ch) is 'E')
         {
-            NextCh(it8); var sgn = 1;
+            NextCh(it8);
+            var sgn = 1;
 
             if (it8.ch is '-')
             {
-                sgn = -1; NextCh(it8);
+                sgn = -1;
+                NextCh(it8);
             }
             else if (it8.ch is '+')
             {
-                sgn = +1; NextCh(it8);
+                sgn = +1;
+                NextCh(it8);
             }
 
             var e = 0;
@@ -292,7 +308,8 @@ public static partial class Lcms2
         var i = 0;
 
         // keep safe
-        if (Buffer.IsEmpty) return 0.0;
+        if (Buffer.IsEmpty)
+            return 0.0;
 
         if ((char)Buffer[i] is '-' or '+')
         {
@@ -302,7 +319,8 @@ public static partial class Lcms2
         while (i < Buffer.Length && Buffer[i] is not 0 && Char.IsDigit((char)Buffer[i]))
         {
             dnum = dnum * 10.0 + (Buffer[i] - '0');
-            if (Buffer[i] is not 0) i++;
+            if (Buffer[i] is not 0)
+                i++;
         }
 
         if (i < Buffer.Length && (char)Buffer[i] is '.')
@@ -310,13 +328,15 @@ public static partial class Lcms2
             var frac = 0.0;
             var prec = 0;
 
-            if (Buffer[i] is not 0) i++;
+            if (Buffer[i] is not 0)
+                i++;
 
             while (i < Buffer.Length && Char.IsDigit((char)Buffer[i]))
             {
                 frac = (frac * 10.0) + (Buffer[i] - '0');
                 prec++;
-                if (Buffer[i] is not 0) i++;
+                if (Buffer[i] is not 0)
+                    i++;
             }
 
             dnum += frac / xpow10(prec);
@@ -325,18 +345,21 @@ public static partial class Lcms2
         // Exponent, example 34.00E+20
         if (i < Buffer.Length && Char.ToUpper((char)Buffer[i]) is 'E')
         {
-            if (Buffer[i] is not 0) i++;
+            if (Buffer[i] is not 0)
+                i++;
             var sgn = 1;
 
             if (i < Buffer.Length && (char)Buffer[i] is '-')
             {
                 sgn = -1;
-                if (Buffer[i] is not 0) i++;
+                if (Buffer[i] is not 0)
+                    i++;
             }
             else if (i < Buffer.Length && (char)Buffer[i] is '+')
             {
                 sgn = +1;
-                if (Buffer[i] is not 0) i++;
+                if (Buffer[i] is not 0)
+                    i++;
             }
 
             var e = 0;
@@ -347,7 +370,8 @@ public static partial class Lcms2
                 if (e * 10.0 + digit < +2147483647.0)
                     e = e * 10 + digit;
 
-                if (Buffer[i] is not 0) i++;
+                if (Buffer[i] is not 0)
+                    i++;
             }
 
             e *= sgn;
@@ -372,7 +396,8 @@ public static partial class Lcms2
 
             while (it8.ch != sng)
             {
-                if (it8.ch is '\n' or '\r' or '\0') break;
+                if (it8.ch is '\n' or '\r' or '\0')
+                    break;
                 else
                 {
                     //StringAppend(it8->str, (byte)it8->ch);
@@ -411,8 +436,10 @@ public static partial class Lcms2
                 } while (isidchar(it8.ch));
 
                 key = BinSrchKey(Encoding.ASCII.GetBytes(it8.id.ToString()));
-                if (key is SYMBOL.SUNDEFINED) it8.sy = SYMBOL.SIDENT;
-                else it8.sy = key;
+                if (key is SYMBOL.SUNDEFINED)
+                    it8.sy = SYMBOL.SIDENT;
+                else
+                    it8.sy = key;
             }
             else if (Char.IsDigit((char)it8.ch) || it8.ch is '.' or '-' or '+')
             {
@@ -437,8 +464,8 @@ public static partial class Lcms2
                         {
                             it8.ch = Char.ToUpper((char)it8.ch);
                             var j = (it8.ch is >= 'A' and <= 'F')
-                                ? it8.ch - 'A' + 10
-                                : it8.ch - '0';
+                                        ? it8.ch - 'A' + 10
+                                        : it8.ch - '0';
 
                             if (it8.inum * 16.0 + j > +2147483647.0)
                             {
@@ -449,6 +476,7 @@ public static partial class Lcms2
                             it8.inum = it8.inum * 16 + j;
                             NextCh(it8);
                         }
+
                         return;
                     }
                     else if (Char.ToUpper((char)it8.ch) is 'B')
@@ -467,6 +495,7 @@ public static partial class Lcms2
                             it8.inum = it8.inum * 2 + j;
                             NextCh(it8);
                         }
+
                         return;
                     }
                 }
@@ -501,8 +530,8 @@ public static partial class Lcms2
                 if (isidchar(it8.ch))
                 {
                     var len = it8.sy is SYMBOL.SINUM
-                        ? snprintf(buffer, 127, DEFAULT_NUM_FORMAT, it8.inum)
-                        : snprintf(buffer, 127, it8.DoubleFormatter, it8.dnum);
+                                  ? snprintf(buffer, 127, DEFAULT_NUM_FORMAT, it8.inum)
+                                  : snprintf(buffer, 127, it8.DoubleFormatter, it8.dnum);
 
                     //StringCat(it8->id, buffer);
                     it8.id.Append(Encoding.ASCII.GetString(buffer[..len]));
@@ -516,6 +545,7 @@ public static partial class Lcms2
 
                     it8.sy = SYMBOL.SIDENT;
                 }
+
                 return;
             }
             else
@@ -568,7 +598,6 @@ public static partial class Lcms2
                         return;
                 }
             }
-
         } while (it8.sy is SYMBOL.SCOMMENT);
 
         // Handle the include special token
@@ -582,7 +611,8 @@ public static partial class Lcms2
             }
 
             InStringSymbol(it8);
-            if (!Check(it8, SYMBOL.SSTRING, "Filename expected")) return;
+            if (!Check(it8, SYMBOL.SSTRING, "Filename expected"))
+                return;
 
             var FileNest = it8.FileStack[it8.IncludeSP + 1];
             if (FileNest is null)
@@ -594,7 +624,11 @@ public static partial class Lcms2
             }
 
             //if (BuildAbsolutePath(StringPtr(it8->str), it8->FileStack[it8->IncludeSP]->FileName, FileNest->FileName, cmsMAX_PATH - 1) is false)
-            if (!BuildAbsolutePath(Encoding.ASCII.GetBytes(it8.str.ToString()), it8.FileStack[it8.IncludeSP].FileName, FileNest.FileName, MaxPath - 1))
+            if (!BuildAbsolutePath(
+                    Encoding.ASCII.GetBytes(it8.str.ToString()),
+                    it8.FileStack[it8.IncludeSP].FileName,
+                    FileNest.FileName,
+                    MaxPath - 1))
             {
                 SynError(it8, "File path too long"u8);
                 return;
@@ -608,11 +642,13 @@ public static partial class Lcms2
             {
                 FileNest.Stream = null;
             }
+
             if (FileNest.Stream is null)
             {
                 SynError(it8, "File {0} not found"u8, SpanToString(FileNest.FileName));
                 return;
             }
+
             it8.IncludeSP++;
 
             it8.ch = ' ';
@@ -622,7 +658,8 @@ public static partial class Lcms2
 
     private static bool CheckEOLN(IT8 it8)
     {
-        if (!Check(it8, SYMBOL.SEOLN, "Expected separator")) return false;
+        if (!Check(it8, SYMBOL.SEOLN, "Expected separator"))
+            return false;
         while (it8.sy is SYMBOL.SEOLN)
             InSymbol(it8);
         return true;
@@ -758,7 +795,7 @@ public static partial class Lcms2
 
     private static byte[] AllocString(IT8 it8, ReadOnlySpan<byte> str)
     {
-        var Size = strlen(str)/* + sizeof(byte)*/;
+        var Size = strlen(str) /* + sizeof(byte)*/;
 
         //var ptr = Context.GetPool<byte>(it8.ContextID).Rent((int)Size); //(byte*)AllocChunk(it8, (uint)Size);
         var ptr = new byte[Size];
@@ -767,7 +804,10 @@ public static partial class Lcms2
         return ptr;
     }
 
-    private static bool IsAvailableOnList(KEYVALUE? p, ReadOnlySpan<byte> Key, ReadOnlySpan<byte> Subkey, out KEYVALUE LastPtr)
+    private static bool IsAvailableOnList(KEYVALUE? p,
+                                          ReadOnlySpan<byte> Key,
+                                          ReadOnlySpan<byte> Subkey,
+                                          out KEYVALUE LastPtr)
     {
         /*if (LastPtr is not null)*/
         LastPtr = p!;
@@ -792,7 +832,8 @@ public static partial class Lcms2
 
         for (; p is not null; p = p.NextSubkey!)
         {
-            if (p.Subkey is null) continue;
+            if (p.Subkey is null)
+                continue;
 
             /*if (LastPtr is not null)*/
             LastPtr = p;
@@ -804,7 +845,12 @@ public static partial class Lcms2
         return false;
     }
 
-    private static KEYVALUE? AddToList(IT8 it8, ref KEYVALUE? Head, ReadOnlySpan<byte> Key, ReadOnlySpan<byte> Subkey, ReadOnlySpan<byte> xValue, WRITEMODE WriteAs)
+    private static KEYVALUE? AddToList(IT8 it8,
+                                       ref KEYVALUE? Head,
+                                       ReadOnlySpan<byte> Key,
+                                       ReadOnlySpan<byte> Subkey,
+                                       ReadOnlySpan<byte> xValue,
+                                       WRITEMODE WriteAs)
     {
         // Check if property is already in list
         if (IsAvailableOnList(Head, Key, Subkey, out var p))
@@ -848,7 +894,8 @@ public static partial class Lcms2
                         last = last.Next;
                 }
 
-                if (last is not null) last.Next = p;
+                if (last is not null)
+                    last.Next = p;
             }
 
             p.Next = null;
@@ -858,8 +905,8 @@ public static partial class Lcms2
         p.WriteAs = WriteAs;
 
         p.Value = !xValue.IsEmpty
-            ? AllocString(it8, xValue)
-            : null;
+                      ? AllocString(it8, xValue)
+                      : null;
 
         return p;
     }
@@ -993,12 +1040,19 @@ public static partial class Lcms2
         if (hIT8 is not IT8 it8)
             return false;
 
-        if (String.IsNullOrEmpty(Val)) return false;
+        if (String.IsNullOrEmpty(Val))
+            return false;
 
         Span<byte> buf = stackalloc byte[Encoding.ASCII.GetByteCount(Val)];
         Encoding.ASCII.GetBytes(Val, buf);
 
-        return AddToList(it8, ref GetTable(it8).HeaderList, COMMENT_DELIMITER, null, buf, WRITEMODE.WRITE_UNCOOKED) is not null;
+        return AddToList(
+                   it8,
+                   ref GetTable(it8).HeaderList,
+                   COMMENT_DELIMITER,
+                   null,
+                   buf,
+                   WRITEMODE.WRITE_UNCOOKED) is not null;
     }
 
     public static bool cmsIT8SetPropertyStr(object? hIT8, ReadOnlySpan<byte> Key, string Val)
@@ -1006,7 +1060,8 @@ public static partial class Lcms2
         if (hIT8 is not IT8 it8)
             return false;
 
-        if (String.IsNullOrEmpty(Val)) return false;
+        if (String.IsNullOrEmpty(Val))
+            return false;
 
         Span<byte> buf = stackalloc byte[Encoding.ASCII.GetByteCount(Val)];
         Encoding.ASCII.GetBytes(Val, buf);
@@ -1035,14 +1090,25 @@ public static partial class Lcms2
 
         snprintf(Buffer, 1023, DEFAULT_HEX_FORMAT, Val);
 
-        return AddToList(it8, ref GetTable(it8).HeaderList, cProp, null, Buffer, WRITEMODE.WRITE_HEXADECIMAL) is not null;
+        return AddToList(
+                   it8,
+                   ref GetTable(it8).HeaderList,
+                   cProp,
+                   null,
+                   Buffer,
+                   WRITEMODE.WRITE_HEXADECIMAL) is not null;
     }
 
     public static bool cmsIT8SetPropertyUncooked(object? hIT8, ReadOnlySpan<byte> Key, ReadOnlySpan<byte> Buffer) =>
-        hIT8 is IT8 it8 && AddToList(it8, ref GetTable(it8).HeaderList, Key, null, Buffer, WRITEMODE.WRITE_UNCOOKED) is not null;
+        hIT8 is IT8 it8 &&
+        AddToList(it8, ref GetTable(it8).HeaderList, Key, null, Buffer, WRITEMODE.WRITE_UNCOOKED) is not null;
 
-    public static bool cmsIT8SetPropertyMulti(object? hIT8, ReadOnlySpan<byte> Key, ReadOnlySpan<byte> Subkey, ReadOnlySpan<byte> Buffer) =>
-        hIT8 is IT8 it8 && AddToList(it8, ref GetTable(it8).HeaderList, Key, Subkey, Buffer, WRITEMODE.WRITE_PAIR) is not null;
+    public static bool cmsIT8SetPropertyMulti(object? hIT8,
+                                              ReadOnlySpan<byte> Key,
+                                              ReadOnlySpan<byte> Subkey,
+                                              ReadOnlySpan<byte> Buffer) =>
+        hIT8 is IT8 it8 &&
+        AddToList(it8, ref GetTable(it8).HeaderList, Key, Subkey, Buffer, WRITEMODE.WRITE_PAIR) is not null;
 
     public static byte[]? cmsIT8GetProperty(object? hIT8, ReadOnlySpan<byte> Key)
     {
@@ -1058,7 +1124,8 @@ public static partial class Lcms2
     {
         var v = cmsIT8GetProperty(hIT8, cProp);
 
-        if (v is null) return 0;
+        if (v is null)
+            return 0;
 
         return ParseFloatNumber(v);
     }
@@ -1077,7 +1144,8 @@ public static partial class Lcms2
     {
         var t = GetTable(it8);
 
-        if (t.DataFormat is not null) return;  // Already allocated
+        if (t.DataFormat is not null)
+            return;  // Already allocated
 
         t.nSamples = (int)cmsIT8GetPropertyDbl(it8, "NUMBER_OF_FIELDS"u8);
 
@@ -1132,17 +1200,21 @@ public static partial class Lcms2
         !b.IsEmpty
             ? atoi(b)
             : 0;
+
     private static ReadOnlySpan<byte> satob(ReadOnlySpan<byte> v)
     {
         var buf = BinaryConversionBuffer;
         var s = 33;
 
-        if (v.IsEmpty) return "0"u8;
+        if (v.IsEmpty)
+            return "0"u8;
 
         var x = atoi(v);
         buf[--s] = 0;
-        if (x is 0) buf[--s] = (byte)'0';
-        for (; x is not 0; x /= 2) buf[--s] = (byte)('0' + (x % 2));
+        if (x is 0)
+            buf[--s] = (byte)'0';
+        for (; x is not 0; x /= 2)
+            buf[--s] = (byte)('0' + (x % 2));
 
         return buf[s..];
     }
@@ -1151,7 +1223,8 @@ public static partial class Lcms2
     {
         var t = GetTable(it8);
 
-        if (t.Data is not null) return;    // Already allocated
+        if (t.Data is not null)
+            return;    // Already allocated
 
         t.nSamples = satoi(cmsIT8GetProperty(it8, "NUMBER_OF_FIELDS"u8));
         t.nPatches = satoi(cmsIT8GetProperty(it8, "NUMBER_OF_SETS"u8));
@@ -1179,7 +1252,8 @@ public static partial class Lcms2
         if (nSet >= nPatches || nField >= nSamples)
             return null;
 
-        if (t.Data is null) return null;
+        if (t.Data is null)
+            return null;
         return t.Data[nSet * nSamples + nField];
     }
 
@@ -1190,7 +1264,8 @@ public static partial class Lcms2
         if (t.Data is null)
             AllocateDataSet(it8);
 
-        if (t.Data is null) return false;
+        if (t.Data is null)
+            return false;
 
         if (nSet > t.nPatches || nSet < 0)
             return SynError(it8, "Patch {0} out of range, there are {1} patches"u8, nSet, t.nPatches);
@@ -1215,7 +1290,7 @@ public static partial class Lcms2
         {
             if (fwrite(str, 1, len, f.stream) != len)
             {
-                LogError(null, cmsERROR_WRITE, "Write to file error in CGATS parser");
+                Context.LogError(null, cmsERROR_WRITE, "Write to file error in CGATS parser");
                 return;
             }
         }
@@ -1225,14 +1300,13 @@ public static partial class Lcms2
             {
                 if (f.Used > f.Max)
                 {
-                    LogError(null, cmsERROR_WRITE, "Write to memoty overflows in CGATS parser");
+                    Context.LogError(null, cmsERROR_WRITE, "Write to memoty overflows in CGATS parser");
                     return;
                 }
 
                 memmove(f.Ptr.Span, str, len);
                 f.Ptr = f.Ptr[(int)len..];
             }
-
         }
     }
 
@@ -1314,7 +1388,8 @@ public static partial class Lcms2
     {
         var t = GetTable(it8);
 
-        if (t.DataFormat is null) return;
+        if (t.DataFormat is null)
+            return;
 
         WriteStr(fp, "BEGIN_DATA_FORMAT\n"u8);
         WriteStr(fp, " "u8);
@@ -1333,7 +1408,8 @@ public static partial class Lcms2
     {
         var t = GetTable(it8);
 
-        if (t.Data is null) return;
+        if (t.Data is null)
+            return;
 
         WriteStr(fp, "BEGIN_DATA\n"u8);
 
@@ -1347,7 +1423,8 @@ public static partial class Lcms2
             {
                 var ptr = t.Data[(i * t.nSamples) + j];
 
-                if (ptr is null) WriteStr(fp, "\"\""u8);
+                if (ptr is null)
+                    WriteStr(fp, "\"\""u8);
                 else
                 {
                     // If value contains whitespace, enclose within quote
@@ -1378,7 +1455,8 @@ public static partial class Lcms2
         //memset(&sd, 0);
 
         sd.stream = fopen(new(cFileName), "wt");
-        if (sd.stream is null) return false;
+        if (sd.stream is null)
+            return false;
 
         for (var i = 0u; i < it8.TablesCount; i++)
         {
@@ -1388,7 +1466,8 @@ public static partial class Lcms2
             WriteData(sd, it8);
         }
 
-        if (fclose(sd.stream) is not 0) return false;
+        if (fclose(sd.stream) is not 0)
+            return false;
 
         return true;
     }
@@ -1408,8 +1487,8 @@ public static partial class Lcms2
         sd.Used = 0;
 
         sd.Max = (sd.Base is not null)
-            ? BytesNeeded       // Write to memory?
-            : 0;                // Just counting the needed bytes
+                     ? BytesNeeded // Write to memory?
+                     : 0;          // Just counting the needed bytes
 
         for (var i = 0u; i < it8.TablesCount; i++)
         {
@@ -1446,7 +1525,8 @@ public static partial class Lcms2
                 return SynError(it8, "Sample type expected"u8);
 
             //if (!SetDataFormat(it8, iField, StringPtr(it8->id))) return false;
-            if (!SetDataFormat(it8, iField, Encoding.ASCII.GetBytes(it8.id.ToString()))) return false;
+            if (!SetDataFormat(it8, iField, Encoding.ASCII.GetBytes(it8.id.ToString())))
+                return false;
             iField++;
 
             InSymbol(it8);
@@ -1533,23 +1613,27 @@ public static partial class Lcms2
         KEYVALUE? Key;
 
         while (it8.sy is not SYMBOL.SEOF
-                      and not SYMBOL.SSYNERROR
-                      and not SYMBOL.SBEGIN_DATA_FORMAT
-                      and not SYMBOL.SBEGIN_DATA)
+                     and not SYMBOL.SSYNERROR
+                     and not SYMBOL.SBEGIN_DATA_FORMAT
+                     and not SYMBOL.SBEGIN_DATA)
         {
             switch (it8.sy)
             {
                 case SYMBOL.SKEYWORD:
                     InSymbol(it8);
-                    if (!GetVal(it8, Buffer, MAXSTR - 1, "Keyword expected")) return false;
-                    if (AddAvailableProperty(it8, Buffer, WRITEMODE.WRITE_UNCOOKED) is null) return false;
+                    if (!GetVal(it8, Buffer, MAXSTR - 1, "Keyword expected"))
+                        return false;
+                    if (AddAvailableProperty(it8, Buffer, WRITEMODE.WRITE_UNCOOKED) is null)
+                        return false;
                     InSymbol(it8);
                     break;
 
                 case SYMBOL.SDATA_FORMAT_ID:
                     InSymbol(it8);
-                    if (!GetVal(it8, Buffer, MAXSTR - 1, "Keyword expected")) return false;
-                    if (AddAvailableSampleID(it8, Buffer) is null) return false;
+                    if (!GetVal(it8, Buffer, MAXSTR - 1, "Keyword expected"))
+                        return false;
+                    if (AddAvailableSampleID(it8, Buffer) is null)
+                        return false;
                     InSymbol(it8);
                     break;
 
@@ -1563,15 +1647,22 @@ public static partial class Lcms2
                         //return SynError(it8, "Undefined keyword '{0}'".ToCharPtr(), new string(VarName));
 
                         Key = AddAvailableProperty(it8, VarName, WRITEMODE.WRITE_UNCOOKED);
-                        if (Key is null) return false;
+                        if (Key is null)
+                            return false;
                     }
 
                     InSymbol(it8);
-                    if (!GetVal(it8, Buffer, MAXSTR - 1, "Property data expected")) return false;
+                    if (!GetVal(it8, Buffer, MAXSTR - 1, "Property data expected"))
+                        return false;
 
                     if (Key?.WriteAs is not WRITEMODE.WRITE_PAIR)
                     {
-                        AddToList(it8, ref GetTable(it8).HeaderList, VarName, null, Buffer,
+                        AddToList(
+                            it8,
+                            ref GetTable(it8).HeaderList,
+                            VarName,
+                            null,
+                            Buffer,
                             (it8.sy is SYMBOL.SSTRING) ? WRITEMODE.WRITE_STRINGIFY : WRITEMODE.WRITE_UNCOOKED);
                     }
                     else
@@ -1579,7 +1670,11 @@ public static partial class Lcms2
                         int Subkey, Nextkey = 0;
 
                         if (it8.sy is not SYMBOL.SSTRING)
-                            return SynError(it8, "Invalid value '{0}' for property '{1}'."u8, SpanToString(Buffer), SpanToString(VarName));
+                            return SynError(
+                                it8,
+                                "Invalid value '{0}' for property '{1}'."u8,
+                                SpanToString(Buffer),
+                                SpanToString(VarName));
 
                         // chop the string as a list of "subkey, value" pairs, using ';' as a separator
                         for (Subkey = 0; Buffer[Subkey] is not 0; Subkey = Nextkey)
@@ -1602,11 +1697,14 @@ public static partial class Lcms2
 
                             // gobble the spaces before the comma, and the comma itself
                             temp = Value++;
-                            do Buffer[temp--] = 0; while (temp >= Subkey && Buffer[temp] == ' ');
+                            do
+                                Buffer[temp--] = 0;
+                            while (temp >= Subkey && Buffer[temp] == ' ');
 
                             // gobble any space at the right
                             temp = Value + (int)strlen(Buffer[Value..]) - 1;
-                            while (Buffer[temp] == ' ') Buffer[temp--] = 0;
+                            while (Buffer[temp] == ' ')
+                                Buffer[temp--] = 0;
 
                             // trim the strings from the left
                             Subkey += (int)strspn(Buffer[Subkey..], " "u8);
@@ -1614,14 +1712,21 @@ public static partial class Lcms2
 
                             if (Buffer[Subkey] is 0 || Buffer[Value] is 0)
                                 return SynError(it8, "Invalid value for property '{0}'."u8, SpanToString(VarName));
-                            AddToList(it8, ref GetTable(it8).HeaderList, VarName, Buffer[Subkey..], Buffer[Value..], WRITEMODE.WRITE_PAIR);
+                            AddToList(
+                                it8,
+                                ref GetTable(it8).HeaderList,
+                                VarName,
+                                Buffer[Subkey..],
+                                Buffer[Value..],
+                                WRITEMODE.WRITE_PAIR);
                         }
                     }
 
                     InSymbol(it8);
                     break;
 
-                case SYMBOL.SEOLN: break;
+                case SYMBOL.SEOLN:
+                    break;
 
                 default:
                     return SynError(it8, "expected keyword or identifier"u8);
@@ -1670,11 +1775,13 @@ public static partial class Lcms2
             switch (it8.sy)
             {
                 case SYMBOL.SBEGIN_DATA_FORMAT:
-                    if (!DataFormatSection(it8)) return false;
+                    if (!DataFormatSection(it8))
+                        return false;
                     break;
 
                 case SYMBOL.SBEGIN_DATA:
-                    if (!DataSection(it8)) return false;
+                    if (!DataSection(it8))
+                        return false;
 
                     if (it8.sy is not SYMBOL.SEOF)
                     {
@@ -1726,7 +1833,8 @@ public static partial class Lcms2
                     break;
 
                 default:
-                    if (!HeaderSection(it8)) return false;
+                    if (!HeaderSection(it8))
+                        return false;
                     break;
             }
         }
@@ -1756,7 +1864,8 @@ public static partial class Lcms2
                 }
 
                 var Fld = t.DataFormat[idField];
-                if (Fld == null) continue;
+                if (Fld == null)
+                    continue;
 
                 if (cmsstrcasecmp(Fld, "SAMPLE_ID"u8) is 0)
                     t.SampleID = idField;
@@ -1787,7 +1896,13 @@ public static partial class Lcms2
                                     var Type = p.Value;
                                     var nTable = (int)k;
 
-                                    snprintf(Buffer, 255, "{0} {1} {2}"u8, SpanToString(Label), nTable, SpanToString(Type));
+                                    snprintf(
+                                        Buffer,
+                                        255,
+                                        "{0} {1} {2}"u8,
+                                        SpanToString(Label),
+                                        nTable,
+                                        SpanToString(Type));
 
                                     SetData(it8, i, idField, Buffer);
                                 }
@@ -1805,7 +1920,8 @@ public static partial class Lcms2
     {
         int words = 1, space = 0, quot = 0;
 
-        if (n < 10) return 0;       // Too small
+        if (n < 10)
+            return 0;       // Too small
 
         if (n > 132)
             n = 132;
@@ -1826,7 +1942,8 @@ public static partial class Lcms2
                     quot = quot is 1 ? 0 : 1;
                     break;
                 default:
-                    if (Buffer[(int)i] is < 32 or > 127) return 0;
+                    if (Buffer[(int)i] is < 32 or > 127)
+                        return 0;
                     words += space;
                     space = 0;
                     break;
@@ -1843,7 +1960,7 @@ public static partial class Lcms2
         var fp = fopen(FileName, "rt");
         if (fp is null)
         {
-            LogError(null, cmsERROR_FILE, "File '{0}' not found", FileName);
+            Context.LogError(null, cmsERROR_FILE, "File '{0}' not found", FileName);
             return false;
         }
 
@@ -1863,10 +1980,12 @@ public static partial class Lcms2
         _cmsAssert(len is not 0);
 
         var type = IsMyBlock(Ptr, len);
-        if (type is 0) return null;
+        if (type is 0)
+            return null;
 
         var hIT8 = cmsIT8Alloc(ContextID);
-        if (hIT8 is not IT8 it8) return null;
+        if (hIT8 is not IT8 it8)
+            return null;
 
         //var it8 = (IT8*)hIT8;
         //it8.MemoryBlock = GetArray<byte>(ContextID, len + 1);
@@ -1903,10 +2022,12 @@ public static partial class Lcms2
         _cmsAssert(cFileName);
 
         var type = IsMyFile(cFileName);
-        if (!type) return null;
+        if (!type)
+            return null;
 
         var hIT8 = cmsIT8Alloc(ContextID);
-        if (hIT8 is not IT8 it8) return null;
+        if (hIT8 is not IT8 it8)
+            return null;
 
         //var it8 = (IT8*)hIT8;
         var file = fopen(cFileName, "rt");
@@ -1916,6 +2037,7 @@ public static partial class Lcms2
             cmsIT8Free(hIT8);
             return null;
         }
+
         it8.FileStack[0].Stream = (FileStream)file.Stream;
 
         strncpy(it8.FileStack[0].FileName, cFileName, MaxPath - 1);
@@ -2080,7 +2202,8 @@ public static partial class Lcms2
     {
         var Buffer = cmsIT8GetDataRowCol(hIT8, row, col);
 
-        if (Buffer is null) return 0.0;
+        if (Buffer is null)
+            return 0.0;
 
         return ParseFloatNumber(Buffer);
     }
@@ -2119,7 +2242,10 @@ public static partial class Lcms2
     public static double cmsIT8GetDataDbl(object? hIT8, ReadOnlySpan<byte> cPatch, ReadOnlySpan<byte> cSample) =>
         ParseFloatNumber(cmsIT8GetData(hIT8, cPatch, cSample));
 
-    public static bool cmsIT8SetData(object? hIT8, ReadOnlySpan<byte> cPatch, ReadOnlySpan<byte> cSample, ReadOnlySpan<byte> Val)
+    public static bool cmsIT8SetData(object? hIT8,
+                                     ReadOnlySpan<byte> cPatch,
+                                     ReadOnlySpan<byte> cSample,
+                                     ReadOnlySpan<byte> Val)
     {
         if (hIT8 is not IT8 it8)
             return false;
@@ -2175,8 +2301,10 @@ public static partial class Lcms2
         var t = GetTable(it8);
         var Data = GetData(it8, nPatch, t.SampleID);
 
-        if (Data is null) return null;
-        if (buffer.IsEmpty) return Data;
+        if (Data is null)
+            return null;
+        if (buffer.IsEmpty)
+            return Data;
 
         strncpy(buffer, Data, MAXSTR - 1);
         buffer[MAXSTR - 1] = 0;
@@ -2201,21 +2329,25 @@ public static partial class Lcms2
         var split = str.Split(' ');
         var result = split.Length;
 
-        if (result is 0) return 0;
+        if (result is 0)
+            return 0;
 
         if (split[0].Length > 255)
             split[0] = split[0][..255];
 
         strncpy(label, split[0], 255);
 
-        if (result is 1) return 1;
+        if (result is 1)
+            return 1;
 
         var success = uint.TryParse(split[1], out var n);
-        if (!success) return 1;
+        if (!success)
+            return 1;
 
         tableNum = n;
 
-        if (result is 2) return 2;
+        if (result is 2)
+            return 2;
 
         if (split[2].Length > 255)
             split[2] = split[2][..255];
@@ -2225,7 +2357,10 @@ public static partial class Lcms2
         return 3;
     }
 
-    public static int cmsIT8SetTableByLabel(object? hIT8, ReadOnlySpan<byte> cSet, ReadOnlySpan<byte> cField, ReadOnlySpan<byte> ExpectedType)
+    public static int cmsIT8SetTableByLabel(object? hIT8,
+                                            ReadOnlySpan<byte> cSet,
+                                            ReadOnlySpan<byte> cField,
+                                            ReadOnlySpan<byte> ExpectedType)
     {
         Span<byte> Type = stackalloc byte[256];
         Span<byte> Label = stackalloc byte[256];
@@ -2236,7 +2371,8 @@ public static partial class Lcms2
             cField = "LABEL"u8;
 
         var cLabelFld = cmsIT8GetData(hIT8, cSet, cField);
-        if (cLabelFld is null) return -1;
+        if (cLabelFld is null)
+            return -1;
 
         if (ParseLabel(cLabelFld, Label, out var nTable, Type) is not 3)
             return -1;

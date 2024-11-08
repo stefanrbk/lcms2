@@ -24,12 +24,12 @@
 //
 //---------------------------------------------------------------------------------
 
+using System.Buffers;
+using System.Diagnostics;
+
 using lcms2.types;
 
 using Microsoft.Extensions.Logging;
-
-using System.Buffers;
-using System.Diagnostics;
 
 namespace lcms2.testbed;
 
@@ -62,7 +62,14 @@ internal static partial class Testbed
             if (lcmsProfileIn is null || lcmsProfileOut is null)
                 Die("Unable to open profiles");
 
-            var lcmsxform = cmsCreateTransformTHR(DbgThread(), lcmsProfileIn, TYPE_RGBA_FLT, lcmsProfileOut, TYPE_RGBA_FLT, (uint)Intent, cmsFLAGS_NOCACHE);
+            var lcmsxform = cmsCreateTransformTHR(
+                DbgThread(),
+                lcmsProfileIn,
+                TYPE_RGBA_FLT,
+                lcmsProfileOut,
+                TYPE_RGBA_FLT,
+                (uint)Intent,
+                cmsFLAGS_NOCACHE);
 
             const int NumPixels = 256 / Interval * 256 / Interval * 256 / Interval;
             var Mb = (uint)NumPixels * 16;
@@ -107,7 +114,14 @@ internal static partial class Testbed
             if (lcmsProfileIn is null || lcmsProfileOut is null)
                 Die("Unable to open profiles");
 
-            var lcmsxform = cmsCreateTransformTHR(DbgThread(), lcmsProfileIn, TYPE_RGB_16, lcmsProfileOut, TYPE_RGB_16, (uint)Intent, cmsFLAGS_NOCACHE);
+            var lcmsxform = cmsCreateTransformTHR(
+                DbgThread(),
+                lcmsProfileIn,
+                TYPE_RGB_16,
+                lcmsProfileOut,
+                TYPE_RGB_16,
+                (uint)Intent,
+                cmsFLAGS_NOCACHE);
 
             const int NumPixels = 256 * 256 * 256;
             var Mb = (uint)NumPixels * 6;
@@ -154,7 +168,14 @@ internal static partial class Testbed
             if (lcmsProfileIn is null || lcmsProfileOut is null)
                 Die("Unable to open profiles");
 
-            var lcmsxform = cmsCreateTransformTHR(DbgThread(), lcmsProfileIn, TYPE_CMYK_FLT, lcmsProfileOut, TYPE_CMYK_FLT, INTENT_PERCEPTUAL, cmsFLAGS_NOCACHE);
+            var lcmsxform = cmsCreateTransformTHR(
+                DbgThread(),
+                lcmsProfileIn,
+                TYPE_CMYK_FLT,
+                lcmsProfileOut,
+                TYPE_CMYK_FLT,
+                INTENT_PERCEPTUAL,
+                cmsFLAGS_NOCACHE);
 
             const int NumPixels = 256 / Interval * 256 / Interval * 256 / Interval;
             var Mb = (uint)NumPixels * 16;
@@ -200,7 +221,14 @@ internal static partial class Testbed
             if (lcmsProfileIn is null || lcmsProfileOut is null)
                 Die("Unable to open profiles");
 
-            var lcmsxform = cmsCreateTransformTHR(DbgThread(), lcmsProfileIn, TYPE_CMYK_16, lcmsProfileOut, TYPE_CMYK_16, INTENT_PERCEPTUAL, cmsFLAGS_NOCACHE);
+            var lcmsxform = cmsCreateTransformTHR(
+                DbgThread(),
+                lcmsProfileIn,
+                TYPE_CMYK_16,
+                lcmsProfileOut,
+                TYPE_CMYK_16,
+                INTENT_PERCEPTUAL,
+                cmsFLAGS_NOCACHE);
 
             const int NumPixels = 256 * 256 * 256;
             var Mb = (uint)NumPixels * 8;
@@ -245,7 +273,14 @@ internal static partial class Testbed
             if (lcmsProfileIn is null || lcmsProfileOut is null)
                 Die("Unable to open profiles");
 
-            var lcmsxform = cmsCreateTransformTHR(DbgThread(), lcmsProfileIn, TYPE_RGB_8, lcmsProfileOut, TYPE_RGB_8, (uint)Intent, cmsFLAGS_NOCACHE);
+            var lcmsxform = cmsCreateTransformTHR(
+                DbgThread(),
+                lcmsProfileIn,
+                TYPE_RGB_8,
+                lcmsProfileOut,
+                TYPE_RGB_8,
+                (uint)Intent,
+                cmsFLAGS_NOCACHE);
 
             const int NumPixels = 256 * 256 * 256;
             var Mb = (uint)NumPixels * 3;
@@ -290,7 +325,14 @@ internal static partial class Testbed
             if (lcmsProfileIn is null || lcmsProfileOut is null)
                 Die("Unable to open profiles");
 
-            var lcmsxform = cmsCreateTransformTHR(DbgThread(), lcmsProfileIn, TYPE_CMYK_8, lcmsProfileOut, TYPE_CMYK_8, INTENT_PERCEPTUAL, cmsFLAGS_NOCACHE);
+            var lcmsxform = cmsCreateTransformTHR(
+                DbgThread(),
+                lcmsProfileIn,
+                TYPE_CMYK_8,
+                lcmsProfileOut,
+                TYPE_CMYK_8,
+                INTENT_PERCEPTUAL,
+                cmsFLAGS_NOCACHE);
 
             const int NumPixels = 256 * 256 * 256;
             var Mb = (uint)NumPixels * 4;
@@ -337,7 +379,14 @@ internal static partial class Testbed
             if (lcmsProfileIn is null || lcmsProfileOut is null)
                 Die("Unable to open profiles");
 
-            var lcmsxform = cmsCreateTransformTHR(DbgThread(), lcmsProfileIn, TYPE_GRAY_FLT, lcmsProfileOut, TYPE_GRAY_FLT, (uint)Intent, cmsFLAGS_NOCACHE);
+            var lcmsxform = cmsCreateTransformTHR(
+                DbgThread(),
+                lcmsProfileIn,
+                TYPE_GRAY_FLT,
+                lcmsProfileOut,
+                TYPE_GRAY_FLT,
+                (uint)Intent,
+                cmsFLAGS_NOCACHE);
 
             const int NumPixels = 256 / Interval * 256 / Interval * 256 / Interval;
             var Mb = (uint)NumPixels * sizeof(float);
@@ -380,7 +429,14 @@ internal static partial class Testbed
             if (lcmsProfileIn is null || lcmsProfileOut is null)
                 Die("Unable to open profiles");
 
-            var lcmsxform = cmsCreateTransformTHR(DbgThread(), lcmsProfileIn, TYPE_GRAY_16, lcmsProfileOut, TYPE_GRAY_16, (uint)Intent, cmsFLAGS_NOCACHE);
+            var lcmsxform = cmsCreateTransformTHR(
+                DbgThread(),
+                lcmsProfileIn,
+                TYPE_GRAY_16,
+                lcmsProfileOut,
+                TYPE_GRAY_16,
+                (uint)Intent,
+                cmsFLAGS_NOCACHE);
 
             const int NumPixels = 256 * 256 * 256;
             var Mb = (uint)NumPixels * sizeof(ushort);
@@ -423,7 +479,14 @@ internal static partial class Testbed
             if (lcmsProfileIn is null || lcmsProfileOut is null)
                 Die("Unable to open profiles");
 
-            var lcmsxform = cmsCreateTransformTHR(DbgThread(), lcmsProfileIn, TYPE_GRAY_8, lcmsProfileOut, TYPE_GRAY_8, (uint)Intent, cmsFLAGS_NOCACHE);
+            var lcmsxform = cmsCreateTransformTHR(
+                DbgThread(),
+                lcmsProfileIn,
+                TYPE_GRAY_8,
+                lcmsProfileOut,
+                TYPE_GRAY_8,
+                (uint)Intent,
+                cmsFLAGS_NOCACHE);
 
             const int NumPixels = 256 * 256 * 256;
             var Mb = (uint)NumPixels * sizeof(byte);
@@ -465,7 +528,7 @@ internal static partial class Testbed
         var Transfer = new ToneCurve[3];
 
         Transfer[0] = Transfer[1] = Transfer[2] = Gamma;
-        var h = cmsCreateLinearizationDeviceLink(Signature.Colorspace.Rgb, Transfer);
+        var h = cmsCreateLinearizationDeviceLink(Signatures.Colorspace.Rgb, Transfer);
 
         cmsFreeToneCurve(Gamma);
 
@@ -524,9 +587,17 @@ internal static partial class Testbed
 
             SpeedTest8bits("8 bits on Matrix-Shaper profiles (AbsCol)", test5, aRGBlcms2, INTENT_ABSOLUTE_COLORIMETRIC);
 
-            SpeedTest16bits("16 bits on Matrix-Shaper profiles (AbsCol)", test5, aRGBlcms2, INTENT_ABSOLUTE_COLORIMETRIC);
+            SpeedTest16bits(
+                "16 bits on Matrix-Shaper profiles (AbsCol)",
+                test5,
+                aRGBlcms2,
+                INTENT_ABSOLUTE_COLORIMETRIC);
 
-            SpeedTest32bits("32 bits on Matrix-Shaper profiles (AbsCol)", test5, aRGBlcms2, INTENT_ABSOLUTE_COLORIMETRIC);
+            SpeedTest32bits(
+                "32 bits on Matrix-Shaper profiles (AbsCol)",
+                test5,
+                aRGBlcms2,
+                INTENT_ABSOLUTE_COLORIMETRIC);
 
             Console.WriteLine();
 

@@ -24,9 +24,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 namespace lcms2;
 
 public static partial class Lcms2
@@ -36,7 +33,6 @@ public static partial class Lcms2
     internal static readonly IntentsPluginChunkType globalIntentsPluginChunk = new();
 
     internal static void DupPluginIntentsList(ref IntentsPluginChunkType dest, in IntentsPluginChunkType src) =>
-
         dest = (IntentsPluginChunkType)((ICloneable)src).Clone();
 
     internal static void _cmsAllocIntentsPluginChunk(Context ctx, Context? src)
@@ -47,19 +43,18 @@ public static partial class Lcms2
         DupPluginIntentsList(ref ctx.IntentsPlugin, from);
     }
 
-    internal static Pipeline? _cmsLinkProfiles(
-        Context? ContextID,
-        uint nProfiles,
-        ReadOnlySpan<uint> TheIntents,
-        Profile[] Profiles,
-        Span<bool> BPC,
-        ReadOnlySpan<double> AdaptationStates,
-        uint dwFlags)
+    internal static Pipeline? _cmsLinkProfiles(Context? ContextID,
+                                               uint nProfiles,
+                                               ReadOnlySpan<uint> TheIntents,
+                                               Profile[] Profiles,
+                                               Span<bool> BPC,
+                                               ReadOnlySpan<double> AdaptationStates,
+                                               uint dwFlags)
     {
         // Make sure a reasonable number of profiles is provided
         if (nProfiles is <= 0 or > 255)
         {
-            LogError(ContextID, cmsERROR_RANGE, $"Couldn't link '{nProfiles}' profiles");
+            Context.LogError(ContextID, cmsERROR_RANGE, $"Couldn't link '{nProfiles}' profiles");
             return null;
         }
 
@@ -86,10 +81,10 @@ public static partial class Lcms2
         // this case would present some issues if the custom intent tries to do things like
         // preserve primaries. This solution is not perfect, but works well on most cases.
 
-        var intent = Intent.Search(ContextID, TheIntents[0]);
+        var intent = IntentFunctions.Search(ContextID, TheIntents[0]);
         if (intent is null)
         {
-            LogError(ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported intent '{TheIntents[0]}'");
+            Context.LogError(ContextID, cmsERROR_UNKNOWN_EXTENSION, $"Unsupported intent '{TheIntents[0]}'");
             return null;
         }
 
@@ -97,12 +92,15 @@ public static partial class Lcms2
         return intent.Link(ContextID, nProfiles, TheIntents, Profiles, BPC, AdaptationStates, dwFlags);
     }
 
-    public static uint cmsGetSupportedIntentsTHR(Context? ContextID, uint nMax, Span<uint> Codes, Span<string> Descriptions)
+    public static uint cmsGetSupportedIntentsTHR(Context? ContextID,
+                                                 uint nMax,
+                                                 Span<uint> Codes,
+                                                 Span<string> Descriptions)
     {
         var ctx = Context.Get(ContextID).IntentsPlugin;
 
         var i = 0;
-        foreach (var intent in IntentsList.Default.Concat(ctx.Intents).Take((int)nMax))
+        foreach (var intent in IntentFunctions.DefaultFunctions.Concat(ctx.Intents).Take((int)nMax))
         {
             if (Codes.Length > i)
                 Codes[i] = intent;
@@ -117,20 +115,4 @@ public static partial class Lcms2
 
     public static uint cmsGetSupportedIntents(uint nMax, Span<uint> Codes, Span<string> Descriptions) =>
         cmsGetSupportedIntentsTHR(null, nMax, Codes, Descriptions);
-
-    internal static bool _cmsRegisterRenderingIntentPlugin(Context? id, PluginBase? Data)
-    {
-        var ctx = Context.Get(id).IntentsPlugin;
-
-        // Do we have to reset the custom intents?
-        if (Data is not PluginRenderingIntent Plugin)
-        {
-            ctx.Intents.Clear();
-            return true;
-        }
-
-        ctx.Intents.Add(new(Plugin.Intent, Plugin.Description, Plugin.Link));
-
-        return true;
-    }
 }

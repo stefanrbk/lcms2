@@ -19,14 +19,19 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
+using lcms2.pdk;
 
 namespace lcms2.ThreadedPlugin;
+
 public static partial class Threaded
 {
     public static readonly PluginParalellization Plugin = new(
-        Signature.Plugin.MagicNumber, REQUIRED_LCMS_VERSION, Signature.Plugin.Parallelization, CMS_THREADED_GUESS_MAX_THREADS, 0, _cmsThrScheduler);
+        PluginSignatures.MagicNumber,
+        REQUIRED_LCMS_VERSION,
+        PluginSignatures.Parallelization,
+        CMS_THREADED_GUESS_MAX_THREADS,
+        0,
+        _cmsThrScheduler);
 
     public static PluginBase cmsThreadedExtensions(int max_threads, uint flags)
     {

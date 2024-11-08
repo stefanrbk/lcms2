@@ -24,9 +24,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 namespace lcms2;
 
 public static partial class Lcms2
@@ -39,8 +36,8 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.InterpPlugin
-            : InterpPluginChunk;
+                       ? src.InterpPlugin
+                       : InterpPluginChunk;
 
         _cmsAssert(from);
 
@@ -48,23 +45,5 @@ public static partial class Lcms2
 
         //fixed (InterpPluginChunkType* @default = &InterpPluginChunk)
         //    AllocPluginChunk(ctx, src, Chunks.InterpPlugin, @default);
-    }
-
-    internal static bool _cmsRegisterInterpPlugin(Context? ctx, PluginBase? Data)
-    {
-        var Plugin = (PluginInterpolation?)Data;
-        var ptr = Context.Get(ctx).InterpPlugin;
-
-        if (Data is not null)
-        {
-            // Set replacement functions
-            ptr.Interpolators = Plugin!.InterpolatorsFactory;
-            return true;
-        }
-        else
-        {
-            ptr.Interpolators = null;
-            return true;
-        }
     }
 }

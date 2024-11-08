@@ -19,15 +19,15 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+
+using lcms2.types;
 
 using S1Fixed14Number = System.Int32;
 
 namespace lcms2.FastFloatPlugin;
+
 public unsafe static partial class FastFloat
 {
     private static void MatShaperXform8(Transform CMMcargo,
@@ -40,13 +40,25 @@ public unsafe static partial class FastFloat
         if (CMMcargo.UserData is not XMatShaper8Data p)
             return;
 
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -149,10 +161,16 @@ public unsafe static partial class FastFloat
         MAT3 res = default;
 
         // Check for shaper-matrix-matrix-shaper structure, that is what this optimizer stands for
-        if (!cmsPipelineCheckAndRetrieveStages(Src, Signature.Stage.CurveSetElem, out var Curve1,
-                                                    Signature.Stage.MatrixElem, out var Matrix1,
-                                                    Signature.Stage.MatrixElem, out var Matrix2,
-                                                    Signature.Stage.CurveSetElem, out var Curve2))
+        if (!cmsPipelineCheckAndRetrieveStages(
+                Src,
+                Signatures.Stage.CurveSetElem,
+                out var Curve1,
+                Signatures.Stage.MatrixElem,
+                out var Matrix1,
+                Signatures.Stage.MatrixElem,
+                out var Matrix2,
+                Signatures.Stage.CurveSetElem,
+                out var Curve2))
         {
             return false;
         }
@@ -189,7 +207,8 @@ public unsafe static partial class FastFloat
 
         // Allocate an empty LUT
         var Dest = cmsPipelineAlloc(ContextID, nChans, nChans);
-        if (Dest is null) return false;
+        if (Dest is null)
+            return false;
 
         // Assemble the new LUT
         cmsPipelineInsertStage(Dest, StageLoc.AtBegin, cmsStageDup(Curve1));
@@ -198,7 +217,10 @@ public unsafe static partial class FastFloat
         {
             if (nChans is 1)
             {
-                cmsPipelineInsertStage(Dest, StageLoc.AtEnd, cmsStageAllocMatrix(ContextID, 1, 1, factor, Data2.Offset));
+                cmsPipelineInsertStage(
+                    Dest,
+                    StageLoc.AtEnd,
+                    cmsStageAllocMatrix(ContextID, 1, 1, factor, Data2.Offset));
             }
             else
             {
@@ -212,11 +234,19 @@ public unsafe static partial class FastFloat
             // If identity on matrix, we can further optimize the curves, so call the join curves routine
             if (IdentityMat)
             {
-                Optimize8ByJoiningCurves(out TransformFn, out UserData, out FreeUserData, ref Dest, ref InputFormat, ref OutputFormat, ref dwFlags);
+                Optimize8ByJoiningCurves(
+                    out TransformFn,
+                    out UserData,
+                    out FreeUserData,
+                    ref Dest,
+                    ref InputFormat,
+                    ref OutputFormat,
+                    ref dwFlags);
             }
             else
             {
-                if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 || cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
+                if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 ||
+                    cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
                     return false;
 
                 // In this particular optimization, cache does not help as it takes more time to deal with
@@ -224,7 +254,12 @@ public unsafe static partial class FastFloat
                 dwFlags |= cmsFLAGS_NOCACHE;
 
                 // Setup the optimization routines
-                UserData = XMatShaper8Data.SetShaper(ContextID, mpeC1.TheCurves, res, new VEC3(Data2.Offset), mpeC2.TheCurves);
+                UserData = XMatShaper8Data.SetShaper(
+                    ContextID,
+                    mpeC1.TheCurves,
+                    res,
+                    new VEC3(Data2.Offset),
+                    mpeC2.TheCurves);
                 FreeUserData = FreeDisposable;
 
                 TransformFn = MatShaperXform8;
@@ -256,13 +291,23 @@ file class XMatShaper8Data : IDisposable
     public ref S1Fixed14Number Mat(int a, int b) =>
         ref _mat[(a * 4) + b];
 
-    public Span<S1Fixed14Number> Shaper1R => _shaper1R.AsSpan(..256);
-    public Span<S1Fixed14Number> Shaper1G => _shaper1G.AsSpan(..256);
-    public Span<S1Fixed14Number> Shaper1B => _shaper1B.AsSpan(..256);
+    public Span<S1Fixed14Number> Shaper1R =>
+        _shaper1R.AsSpan(..256);
 
-    public Span<byte> Shaper2R => _shaper2R.AsSpan(..0x4001);
-    public Span<byte> Shaper2G => _shaper2G.AsSpan(..0x4001);
-    public Span<byte> Shaper2B => _shaper2B.AsSpan(..0x4001);
+    public Span<S1Fixed14Number> Shaper1G =>
+        _shaper1G.AsSpan(..256);
+
+    public Span<S1Fixed14Number> Shaper1B =>
+        _shaper1B.AsSpan(..256);
+
+    public Span<byte> Shaper2R =>
+        _shaper2R.AsSpan(..0x4001);
+
+    public Span<byte> Shaper2G =>
+        _shaper2G.AsSpan(..0x4001);
+
+    public Span<byte> Shaper2B =>
+        _shaper2B.AsSpan(..0x4001);
 
     public XMatShaper8Data(Context? context)
     {
@@ -394,6 +439,4 @@ file class XMatShaper8Data : IDisposable
 
         return p;
     }
-
 }
-

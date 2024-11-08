@@ -26,50 +26,10 @@
 
 using System.Diagnostics;
 
-using lcms2.io;
-using lcms2.types;
-
 namespace lcms2;
+
 public static partial class Plugin
 {
-    [DebuggerStepThrough]
-    public static ushort AdjustEndianess(ushort Word)   // _cmsAdjustEndianess16
-    {
-        Span<byte> pByte = stackalloc byte[2];
-        BitConverter.TryWriteBytes(pByte, Word);
-
-        (pByte[1], pByte[0]) = (pByte[0], pByte[1]);
-        return BitConverter.ToUInt16(pByte);
-    }
-
-    [DebuggerStepThrough]
-    public static Signature AdjustEndianess(Signature sig) =>
-        (Signature)AdjustEndianess((uint)sig);
-
-    [DebuggerStepThrough]
-    public static uint AdjustEndianess(uint DWord)  // _cmsAdjustEndianess32
-    {
-        Span<byte> pByte = stackalloc byte[4];
-        BitConverter.TryWriteBytes(pByte, DWord);
-
-        (pByte[3], pByte[2], pByte[1], pByte[0]) = (pByte[0], pByte[1], pByte[2], pByte[3]);
-        return BitConverter.ToUInt32(pByte);
-    }
-
-    [DebuggerStepThrough]
-    public static ulong AdjustEndianess(ulong QWord)    // _cmsAdjustEndianess64
-    {
-        Span<byte> pByte = stackalloc byte[8];
-        BitConverter.TryWriteBytes(pByte, QWord);
-
-        (pByte[7], pByte[0]) = (pByte[0], pByte[7]);
-        (pByte[6], pByte[1]) = (pByte[1], pByte[6]);
-        (pByte[5], pByte[2]) = (pByte[2], pByte[5]);
-        (pByte[4], pByte[3]) = (pByte[3], pByte[4]);
-
-        return BitConverter.ToUInt64(pByte);
-    }
-
     [DebuggerStepThrough]
     public static bool _cmsReadSignature(IOHandler io, out Signature sig)
     {

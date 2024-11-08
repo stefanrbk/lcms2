@@ -659,7 +659,7 @@ internal static partial class Testbed
 
         cmsSetProfileVersion(h, 4.3);
 
-        if (!cmsWriteTag(h, Signature.Tag.GrayTRC, g))
+        if (!cmsWriteTag(h, Signatures.Tag.GrayTRC, g))
             return false;
         cmsCloseProfile(h);
 
@@ -922,10 +922,10 @@ internal static partial class Testbed
     internal static bool CheckLinking()
     {
         // Create a CLUT based profile
-        var h = cmsCreateInkLimitingDeviceLinkTHR(DbgThread(), Signature.Colorspace.Cmyk, 150)!;
+        var h = cmsCreateInkLimitingDeviceLinkTHR(DbgThread(), Signatures.Colorspace.Cmyk, 150)!;
 
         // link a second tag
-        cmsLinkTag(h, Signature.Tag.AToB1, Signature.Tag.AToB0);
+        cmsLinkTag(h, Signatures.Tag.AToB1, Signatures.Tag.AToB0);
 
         // Save the linked devicelink
         if (!cmsSaveProfileToFile(h, "lcms2link.icc"))
@@ -937,7 +937,7 @@ internal static partial class Testbed
         if (h is null)
             return false;
 
-        if (cmsReadTag(h, Signature.Tag.AToB1) is not Pipeline pipeline)
+        if (cmsReadTag(h, Signatures.Tag.AToB1) is not Pipeline pipeline)
             return false;
 
         pipeline = cmsPipelineDup(pipeline)!;
@@ -948,7 +948,7 @@ internal static partial class Testbed
         cmsPipelineInsertStage(pipeline, cmsAT_END, stageEnd);
         cmsPipelineInsertStage(pipeline, cmsAT_BEGIN, stageBegin);
 
-        if (cmsTagLinkedTo(h, Signature.Tag.AToB1) != Signature.Tag.AToB0)
+        if (cmsTagLinkedTo(h, Signatures.Tag.AToB1) != Signatures.Tag.AToB0)
             return false;
 
         cmsCloseProfile(h);
@@ -964,26 +964,26 @@ internal static partial class Testbed
 
         cmsSetProfileVersion(identityProfile, 4.3);
 
-        cmsSetDeviceClass(identityProfile, Signature.ProfileClass.ColorSpace);
+        cmsSetDeviceClass(identityProfile, Signatures.ProfileClass.ColorSpace);
         cmsSetColorSpace(identityProfile, dataSpace);
-        cmsSetPCS(identityProfile, Signature.Colorspace.XYZ);
+        cmsSetPCS(identityProfile, Signatures.Colorspace.XYZ);
 
         cmsSetHeaderRenderingIntent(identityProfile, INTENT_RELATIVE_COLORIMETRIC);
 
-        cmsWriteTag(identityProfile, Signature.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50));
+        cmsWriteTag(identityProfile, Signatures.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50));
 
         var identity = MAT3.Identity.AsArray( /*Context.GetPool<double>(null)*/);
 
         // build forward transform.... (RGB to PCS)
         var forward = cmsPipelineAlloc(ctx, 3, 3);
         cmsPipelineInsertStage(forward, cmsAT_END, cmsStageAllocMatrix(ctx, 3, 3, identity, zero));
-        cmsWriteTag(identityProfile, Signature.Tag.DToB1, forward);
+        cmsWriteTag(identityProfile, Signatures.Tag.DToB1, forward);
 
         cmsPipelineFree(forward);
 
         var reverse = cmsPipelineAlloc(ctx, 3, 3);
         cmsPipelineInsertStage(reverse, cmsAT_END, cmsStageAllocMatrix(ctx, 3, 3, identity, zero));
-        cmsWriteTag(identityProfile, Signature.Tag.BToD1, reverse);
+        cmsWriteTag(identityProfile, Signatures.Tag.BToD1, reverse);
 
         cmsPipelineFree(reverse);
 
@@ -1000,7 +1000,7 @@ internal static partial class Testbed
         Span<float> @out = stackalloc float[4];
 
         // RGB to XYZ
-        var input = IdentityMatrixProfile(Signature.Colorspace.Rgb);
+        var input = IdentityMatrixProfile(Signatures.Colorspace.Rgb);
 
         var xform = cmsCreateTransform(input, TYPE_RGB_FLT, xyzProfile, TYPE_XYZ_FLT, INTENT_RELATIVE_COLORIMETRIC, 0)!;
         cmsCloseProfile(input);
@@ -1014,7 +1014,7 @@ internal static partial class Testbed
             return false;
 
         // XYZ to XYZ
-        input = IdentityMatrixProfile(Signature.Colorspace.XYZ);
+        input = IdentityMatrixProfile(Signatures.Colorspace.XYZ);
 
         xform = cmsCreateTransform(input, TYPE_XYZ_FLT, xyzProfile, TYPE_XYZ_FLT, INTENT_RELATIVE_COLORIMETRIC, 0)!;
         cmsCloseProfile(input);
@@ -1028,7 +1028,7 @@ internal static partial class Testbed
             !IsGoodVal("Float XYZ->XYZ", @in[2], @out[2], FLOAT_PRECISION))
             return true;
 
-        input = IdentityMatrixProfile(Signature.Colorspace.XYZ);
+        input = IdentityMatrixProfile(Signatures.Colorspace.XYZ);
 
         xform = cmsCreateTransform(
             input,
@@ -1050,7 +1050,7 @@ internal static partial class Testbed
             return false;
 
         // XYZ to RGB
-        input = IdentityMatrixProfile(Signature.Colorspace.Rgb);
+        input = IdentityMatrixProfile(Signatures.Colorspace.Rgb);
 
         xform = cmsCreateTransform(xyzProfile, TYPE_XYZ_FLT, input, TYPE_RGB_FLT, INTENT_RELATIVE_COLORIMETRIC, 0)!;
         cmsCloseProfile(input);
@@ -1067,7 +1067,7 @@ internal static partial class Testbed
         // Now the optimizer should remove a stage
 
         // XYZ to RGB
-        input = IdentityMatrixProfile(Signature.Colorspace.Rgb);
+        input = IdentityMatrixProfile(Signatures.Colorspace.Rgb);
 
         xform = cmsCreateTransform(input, TYPE_RGB_FLT, input, TYPE_RGB_FLT, INTENT_RELATIVE_COLORIMETRIC, 0)!;
         cmsCloseProfile(input);
@@ -1278,8 +1278,8 @@ internal static partial class Testbed
             if (hProfile is null)
                 return false;
 
-            var tag_size1 = cmsReadRawTag(hProfile, Signature.Tag.Gamut, null, 0);
-            var tag_size = cmsReadRawTag(hProfile, Signature.Tag.Gamut, buffer, 37009);
+            var tag_size1 = cmsReadRawTag(hProfile, Signatures.Tag.Gamut, null, 0);
+            var tag_size = cmsReadRawTag(hProfile, Signatures.Tag.Gamut, buffer, 37009);
 
             cmsCloseProfile(hProfile);
 
@@ -1293,8 +1293,8 @@ internal static partial class Testbed
         using (logger.BeginScope("RAW read on in-memory created profiles"))
         {
             var hProfile = cmsCreate_sRGBProfile()!;
-            var tag_size1 = cmsReadRawTag(hProfile, Signature.Tag.GreenColorant, null, 0);
-            var tag_size = cmsReadRawTag(hProfile, Signature.Tag.GreenColorant, buffer, 20);
+            var tag_size1 = cmsReadRawTag(hProfile, Signatures.Tag.GreenColorant, null, 0);
+            var tag_size = cmsReadRawTag(hProfile, Signatures.Tag.GreenColorant, buffer, 20);
 
             cmsCloseProfile(hProfile);
 
@@ -1316,7 +1316,7 @@ internal static partial class Testbed
 
         /* read dictionary, but don't do anything with the value */
         //COMMENT OUT THE NEXT THREE LINES AND IT WORKS FINE!!!
-        var dict = cmsReadTag(p, Signature.Tag.Meta);
+        var dict = cmsReadTag(p, Signatures.Tag.Meta);
         if (dict is null)
             return false;
 
@@ -1344,7 +1344,7 @@ internal static partial class Testbed
         //ERROR: Bad dictionary Name/Value
         //ERROR: Corrupted tag 'meta'
         //test: test.c:59: main: Assertion `dict' failed.
-        dict = cmsReadTag(p, Signature.Tag.Meta);
+        dict = cmsReadTag(p, Signatures.Tag.Meta);
         if (dict is null)
             return false;
 
@@ -1394,14 +1394,14 @@ internal static partial class Testbed
         if (!ret)
             return false;
 
-        ret = cmsWriteTag(p, Signature.Tag.DeviceMfgDesc, mlu);
+        ret = cmsWriteTag(p, Signatures.Tag.DeviceMfgDesc, mlu);
         if (!ret)
             return false;
 
         cmsMLUfree(mlu);
 
         /* remove the tag  */
-        ret = cmsWriteTag(p, Signature.Tag.DeviceMfgDesc, null);
+        ret = cmsWriteTag(p, Signatures.Tag.DeviceMfgDesc, null);
         if (!ret)
             return false;
 
@@ -1708,7 +1708,7 @@ internal static partial class Testbed
         var srcCS = cmsGetColorSpace(srcProfile);
         var nSrcComponents = (uint)cmsChannelsOfColorSpace(srcCS);
 
-        var srcFormat = srcCS == Signature.Colorspace.Lab
+        var srcFormat = srcCS == Signatures.Colorspace.Lab
                             ? COLORSPACE_SH(PT_Lab) | CHANNELS_SH(nSrcComponents) | BYTES_SH(0)
                             : COLORSPACE_SH(PT_ANY) | CHANNELS_SH(nSrcComponents) | BYTES_SH(1);
 
@@ -1805,7 +1805,7 @@ internal static partial class Testbed
 
         cmsMLUsetASCII(mlu, "en"u8, "AU"u8, ""u8);
         cmsMLUsetWide(mlu, "en"u8, "EN"u8, "");
-        cmsWriteTag(profile, Signature.Tag.Copyright, mlu);
+        cmsWriteTag(profile, Signatures.Tag.Copyright, mlu);
         cmsMLUfree(mlu);
 
         // This will cause a crash after setting an empty copyright tag.
@@ -2035,7 +2035,7 @@ internal static partial class Testbed
 
         var rgb_curves = new ToneCurve[] { tone, tone, tone };
 
-        var hDeviceLink = cmsCreateLinearizationDeviceLink(Signature.Colorspace.Rgb, rgb_curves)!;
+        var hDeviceLink = cmsCreateLinearizationDeviceLink(Signatures.Colorspace.Rgb, rgb_curves)!;
 
         cmsFreeToneCurve(tone);
 
@@ -2093,7 +2093,7 @@ internal static partial class Testbed
         var hLab = cmsCreateLab4Profile(null);
 
         Context.Shared.SetLoggerFactory(BuildNullLogger());
-        cmsWriteRawTag(hsrgb, Signature.Tag.BlueColorant, garbage, (uint)garbage.Length);
+        cmsWriteRawTag(hsrgb, Signatures.Tag.BlueColorant, garbage, (uint)garbage.Length);
 
         var xform0 = cmsCreateTransform(hsrgb, TYPE_RGB_16, hLab, TYPE_Lab_16, INTENT_RELATIVE_COLORIMETRIC, 0);
 

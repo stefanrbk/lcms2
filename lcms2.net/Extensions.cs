@@ -24,41 +24,13 @@
 //
 //---------------------------------------------------------------------------------
 
-using System.Runtime.CompilerServices;
-
-using lcms2.types;
-
 namespace lcms2;
 
-public static class Extensions
+public static class FlagExtensions
 {
-    public static bool IsSet(this SamplerFlag value, SamplerFlag flag) =>
-        (value & flag) is not 0;
+    public static bool IsSet(this Enum value, Enum flag) =>
+        value.HasFlag(flag);
 
-    public static bool IsUnset(this SamplerFlag value, SamplerFlag flag) =>
-        (value & flag) is 0;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CIEXYZ XYZEncodedToFloat(this ReadOnlySpan<ushort> XYZ) =>
-        CIEXYZ.FromXYZEncoded(XYZ);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CIEXYZ XYZEncodedToFloat(this Span<ushort> XYZ) =>
-        CIEXYZ.FromXYZEncoded(XYZ);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CIELab LabEncodedToFloat(this ReadOnlySpan<ushort> wLab) =>
-        CIELab.FromLabEncoded(wLab);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CIELab LabEncodedToFloat(this Span<ushort> wLab) =>
-        CIELab.FromLabEncoded(wLab);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CIELab LabEncodedToFloatV2(this ReadOnlySpan<ushort> wLab) =>
-        CIELab.FromLabEncodedV2(wLab);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CIELab LabEncodedToFloatV2(this Span<ushort> wLab) =>
-        CIELab.FromLabEncodedV2(wLab);
+    public static bool IsUnset(this Enum value, Enum flag) =>
+        !value.HasFlag(flag);
 }

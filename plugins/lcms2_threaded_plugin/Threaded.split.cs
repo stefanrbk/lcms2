@@ -19,11 +19,10 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.types;
-
 using System.Runtime.CompilerServices;
 
 namespace lcms2.ThreadedPlugin;
+
 public static partial class Threaded
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -70,8 +69,10 @@ public static partial class Threaded
         }
     }
 
-    internal static uint _cmsThrCountSlices(Transform CMMcargo, int MaxWorkers,
-                                            uint PixelsPerLine, uint LineCount,
+    internal static uint _cmsThrCountSlices(Transform CMMcargo,
+                                            int MaxWorkers,
+                                            uint PixelsPerLine,
+                                            uint LineCount,
                                             Stride Stride)
     {
         var MaxCPUs = _cmsThrIdealThreadCount();
@@ -85,16 +86,28 @@ public static partial class Threaded
             // We allow large number of threads, but this is not going to work well. Warn it.
             if (MaxWorkers > MaxCPUs)
             {
-                LogError(null, cmsERROR_RANGE,
-                    "Warning: too many threads for actual processor (CPUs={0}, asked={1})", MaxCPUs, MaxWorkers);
+                Context.LogError(
+                    null,
+                    cmsERROR_RANGE,
+                    "Warning: too many threads for actual processor (CPUs={0}, asked={1})",
+                    MaxCPUs,
+                    MaxWorkers);
             }
         }
 
-        var MaxInputMem = MemSize(cmsGetTransformInputFormat(CMMcargo),
-                                      PixelsPerLine, LineCount, ref Stride.BytesPerLineIn, Stride.BytesPerPlaneIn);
+        var MaxInputMem = MemSize(
+            cmsGetTransformInputFormat(CMMcargo),
+            PixelsPerLine,
+            LineCount,
+            ref Stride.BytesPerLineIn,
+            Stride.BytesPerPlaneIn);
 
-        var MaxOutputMem = MemSize(cmsGetTransformOutputFormat(CMMcargo),
-                                       PixelsPerLine, LineCount, ref Stride.BytesPerLineOut, Stride.BytesPerPlaneOut);
+        var MaxOutputMem = MemSize(
+            cmsGetTransformOutputFormat(CMMcargo),
+            PixelsPerLine,
+            LineCount,
+            ref Stride.BytesPerLineOut,
+            Stride.BytesPerPlaneOut);
 
         // Each thread takes 128k at least
         var WorkerCount = (MaxInputMem + MaxOutputMem) / (128 * 1024);
@@ -139,7 +152,10 @@ public static partial class Threaded
         }
     }
 
-    private unsafe static void SlicePerPixels(WorkSlice master, int nslices, int PixelsPerSlice,  Span<WorkSlice> slices)
+    private unsafe static void SlicePerPixels(WorkSlice master,
+                                              int nslices,
+                                              int PixelsPerSlice,
+                                              Span<WorkSlice> slices)
     {
         var TotalPixels = master.PixelsPerLine; // As this works on one line only
 
@@ -179,7 +195,8 @@ public static partial class Threaded
         // Check parameters
         if (master.PixelsPerLine is 0 ||
             master.Stride.BytesPerLineIn is 0 ||
-            master.Stride.BytesPerLineOut is 0) return false;
+            master.Stride.BytesPerLineOut is 0)
+            return false;
 
         // Do the splitting depending on lines
         if (master.LineCount <= 1)

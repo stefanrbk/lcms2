@@ -19,10 +19,8 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 namespace lcms2.FastFloatPlugin;
+
 public static partial class FastFloat
 {
     private static void FastEvaluateFloatRGBCurves(Transform CMMcargo,
@@ -35,13 +33,25 @@ public static partial class FastFloat
         if (CMMcargo.UserData is not CurvesFloatData Data)
             return;
 
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -101,13 +111,25 @@ public static partial class FastFloat
                                              uint LineCount,
                                              Stride Stride)
     {
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -170,13 +192,25 @@ public static partial class FastFloat
         if (CMMcargo.UserData is not CurvesFloatData Data)
             return;
 
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -226,13 +260,25 @@ public static partial class FastFloat
                                               uint LineCount,
                                               Stride Stride)
     {
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -309,7 +355,7 @@ public static partial class FastFloat
         // Only curves in this LUT?
         for (var mpe = cmsPipelineGetPtrToFirstStage(Src); mpe is not null; mpe = cmsStageNext(mpe))
         {
-            if (cmsStageType(mpe) != Signature.Stage.CurveSetElem)
+            if (cmsStageType(mpe) != Signatures.Stage.CurveSetElem)
                 return false;
         }
 
@@ -326,8 +372,8 @@ public static partial class FastFloat
         TransformFn =
             nChans is 1
                 ? Data.KCurveIsLinear
-                    ? FastFloatGrayIdentity
-                    : FastEvaluateFloatGrayCurves
+                      ? FastFloatGrayIdentity
+                      : FastEvaluateFloatGrayCurves
                 : Data.AllRGBCurvesAreLinear
                     ? FastFloatRGBIdentity
                     : FastEvaluateFloatRGBCurves;
@@ -344,9 +390,14 @@ file class CurvesFloatData : IDisposable
     private readonly float[] _curveG;
     private readonly float[] _curveB;
 
-    public Span<float> CurveR => _curveR.AsSpan(..MAX_NODES_IN_CURVE);
-    public Span<float> CurveG => _curveG.AsSpan(..MAX_NODES_IN_CURVE);
-    public Span<float> CurveB => _curveB.AsSpan(..MAX_NODES_IN_CURVE);
+    public Span<float> CurveR =>
+        _curveR.AsSpan(..MAX_NODES_IN_CURVE);
+
+    public Span<float> CurveG =>
+        _curveG.AsSpan(..MAX_NODES_IN_CURVE);
+
+    public Span<float> CurveB =>
+        _curveB.AsSpan(..MAX_NODES_IN_CURVE);
 
     public CurvesFloatData(Context? context)
     {
@@ -361,7 +412,6 @@ file class CurvesFloatData : IDisposable
         _curveR = new float[MAX_NODES_IN_CURVE];
         _curveG = new float[MAX_NODES_IN_CURVE];
         _curveB = new float[MAX_NODES_IN_CURVE];
-
     }
 
     protected virtual void Dispose(bool disposing)

@@ -32,6 +32,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fast Float UnitTests", "plu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Legacy", "Legacy\Legacy.csproj", "{968E67FF-42E2-4D57-9EA5-93D7C59A7978}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lcms2PDK", "lcms2PDK\lcms2PDK.csproj", "{A764FD87-20FA-4311-935C-23C2BE38FE78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lcms2Base", "lcms2Base\lcms2Base.csproj", "{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug (No Fast Floor)|Any CPU = Debug (No Fast Floor)|Any CPU
@@ -131,6 +135,26 @@ Global
 		{968E67FF-42E2-4D57-9EA5-93D7C59A7978}.Release (No Fast Floor)|Any CPU.Build.0 = Release|Any CPU
 		{968E67FF-42E2-4D57-9EA5-93D7C59A7978}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{968E67FF-42E2-4D57-9EA5-93D7C59A7978}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Debug (No Fast Floor)|Any CPU.ActiveCfg = Debug|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Debug (No Fast Floor)|Any CPU.Build.0 = Debug|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Debug (Single Threaded)|Any CPU.ActiveCfg = Debug|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Debug (Single Threaded)|Any CPU.Build.0 = Debug|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Release (No Fast Floor)|Any CPU.ActiveCfg = Debug|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Release (No Fast Floor)|Any CPU.Build.0 = Debug|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A764FD87-20FA-4311-935C-23C2BE38FE78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Debug (No Fast Floor)|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Debug (No Fast Floor)|Any CPU.Build.0 = Debug|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Debug (Single Threaded)|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Debug (Single Threaded)|Any CPU.Build.0 = Debug|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Release (No Fast Floor)|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Release (No Fast Floor)|Any CPU.Build.0 = Debug|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBDEF0A1-6B8F-417B-A9E5-71D2AC3EC35C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

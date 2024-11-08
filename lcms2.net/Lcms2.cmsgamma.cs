@@ -24,9 +24,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -42,20 +39,22 @@ public static partial class Lcms2
 
     private static readonly ParametricCurvesCollection defaultCurves = new(
         new ParametricCurve[]
-        { new (
-            new (int type, uint paramCount)[]
-            {
-                new(1, 1),
-                new(2, 3),
-                new(3, 4),
-                new(4, 5),
-                new(5, 7),
-                new(6, 4),
-                new(7, 5),
-                new(8, 5),
-                new(108, 1),
-                new(109, 1)
-            }, DefaultEvalParametricFn)
+        {
+            new(
+                new (int type, uint paramCount)[]
+                {
+                    new(1, 1),
+                    new(2, 3),
+                    new(3, 4),
+                    new(4, 5),
+                    new(5, 7),
+                    new(6, 4),
+                    new(7, 5),
+                    new(8, 5),
+                    new(108, 1),
+                    new(109, 1)
+                },
+                DefaultEvalParametricFn)
         });
 
     internal static readonly CurvesPluginChunkType CurvesPluginChunk = new();
@@ -73,34 +72,17 @@ public static partial class Lcms2
         _cmsAssert(ctx);
 
         var from = src is not null
-            ? src.CurvesPlugin
-            : CurvesPluginChunk;
+                       ? src.CurvesPlugin
+                       : CurvesPluginChunk;
 
         DupPluginCurvesList(ref ctx.CurvesPlugin, from);
-    }
-
-    internal static bool _cmsRegisterParametricCurvesPlugin(Context? ContextID, PluginBase? Data)
-    {
-        var ctx = Context.Get(ContextID).CurvesPlugin;
-
-        if (Data is not PluginParametricCurves Plugin)
-        {
-            ctx.ParametricCurves.Clear();
-            return true;
-        }
-
-        ctx.ParametricCurves.Add(new ParametricCurve(
-            ((int, uint)[])Plugin.Functions.Clone(),
-            (ParametricCurveEvaluator)Plugin.Evaluator.Clone()));
-
-        // All is ok
-        return true;
     }
 
     private static int IsInSet(int Type, ParametricCurve c)
     {
         for (var i = 0; i < c.Functions.Length; i++)
-            if (Abs(Type) == c.Functions[i].type) return i;
+            if (Abs(Type) == c.Functions[i].type)
+                return i;
 
         return -1;
     }
@@ -137,10 +119,11 @@ public static partial class Lcms2
         return null;
     }
 
-    private static ToneCurve? AllocateToneCurveStruct(
-        Context? ContextID, uint nEntries,
-        uint nSegments, ReadOnlySpan<CurveSegment> Segments,
-        ReadOnlySpan<ushort> Values)
+    private static ToneCurve? AllocateToneCurveStruct(Context? ContextID,
+                                                      uint nEntries,
+                                                      uint nSegments,
+                                                      ReadOnlySpan<CurveSegment> Segments,
+                                                      ReadOnlySpan<ushort> Values)
     {
         //var csPool = Context.GetPool<CurveSegment>(ContextID);
         //var ipPool = Context.GetPool<InterpParams<float>>(ContextID);
@@ -151,13 +134,13 @@ public static partial class Lcms2
         // We allow huge tables, which are then restricted for smoothing operations
         if (nEntries > 65530)
         {
-            LogError(ContextID, ErrorCodes.Range, "Couldn't create tone curve of more than 65530 entries");
+            Context.LogError(ContextID, ErrorCodes.Range, "Couldn't create tone curve of more than 65530 entries");
             return null;
         }
 
         if (nEntries == 0 && nSegments == 0)
         {
-            LogError(ContextID, ErrorCodes.Range, "Couldn't create tone curve with zero segments and no table");
+            Context.LogError(ContextID, ErrorCodes.Range, "Couldn't create tone curve with zero segments and no table");
             return null;
         }
 
@@ -228,7 +211,13 @@ public static partial class Lcms2
             {
                 // Type 0 is a special marker for table-based curves
                 if (Segments[i].Type == 0)
-                    p.SegInterp[i] = InterpParams<float>.Create(ContextID, Segments[i].nGridPoints, 1, 1, null, LerpFlag.Float);
+                    p.SegInterp[i] = InterpParams<float>.Create(
+                        ContextID,
+                        Segments[i].nGridPoints,
+                        1,
+                        1,
+                        null,
+                        LerpFlag.Float);
 
                 //memcpy(&p->Segments[i], &Segments[i], _sizeof<CurveSegment>());
                 p.Segments[i] = Segments[i];
@@ -237,8 +226,11 @@ public static partial class Lcms2
                     p.Segments[i].Params = _cmsDupMem<double>(ContextID, Segments[i].Params, 10);
 
                 p.Segments[i].SampledPoints = Segments[i].Type == 0 && Segments[i].SampledPoints is not null
-                    ? _cmsDupMem<float>(ContextID, Segments[i].SampledPoints, Segments[i].nGridPoints)
-                    : null;
+                                                  ? _cmsDupMem<float>(
+                                                      ContextID,
+                                                      Segments[i].SampledPoints,
+                                                      Segments[i].nGridPoints)
+                                                  : null;
 
                 var c = GetParametricCurveByType(ContextID, Segments[i].Type, out _);
                 if (c is not null)
@@ -246,7 +238,13 @@ public static partial class Lcms2
             }
         }
 
-        p.InterpParams = InterpParams<ushort>.Create(ContextID, p.nEntries, 1, 1, p.Table16.AsMemory(), LerpFlag.Ushort);
+        p.InterpParams = InterpParams<ushort>.Create(
+            ContextID,
+            p.nEntries,
+            1,
+            1,
+            p.Table16.AsMemory(),
+            LerpFlag.Ushort);
         if (p.InterpParams is not null)
             return p;
 
@@ -297,10 +295,10 @@ public static partial class Lcms2
             case 1:
 
                 val = R < 0
-                    ? Abs(Params[0] - 1) < MATRIX_DET_TOLERANCE
-                        ? R
-                        : 0
-                    : Pow(R, Params[0]);
+                          ? Abs(Params[0] - 1) < MATRIX_DET_TOLERANCE
+                                ? R
+                                : 0
+                          : Pow(R, Params[0]);
 
                 break;
 
@@ -309,12 +307,12 @@ public static partial class Lcms2
             case -1:
 
                 val = R < 0
-                    ? Abs(Params[0] - 1) < MATRIX_DET_TOLERANCE
-                        ? R
-                        : 0
-                    : Abs(Params[0]) < MATRIX_DET_TOLERANCE
-                        ? PLUS_INF
-                        : Pow(R, 1 / Params[0]);
+                          ? Abs(Params[0] - 1) < MATRIX_DET_TOLERANCE
+                                ? R
+                                : 0
+                          : Abs(Params[0]) < MATRIX_DET_TOLERANCE
+                              ? PLUS_INF
+                              : Pow(R, 1 / Params[0]);
 
                 break;
 
@@ -336,8 +334,8 @@ public static partial class Lcms2
                         e = (Params[1] * R) + Params[2];
 
                         val = e > 0
-                            ? Pow(e, Params[0])
-                            : 0;
+                                  ? Pow(e, Params[0])
+                                  : 0;
                     }
                     else
                     {
@@ -352,10 +350,12 @@ public static partial class Lcms2
             case -2:
 
                 val = Abs(Params[0]) < MATRIX_DET_TOLERANCE || Abs(Params[1]) < MATRIX_DET_TOLERANCE
-                    ? 0
-                    : R < 0
-                        ? 0
-                        : Max((Pow(R, 1.0 / Params[0]) - Params[2]) / Params[1], 0); // Max is the same as "if (val < 0)" check
+                          ? 0
+                          : R < 0
+                              ? 0
+                              : Max(
+                                  (Pow(R, 1.0 / Params[0]) - Params[2]) / Params[1],
+                                  0); // Max is the same as "if (val < 0)" check
 
                 break;
 
@@ -377,8 +377,8 @@ public static partial class Lcms2
                         e = (Params[1] * R) + Params[2];
 
                         val = e > 0
-                            ? Pow(e, Params[0]) + Params[3]
-                            : 0;
+                                  ? Pow(e, Params[0]) + Params[3]
+                                  : 0;
                     }
                     else
                     {
@@ -405,8 +405,8 @@ public static partial class Lcms2
                         e = R - Params[3];
 
                         val = e > 0
-                            ? (Pow(e, 1 / Params[0]) - Params[2]) / Params[1]
-                            : 0;
+                                  ? (Pow(e, 1 / Params[0]) - Params[2]) / Params[1]
+                                  : 0;
                     }
                     else
                     {
@@ -426,8 +426,8 @@ public static partial class Lcms2
                     e = (Params[1] * R) + Params[2];
 
                     val = e > 0
-                        ? Pow(e, Params[0])
-                        : 0;
+                              ? Pow(e, Params[0])
+                              : 0;
                 }
                 else
                 {
@@ -443,16 +443,16 @@ public static partial class Lcms2
 
                 e = (Params[1] * Params[4]) + Params[2];
                 disc = e < 0
-                    ? 0
-                    : Pow(e, Params[0]);
+                           ? 0
+                           : Pow(e, Params[0]);
 
                 val = R >= disc
-                    ? Abs(Params[0]) < MATRIX_DET_TOLERANCE || Abs(Params[1]) < MATRIX_DET_TOLERANCE
-                        ? 0
-                        : (Pow(R, 1.0 / Params[0]) - Params[2]) / Params[1]
-                    : Abs(Params[3]) < MATRIX_DET_TOLERANCE
-                        ? 0
-                        : R / Params[3];
+                          ? Abs(Params[0]) < MATRIX_DET_TOLERANCE || Abs(Params[1]) < MATRIX_DET_TOLERANCE
+                                ? 0
+                                : (Pow(R, 1.0 / Params[0]) - Params[2]) / Params[1]
+                          : Abs(Params[3]) < MATRIX_DET_TOLERANCE
+                              ? 0
+                              : R / Params[3];
 
                 break;
 
@@ -465,8 +465,8 @@ public static partial class Lcms2
                     e = (Params[1] * R) + Params[2];
 
                     val = e > 0
-                        ? Pow(e, Params[0]) + Params[5]
-                        : Params[5];
+                              ? Pow(e, Params[0]) + Params[5]
+                              : Params[5];
                 }
                 else
                 {
@@ -485,16 +485,16 @@ public static partial class Lcms2
                 {
                     e = R - Params[5];
                     val = e < 0
-                        ? 0
-                        : Abs(Params[0]) < MATRIX_DET_TOLERANCE || Abs(Params[1]) < MATRIX_DET_TOLERANCE
-                            ? 0
-                            : (Pow(e, 1.0 / Params[0]) - Params[2]) / Params[1];
+                              ? 0
+                              : Abs(Params[0]) < MATRIX_DET_TOLERANCE || Abs(Params[1]) < MATRIX_DET_TOLERANCE
+                                  ? 0
+                                  : (Pow(e, 1.0 / Params[0]) - Params[2]) / Params[1];
                 }
                 else
                 {
                     val = Abs(Params[3]) < MATRIX_DET_TOLERANCE
-                        ? 0
-                        : (R - Params[6]) / Params[3];
+                              ? 0
+                              : (R - Params[6]) / Params[3];
                 }
 
                 break;
@@ -508,11 +508,11 @@ public static partial class Lcms2
                 e = (Params[1] * R) + Params[2];
 
                 val = Params[0] == 1.0
-                    // On gamma 1.0, don't clamp
-                    ? e + Params[3]
-                    : e < 0
-                        ? Params[3]
-                        : Pow(e, Params[0]) + Params[3];
+                          // On gamma 1.0, don't clamp
+                          ? e + Params[3]
+                          : e < 0
+                              ? Params[3]
+                              : Pow(e, Params[0]) + Params[3];
                 break;
 
             // X = ((Y - c) ^1/Gamma - b) / a
@@ -527,8 +527,8 @@ public static partial class Lcms2
                 {
                     e = R - Params[3];
                     val = e < 0
-                        ? 0
-                        : (Pow(e, 1.0 / Params[0]) - Params[2]) / Params[1];
+                              ? 0
+                              : (Pow(e, 1.0 / Params[0]) - Params[2]) / Params[1];
                 }
 
                 break;
@@ -538,8 +538,8 @@ public static partial class Lcms2
 
                 e = (Params[2] * Pow(R, Params[0])) + Params[3];
                 val = e <= 0
-                    ? Params[4]
-                    : (Params[1] * Log10(e)) + Params[4];
+                          ? Params[4]
+                          : (Params[1] * Log10(e)) + Params[4];
 
                 break;
 
@@ -548,9 +548,10 @@ public static partial class Lcms2
             //                X = pow((pow(10, (Y-d) / a) - c) / b, 1/g)
             case -7:
 
-                val = Abs(Params[0]) < MATRIX_DET_TOLERANCE || Abs(Params[1]) < MATRIX_DET_TOLERANCE || Abs(Params[2]) < MATRIX_DET_TOLERANCE
-                    ? 0
-                    : Pow((Pow(10.0, (R - Params[4]) / Params[1]) - Params[3]) / Params[2], 1.0 / Params[0]);
+                val = Abs(Params[0]) < MATRIX_DET_TOLERANCE || Abs(Params[1]) < MATRIX_DET_TOLERANCE ||
+                      Abs(Params[2]) < MATRIX_DET_TOLERANCE
+                          ? 0
+                          : Pow((Pow(10.0, (R - Params[4]) / Params[1]) - Params[3]) / Params[2], 1.0 / Params[0]);
 
                 break;
 
@@ -567,10 +568,10 @@ public static partial class Lcms2
 
                 disc = R - Params[4];
                 val = disc < 0
-                    ? 0
-                    : Abs(Params[0]) < MATRIX_DET_TOLERANCE || Abs(Params[2]) < MATRIX_DET_TOLERANCE
-                        ? 0
-                        : ((Log(disc / Params[0]) / Log(Params[1])) - Params[3]) / Params[2];
+                          ? 0
+                          : Abs(Params[0]) < MATRIX_DET_TOLERANCE || Abs(Params[2]) < MATRIX_DET_TOLERANCE
+                              ? 0
+                              : ((Log(disc / Params[0]) / Log(Params[1])) - Params[3]) / Params[2];
 
                 break;
 
@@ -578,8 +579,8 @@ public static partial class Lcms2
             case 108:
 
                 val = Abs(Params[0]) < MATRIX_DET_TOLERANCE
-                    ? 0
-                    : Pow(1.0 - Pow(1 - R, 1 / Params[0]), 1 / Params[0]);
+                          ? 0
+                          : Pow(1.0 - Pow(1 - R, 1 / Params[0]), 1 / Params[0]);
 
                 break;
 
@@ -667,13 +668,17 @@ public static partial class Lcms2
         return t.Table16;
     }
 
-    public static ToneCurve? cmsBuildTabulatedToneCurve16(Context? ContextID, uint nEntries, ReadOnlySpan<ushort> Values) =>
+    public static ToneCurve? cmsBuildTabulatedToneCurve16(Context? ContextID,
+                                                          uint nEntries,
+                                                          ReadOnlySpan<ushort> Values) =>
         AllocateToneCurveStruct(ContextID, nEntries, 0, null, Values);
 
     private static uint EntriesByGamma(double Gamma) =>
         (Abs(Gamma - 1.0) < 0.001) ? 2u : 4096u;
 
-    public static ToneCurve? cmsBuildSegmentedToneCurve(Context? ContextID, uint nSegments, ReadOnlySpan<CurveSegment> Segments)
+    public static ToneCurve? cmsBuildSegmentedToneCurve(Context? ContextID,
+                                                        uint nSegments,
+                                                        ReadOnlySpan<CurveSegment> Segments)
     {
         var nGridPoints = 4096u;
 
@@ -684,7 +689,8 @@ public static partial class Lcms2
             nGridPoints = EntriesByGamma(Segments[0].Params[0]);
 
         var g = AllocateToneCurveStruct(ContextID, nGridPoints, nSegments, Segments, null);
-        if (g is null) return null;
+        if (g is null)
+            return null;
 
         // Once we have the floating point version, we can approximate a 16 bit table of 4096 entries
         // for performance reasons. This table would normally not be used except on 8/16 bit transforms.
@@ -695,7 +701,7 @@ public static partial class Lcms2
             var Val = EvalSegmentedFn(g, R);
 
             // Round and saturate
-            g.Table16[i] = _cmsQuickSaturateWord(Val * 65535.0);
+            g.Table16[i] = QuickSaturateWord(Val * 65535.0);
         }
 
         return g;
@@ -768,7 +774,7 @@ public static partial class Lcms2
 
         if (c is null)
         {
-            LogError(ContextID, ErrorCodes.UnknownExtension, $"Invalid parametric curve type {Type}");
+            Context.LogError(ContextID, ErrorCodes.UnknownExtension, $"Invalid parametric curve type {Type}");
             return null;
         }
 
@@ -796,7 +802,8 @@ public static partial class Lcms2
 
     public static void cmsFreeToneCurve(ToneCurve? Curve)
     {
-        if (Curve is null) return;
+        if (Curve is null)
+            return;
 
         var ContextID = Curve.InterpParams.ContextID;
 
@@ -830,9 +837,12 @@ public static partial class Lcms2
     {
         //_cmsAssert(Curve);
 
-        if (Curve[0] is not null) cmsFreeToneCurve(Curve[0]);
-        if (Curve[1] is not null) cmsFreeToneCurve(Curve[1]);
-        if (Curve[2] is not null) cmsFreeToneCurve(Curve[2]);
+        if (Curve[0] is not null)
+            cmsFreeToneCurve(Curve[0]);
+        if (Curve[1] is not null)
+            cmsFreeToneCurve(Curve[1]);
+        if (Curve[2] is not null)
+            cmsFreeToneCurve(Curve[2]);
 
         Curve[0] = Curve[1] = Curve[2] = null;
     }
@@ -852,7 +862,8 @@ public static partial class Lcms2
         _cmsAssert(Y);
 
         Yreversed = cmsReverseToneCurveEx(nResultingPoints, Y);
-        if (Yreversed is null) goto Error;
+        if (Yreversed is null)
+            goto Error;
 
         //Res = _cmsCalloc<float>(ContextID, nResultingPoints);
         //if (Res is null) goto Error;
@@ -872,7 +883,8 @@ public static partial class Lcms2
 
     Error:
         //if (Res is not null) ReturnArray(ContextID, Res);
-        if (Yreversed is not null) cmsFreeToneCurve(Yreversed);
+        if (Yreversed is not null)
+            cmsFreeToneCurve(Yreversed);
 
         return @out;
     }
@@ -880,7 +892,8 @@ public static partial class Lcms2
     private static int GetInterval<T>(double In, ReadOnlySpan<ushort> LutTable, InterpParams<T> p)
     {
         // A 1 point table is not allowed
-        if (p.Domain[0] < 1) return -1;
+        if (p.Domain[0] < 1)
+            return -1;
 
         // Let's see if ascending or descending.
         if (LutTable[0] < LutTable[(int)p.Domain[0]])
@@ -893,12 +906,14 @@ public static partial class Lcms2
 
                 if (y0 <= y1)       // Increasing
                 {
-                    if (In >= y0 && In <= y1) return i;
+                    if (In >= y0 && In <= y1)
+                        return i;
                 }
                 else                // Decreasing
-                    if (y1 < y0)
+                if (y1 < y0)
                 {
-                    if (In >= y1 && In <= y0) return i;
+                    if (In >= y1 && In <= y0)
+                        return i;
                 }
             }
         }
@@ -912,12 +927,14 @@ public static partial class Lcms2
 
                 if (y0 <= y1)       // Increasing
                 {
-                    if (In >= y0 && In <= y1) return i;
+                    if (In >= y0 && In <= y1)
+                        return i;
                 }
                 else                // Decreasing
-                    if (y1 < y0)
+                if (y1 < y0)
                 {
-                    if (In >= y1 && In <= y0) return i;
+                    if (In >= y1 && In <= y0)
+                        return i;
                 }
             }
         }
@@ -937,12 +954,16 @@ public static partial class Lcms2
             /* InCurve->Segments[0].Type <= 5 */
             GetParametricCurveByType(InCurve.InterpParams.ContextID, InCurve.Segments[0].Type, out _) is not null)
         {
-            return cmsBuildParametricToneCurve(InCurve.InterpParams.ContextID, -InCurve.Segments[0].Type, InCurve.Segments[0].Params);
+            return cmsBuildParametricToneCurve(
+                InCurve.InterpParams.ContextID,
+                -InCurve.Segments[0].Type,
+                InCurve.Segments[0].Params);
         }
 
         // Nope, reverse the table.
         var @out = cmsBuildTabulatedToneCurve16(InCurve.InterpParams.ContextID, nResultingSamples, null);
-        if (@out is null) return null;
+        if (@out is null)
+            return null;
 
         // We want to know if this is an ascending or descending table
         var Ascending = !cmsIsToneCurveDescending(InCurve);
@@ -967,7 +988,7 @@ public static partial class Lcms2
                 // If collapsed, then use any
                 if (x1 == x2)
                 {
-                    @out.Table16[i] = _cmsQuickSaturateWord(Ascending ? y2 : y1);
+                    @out.Table16[i] = QuickSaturateWord(Ascending ? y2 : y1);
                     continue;
                 }
                 else
@@ -978,7 +999,7 @@ public static partial class Lcms2
                 }
             }
 
-            @out.Table16[i] = _cmsQuickSaturateWord((a * y) + b);
+            @out.Table16[i] = QuickSaturateWord((a * y) + b);
         }
 
         return @out;
@@ -991,8 +1012,12 @@ public static partial class Lcms2
         return cmsReverseToneCurveEx(4096, InGamma);
     }
 
-    private static bool smooth2(Context? ContextID, ReadOnlySpan<float> w, ReadOnlySpan<float> y,
-                    Span<float> z, float lambda, int m)
+    private static bool smooth2(Context? ContextID,
+                                ReadOnlySpan<float> w,
+                                ReadOnlySpan<float> y,
+                                Span<float> z,
+                                float lambda,
+                                int m)
     {
         int i, i1, i2;
         //float* c, d, e;
@@ -1028,19 +1053,22 @@ public static partial class Lcms2
 
             for (i = 3; i < m - 1; i++)
             {
-                i1 = i - 1; i2 = i - 2;
+                i1 = i - 1;
+                i2 = i - 2;
                 d[i] = w[i] + (6 * lambda) - (c[i1] * c[i1] * d[i1]) - (e[i2] * e[i2] * d[i2]);
                 c[i] = ((-4 * lambda) - (d[i1] * c[i1] * e[i1])) / d[i];
                 e[i] = lambda / d[i];
                 z[i] = (w[i] * y[i]) - (c[i1] * z[i1]) - (e[i2] * z[i2]);
             }
 
-            i1 = m - 2; i2 = m - 3;
+            i1 = m - 2;
+            i2 = m - 3;
 
             d[m - 1] = w[m - 1] + (5 * lambda) - (c[i1] * c[i1] * d[i1]) - (e[i2] * e[i2] * d[i2]);
             c[m - 1] = ((-2 * lambda) - (d[i1] * c[i1] * e[i1])) / d[m - 1];
             z[m - 1] = (w[m - 1] * y[m - 1]) - (c[i1] * z[i1]) - (e[i2] * z[i2]);
-            i1 = m - 1; i2 = m - 2;
+            i1 = m - 1;
+            i2 = m - 2;
 
             d[m] = w[m] + lambda - (c[i1] * c[i1] * d[i1]) - (e[i2] * e[i2] * d[i2]);
             z[m] = ((w[m] * y[m]) - (c[i1] * z[i1]) - (e[i2] * z[i2])) / d[m];
@@ -1085,7 +1113,7 @@ public static partial class Lcms2
         nItems = Tab.nEntries;
         if (nItems >= maxNodesInCurve)    // too many items in the table
         {
-            LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Too many points.");
+            Context.LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Too many points.");
             return false;
         }
 
@@ -1129,7 +1157,7 @@ public static partial class Lcms2
 
         if (!smooth2(ContextID, w, y, z, (float)lambda, (int)nItems))    // Could not smooth
         {
-            LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Function smooth2 failed.");
+            Context.LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Function smooth2 failed.");
             return false;
         }
 
@@ -1138,11 +1166,13 @@ public static partial class Lcms2
         Zeros = Poles = 0;
         for (i = nItems; i > 1; --i)
         {
-            if (z[i] == 0) Zeros++;
-            if (z[i] >= 65535) Poles++;
+            if (z[i] == 0)
+                Zeros++;
+            if (z[i] >= 65535)
+                Poles++;
             if (z[i] < z[i - 1])
             {
-                LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Non-Monotonic.");
+                Context.LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Non-Monotonic.");
                 SuccessStatus = notCheck;
                 break;
             }
@@ -1153,14 +1183,14 @@ public static partial class Lcms2
 
         if (Zeros > (nItems / 3))
         {
-            LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Degenerated, mostly zeros.");
+            Context.LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Degenerated, mostly zeros.");
             SuccessStatus = notCheck;
             goto Done;
         }
 
         if (Poles > (nItems / 3))
         {
-            LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Degenerated, mostly poles.");
+            Context.LogError(ContextID, ErrorCodes.Range, "cmsSmoothToneCurve: Degenerated, mostly poles.");
             SuccessStatus = notCheck;
             goto Done;
         }
@@ -1168,7 +1198,7 @@ public static partial class Lcms2
         for (i = 0; i < nItems; ++i)
         {
             // Clamp to ushort
-            Tab.Table16[i] = _cmsQuickSaturateWord(z[i + 1]);
+            Tab.Table16[i] = QuickSaturateWord(z[i + 1]);
         }
 
     Done:
@@ -1200,7 +1230,8 @@ public static partial class Lcms2
 
         // Degenerated curves are monotonic? Ok, let's pass them
         var n = t.nEntries;
-        if (n < 2) return true;
+        if (n < 2)
+            return true;
 
         // Curve direction
         var lDescending = cmsIsToneCurveDescending(t);
@@ -1252,8 +1283,8 @@ public static partial class Lcms2
         _cmsAssert(t);
 
         return t.nSegments is 1
-            ? t.Segments[0].Type
-            : 0;
+                   ? t.Segments[0].Type
+                   : 0;
     }
 
     public static float cmsEvalToneCurveFloat(ToneCurve Curve, float v)
@@ -1263,7 +1294,7 @@ public static partial class Lcms2
         // Check for 16 bit table. If so, this is a limited-precision tone curve
         if (Curve.nSegments is 0)
         {
-            var In = _cmsQuickSaturateWord(v * 65535.0);
+            var In = QuickSaturateWord(v * 65535.0);
             var Out = cmsEvalToneCurve16(Curve, In);
 
             return (float)(Out / 65535.0);
@@ -1308,19 +1339,21 @@ public static partial class Lcms2
         }
 
         // We need enough valid samples
-        if (n <= 1) return -1.0;
+        if (n <= 1)
+            return -1.0;
 
         // Take a look on SD to see if gamma isn't exponential at all
         var Std = Sqrt(((n * sum2) - (sum * sum)) / (n * (n - 1)));
 
         return (Std > Precision)
-            ? -1.0
-            : sum / n;   // The mean
+                   ? -1.0
+                   : sum / n;   // The mean
     }
 
     public static ref CurveSegment cmsGetToneCurveSegment(int n, ToneCurve t)
     {
-        if (n < 0 || n >= (int)t.nSegments) return ref Unsafe.NullRef<CurveSegment>();
+        if (n < 0 || n >= (int)t.nSegments)
+            return ref Unsafe.NullRef<CurveSegment>();
         return ref t.Segments[n];
     }
 }

@@ -24,17 +24,16 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.io;
-using lcms2.state;
-using lcms2.types;
-
 using System.Text;
+
+using lcms2.types;
 
 namespace lcms2;
 
 public static partial class Lcms2
 {
     private static readonly byte[] PSBuffer = new byte[2048];
+
     private const byte MAXPSCOLS = 60;
     /*
         Implementation
@@ -266,26 +265,32 @@ public static partial class Lcms2
         private readonly byte[] preMin;
         private readonly byte[] postMin;
 
-        public Span<byte> PreMaj => preMaj.AsSpan(..Array.IndexOf<byte>(preMaj, 0));
-        public Span<byte> PostMaj => preMaj.AsSpan(..Array.IndexOf<byte>(postMaj, 0));
-        public Span<byte> PreMin => preMaj.AsSpan(..Array.IndexOf<byte>(preMin, 0));
-        public Span<byte> PostMin => preMaj.AsSpan(..Array.IndexOf<byte>(postMin, 0));
+        public Span<byte> PreMaj =>
+            preMaj.AsSpan(..Array.IndexOf<byte>(preMaj, 0));
+
+        public Span<byte> PostMaj =>
+            preMaj.AsSpan(..Array.IndexOf<byte>(postMaj, 0));
+
+        public Span<byte> PreMin =>
+            preMaj.AsSpan(..Array.IndexOf<byte>(preMin, 0));
+
+        public Span<byte> PostMin =>
+            preMaj.AsSpan(..Array.IndexOf<byte>(postMin, 0));
 
         public bool FixWhite;        // Force mapping of pure white
 
         public Signature ColorSpace;    // ColorSpace of profile
 
-        public PsSamplerCargo(
-            IOHandler m,
-            StageCLutData<ushort> pipeline,
-            int firstComponent,
-            int secondComponent,
-            ReadOnlySpan<byte> preMaj,
-            ReadOnlySpan<byte> postMaj,
-            ReadOnlySpan<byte> preMin,
-            ReadOnlySpan<byte> postMin,
-            bool fixWhite,
-            Signature colorSpace)
+        public PsSamplerCargo(IOHandler m,
+                              StageCLutData<ushort> pipeline,
+                              int firstComponent,
+                              int secondComponent,
+                              ReadOnlySpan<byte> preMaj,
+                              ReadOnlySpan<byte> postMaj,
+                              ReadOnlySpan<byte> preMin,
+                              ReadOnlySpan<byte> postMin,
+                              bool fixWhite,
+                              Signature colorSpace)
         {
             Pipeline = pipeline;
             this.m = m;
@@ -355,14 +360,16 @@ public static partial class Lcms2
 
         var timer = DateTime.UtcNow;
 
-        var Description = (Mlu?)cmsReadTag(Profile, Signature.Tag.ProfileDescription);
-        var Copyright = (Mlu?)cmsReadTag(Profile, Signature.Tag.Copyright);
+        var Description = (Mlu?)cmsReadTag(Profile, Signatures.Tag.ProfileDescription);
+        var Copyright = (Mlu?)cmsReadTag(Profile, Signatures.Tag.Copyright);
 
         DescASCII[0] = DescASCII[255] = 0;
         CopyrightASCII[0] = CopyrightASCII[255] = 0;
 
-        if (Description is not null) cmsMLUgetASCII(Description, cmsNoLanguage, cmsNoCountry, DescASCII);
-        if (Copyright is not null) cmsMLUgetASCII(Copyright, cmsNoLanguage, cmsNoCountry, CopyrightASCII);
+        if (Description is not null)
+            cmsMLUgetASCII(Description, cmsNoLanguage, cmsNoCountry, DescASCII);
+        if (Copyright is not null)
+            cmsMLUgetASCII(Copyright, cmsNoLanguage, cmsNoCountry, CopyrightASCII);
 
         m.PrintF("%!PS-Adobe-3.0\n");
         m.PrintF("%\n");
@@ -386,13 +393,13 @@ public static partial class Lcms2
     private static void EmitIntent(IOHandler m, uint RenderingIntent)
     {
         var intent = RenderingIntent switch
-        {
-            INTENT_PERCEPTUAL => "Perceptual",
-            INTENT_RELATIVE_COLORIMETRIC => "RelativeColorimetric",
-            INTENT_ABSOLUTE_COLORIMETRIC => "AbsoluteColorimetric",
-            INTENT_SATURATION => "Saturation",
-            _ => "Undefined"
-        };
+                     {
+                         INTENT_PERCEPTUAL            => "Perceptual",
+                         INTENT_RELATIVE_COLORIMETRIC => "RelativeColorimetric",
+                         INTENT_ABSOLUTE_COLORIMETRIC => "AbsoluteColorimetric",
+                         INTENT_SATURATION            => "Saturation",
+                         _                            => "Undefined"
+                     };
         m.PrintF("/RenderingIntent ({0})\n", intent);
     }
 
@@ -457,31 +464,31 @@ public static partial class Lcms2
 
         m.PrintF("] ");                        // v tab
 
-        m.PrintF("dup ");                      // v tab tab
-        m.PrintF("length 1 sub ");             // v tab dom
-        m.PrintF("3 -1 roll ");                // tab dom v
-        m.PrintF("mul ");                      // tab val2
-        m.PrintF("dup ");                      // tab val2 val2
-        m.PrintF("dup ");                      // tab val2 val2 val2
-        m.PrintF("floor cvi ");                // tab val2 val2 cell0
-        m.PrintF("exch ");                     // tab val2 cell0 val2
-        m.PrintF("ceiling cvi ");              // tab val2 cell0 cell1
-        m.PrintF("3 index ");                  // tab val2 cell0 cell1 tab
-        m.PrintF("exch ");                     // tab val2 cell0 tab cell1
-        m.PrintF("get\n  ");                   // tab val2 cell0 y1
-        m.PrintF("4 -1 roll ");                // val2 cell0 y1 tab
-        m.PrintF("3 -1 roll ");                // val2 y1 tab cell0
-        m.PrintF("get ");                      // val2 y1 y0
-        m.PrintF("dup ");                      // val2 y1 y0 y0
-        m.PrintF("3 1 roll ");                 // val2 y0 y1 y0
-        m.PrintF("sub ");                      // val2 y0 (y1-y0)
-        m.PrintF("3 -1 roll ");                // y0 (y1-y0) val2
-        m.PrintF("dup ");                      // y0 (y1-y0) val2 val2
-        m.PrintF("floor cvi ");                // y0 (y1-y0) val2 floor(val2)
-        m.PrintF("sub ");                      // y0 (y1-y0) rest
-        m.PrintF("mul ");                      // y0 t1
-        m.PrintF("add ");                      // y
-        m.PrintF("65535 div\n");               // result
+        m.PrintF("dup ");          // v tab tab
+        m.PrintF("length 1 sub "); // v tab dom
+        m.PrintF("3 -1 roll ");    // tab dom v
+        m.PrintF("mul ");          // tab val2
+        m.PrintF("dup ");          // tab val2 val2
+        m.PrintF("dup ");          // tab val2 val2 val2
+        m.PrintF("floor cvi ");    // tab val2 val2 cell0
+        m.PrintF("exch ");         // tab val2 cell0 val2
+        m.PrintF("ceiling cvi ");  // tab val2 cell0 cell1
+        m.PrintF("3 index ");      // tab val2 cell0 cell1 tab
+        m.PrintF("exch ");         // tab val2 cell0 tab cell1
+        m.PrintF("get\n  ");       // tab val2 cell0 y1
+        m.PrintF("4 -1 roll ");    // val2 cell0 y1 tab
+        m.PrintF("3 -1 roll ");    // val2 y1 tab cell0
+        m.PrintF("get ");          // val2 y1 y0
+        m.PrintF("dup ");          // val2 y1 y0 y0
+        m.PrintF("3 1 roll ");     // val2 y0 y1 y0
+        m.PrintF("sub ");          // val2 y0 (y1-y0)
+        m.PrintF("3 -1 roll ");    // y0 (y1-y0) val2
+        m.PrintF("dup ");          // y0 (y1-y0) val2 val2
+        m.PrintF("floor cvi ");    // y0 (y1-y0) val2 floor(val2)
+        m.PrintF("sub ");          // y0 (y1-y0) rest
+        m.PrintF("mul ");          // y0 t1
+        m.PrintF("add ");          // y
+        m.PrintF("65535 div\n");   // result
 
         m.PrintF("}} bind ");
     }
@@ -493,7 +500,8 @@ public static partial class Lcms2
     {
         for (var i = 0; i < n; i++)
         {
-            if (g[i] is null) return;   // Error
+            if (g[i] is null)
+                return;   // Error
 
             if (i > 0 && GammaTableEquals(g[i - 1].Table16, g[i].Table16, g[i - 1].nEntries, g[i].nEntries))
             {
@@ -571,15 +579,14 @@ public static partial class Lcms2
         return true;
     }
 
-    private static void WriteCLUT(
-        IOHandler m,
-        Stage mpe,
-        ReadOnlySpan<byte> PreMaj,
-        ReadOnlySpan<byte> PostMaj,
-        ReadOnlySpan<byte> PreMin,
-        ReadOnlySpan<byte> PostMin,
-        bool FixWhite,
-        Signature ColorSpace)
+    private static void WriteCLUT(IOHandler m,
+                                  Stage mpe,
+                                  ReadOnlySpan<byte> PreMaj,
+                                  ReadOnlySpan<byte> PostMaj,
+                                  ReadOnlySpan<byte> PreMin,
+                                  ReadOnlySpan<byte> PostMin,
+                                  bool FixWhite,
+                                  Signature ColorSpace)
     {
         if (mpe.Data is not StageCLutData<ushort> clut || clut.Params is null)
             return;
@@ -590,7 +597,7 @@ public static partial class Lcms2
 
         for (var i = 0u; i < sc.Pipeline.Params.nInputs; i++)
         {
-            if (i < MAX_INPUT_DIMENSIONS)
+            if (i < Context.MaxInputDimensions)
                 m.PrintF(" {0:d} ", sc.Pipeline.Params.nSamples[i]);
         }
 
@@ -626,7 +633,10 @@ public static partial class Lcms2
         return true;
     }
 
-    private static bool EmitCIEBasedABC(IOHandler m, ReadOnlySpan<double> Matrix, ReadOnlySpan<ToneCurve> CurveSet, CIEXYZ BlackPoint)
+    private static bool EmitCIEBasedABC(IOHandler m,
+                                        ReadOnlySpan<double> Matrix,
+                                        ReadOnlySpan<ToneCurve> CurveSet,
+                                        CIEXYZ BlackPoint)
     {
         m.PrintF("[ /CIEBasedABC\n");
         m.PrintF("<<\n");
@@ -640,9 +650,11 @@ public static partial class Lcms2
 
         for (var i = 0; i < 3; i++)
         {
-            m.PrintF("{0:f6} {1:f6} {2:f6} ", Matrix[i + 3 * 0],
-                                                         Matrix[i + 3 * 1],
-                                                         Matrix[i + 3 * 2]);
+            m.PrintF(
+                "{0:f6} {1:f6} {2:f6} ",
+                Matrix[i + 3 * 0],
+                Matrix[i + 3 * 1],
+                Matrix[i + 3 * 2]);
         }
 
         m.PrintF("]\n");
@@ -690,7 +702,7 @@ public static partial class Lcms2
 
         m.PrintF("<<\n");
 
-        if (cmsStageType(mpe) == Signature.Stage.CurveSetElem)
+        if (cmsStageType(mpe) == Signatures.Stage.CurveSetElem)
         {
             m.PrintF("/DecodeDEF [ ");
             EmitNGamma(m, cmsStageOutputChannels(mpe), _cmsStageGetPtrToCurveSet(mpe));
@@ -699,7 +711,7 @@ public static partial class Lcms2
             mpe = mpe.Next;
         }
 
-        if (cmsStageType(mpe) == Signature.Stage.CLutElem)
+        if (cmsStageType(mpe) == Signatures.Stage.CLutElem)
         {
             m.PrintF("/Table ");
             WriteCLUT(m, mpe, PreMaj, PostMaj, PreMin, PostMin, false, default);
@@ -720,7 +732,14 @@ public static partial class Lcms2
     {
         var Out = cmsBuildTabulatedToneCurve16(ContextID, 256, null);
         var hXYZ = cmsCreateXYZProfile();
-        var xform = cmsCreateTransformTHR(ContextID, Profile, TYPE_GRAY_8, hXYZ, TYPE_XYZ_DBL, Intent, cmsFLAGS_NOOPTIMIZE);
+        var xform = cmsCreateTransformTHR(
+            ContextID,
+            Profile,
+            TYPE_GRAY_8,
+            hXYZ,
+            TYPE_XYZ_DBL,
+            Intent,
+            cmsFLAGS_NOOPTIMIZE);
 
         Span<byte> Gray = stackalloc byte[1];
         Span<CIEXYZ> XYZ = stackalloc CIEXYZ[1];
@@ -733,12 +752,14 @@ public static partial class Lcms2
 
                 cmsDoTransform(xform, Gray, XYZ, 1);
 
-                Out.Table16[i] = _cmsQuickSaturateWord(XYZ[0].Y * 65535.0);
+                Out.Table16[i] = QuickSaturateWord(XYZ[0].Y * 65535.0);
             }
         }
 
-        if (xform is not null) cmsDeleteTransform(xform);
-        if (hXYZ is not null) cmsCloseProfile(hXYZ);
+        if (xform is not null)
+            cmsDeleteTransform(xform);
+        if (hXYZ is not null)
+            cmsCloseProfile(hXYZ);
         return Out;
     }
 
@@ -766,7 +787,7 @@ public static partial class Lcms2
 
         if (xform is null)
         {
-            LogError(m.ContextID, cmsERROR_COLORSPACE_CHECK, "Cannot create transform Profile -> Lab");
+            Context.LogError(m.ContextID, cmsERROR_COLORSPACE_CHECK, "Cannot create transform Profile -> Lab");
             return false;
         }
 
@@ -775,42 +796,46 @@ public static partial class Lcms2
         switch (nChannels)
         {
             case 1:
-                {
-                    var Gray2Y = ExtractGray2Y(m.ContextID, Profile, Intent);
-                    EmitCIEBasedA(m, Gray2Y, BlackPointAdaptedToD50);
-                    cmsFreeToneCurve(Gray2Y);
-                }
+            {
+                var Gray2Y = ExtractGray2Y(m.ContextID, Profile, Intent);
+                EmitCIEBasedA(m, Gray2Y, BlackPointAdaptedToD50);
+                cmsFreeToneCurve(Gray2Y);
+            }
                 break;
 
             case 3:
             case 4:
+            {
+                var OutFrm = TYPE_Lab_16;
+                var v = xform;
+
+                var DeviceLink = cmsPipelineDup(v.Lut);
+                if (DeviceLink is null)
                 {
-                    var OutFrm = TYPE_Lab_16;
-                    var v = xform;
-
-                    var DeviceLink = cmsPipelineDup(v.Lut);
-                    if (DeviceLink is null)
-                    {
-                        cmsDeleteTransform(xform);
-                        return false;
-                    }
-
-                    dwFlags |= cmsFLAGS_FORCE_CLUT;
-                    _cmsOptimizePipeline(m.ContextID, ref DeviceLink, Intent, ref InputFormat, ref OutFrm, ref dwFlags);
-
-                    var rc = EmitCIEBasedDEF(m, DeviceLink, Intent, BlackPointAdaptedToD50);
-                    cmsPipelineFree(DeviceLink);
-                    if (!rc)
-                    {
-                        cmsDeleteTransform(xform);
-                        return false;
-                    }
+                    cmsDeleteTransform(xform);
+                    return false;
                 }
+
+                dwFlags |= cmsFLAGS_FORCE_CLUT;
+                _cmsOptimizePipeline(m.ContextID, ref DeviceLink, Intent, ref InputFormat, ref OutFrm, ref dwFlags);
+
+                var rc = EmitCIEBasedDEF(m, DeviceLink, Intent, BlackPointAdaptedToD50);
+                cmsPipelineFree(DeviceLink);
+                if (!rc)
+                {
+                    cmsDeleteTransform(xform);
+                    return false;
+                }
+            }
                 break;
 
             default:
                 cmsDeleteTransform(xform);
-                LogError(m.ContextID, cmsERROR_COLORSPACE_CHECK, "Only 3, 4 channels are supported for CSA. This profile has {0} channels.", nChannels);
+                Context.LogError(
+                    m.ContextID,
+                    cmsERROR_COLORSPACE_CHECK,
+                    "Only 3, 4 channels are supported for CSA. This profile has {0} channels.",
+                    nChannels);
                 return false;
         }
 
@@ -833,23 +858,26 @@ public static partial class Lcms2
 
         BlackPointAdaptedToD50 = cmsDetectBlackPoint(Profile, INTENT_RELATIVE_COLORIMETRIC);
 
-        if (ColorSpace == Signature.Colorspace.Gray)
+        if (ColorSpace == Signatures.Colorspace.Gray)
         {
             var ShaperCurve = _cmsStageGetPtrToCurveSet(Shaper);
             rc = EmitCIEBasedA(m, ShaperCurve[0], BlackPointAdaptedToD50);
         }
-        else if (ColorSpace == Signature.Colorspace.Rgb)
+        else if (ColorSpace == Signatures.Colorspace.Rgb)
         {
             var Mat = GetPtrToMatrix(Matrix)!;
 
             for (var i = 0; i < 9; i++)
-                Mat[i] *= MAX_ENCODEABLE_XYZ;
+                Mat[i] *= CIEXYZ.MaxEncodeableXYZ;
 
             rc = EmitCIEBasedABC(m, Mat, _cmsStageGetPtrToCurveSet(Shaper), BlackPointAdaptedToD50);
         }
         else
         {
-            LogError(m.ContextID, cmsERROR_COLORSPACE_CHECK, "Profile is not suitable for CSA. Unsupported colorspace.");
+            Context.LogError(
+                m.ContextID,
+                cmsERROR_COLORSPACE_CHECK,
+                "Profile is not suitable for CSA. Unsupported colorspace.");
             return false;
         }
 
@@ -862,7 +890,8 @@ public static partial class Lcms2
         var xform = cmsCreateTransform(hNamedColor, TYPE_NAMED_COLOR_INDEX, hLab, TYPE_Lab_DBL, Intent, 0);
         cmsCloseProfile(hLab);
 
-        if (xform is null) return false;
+        if (xform is null)
+            return false;
 
         var NamedColorList = cmsGetNamedColorList(xform);
         if (NamedColorList is null)
@@ -892,7 +921,12 @@ public static partial class Lcms2
                 continue;
 
             cmsDoTransform(xform, In, Lab, 1);
-            m.PrintF("  ({0}) [ {1:f3} {2:f3} {3:f3} ]\n", Encoding.ASCII.GetString(TrimBuffer(ColorName)), Lab[0].L, Lab[0].a, Lab[0].b);
+            m.PrintF(
+                "  ({0}) [ {1:f3} {2:f3} {3:f3} ]\n",
+                Encoding.ASCII.GetString(TrimBuffer(ColorName)),
+                Lab[0].L,
+                Lab[0].a,
+                Lab[0].b);
         }
 
         m.PrintF(">>\n");
@@ -901,19 +935,19 @@ public static partial class Lcms2
         return true;
     }
 
-    private static uint GenerateCSA(
-        Context? ContextID,
-        Profile Profile,
-        uint Intent,
-        uint dwFlags,
-        IOHandler mem)
+    private static uint GenerateCSA(Context? ContextID,
+                                    Profile Profile,
+                                    uint Intent,
+                                    uint dwFlags,
+                                    IOHandler mem)
     {
         Pipeline? lut = null;
 
         // Is a named color profile?
-        if (cmsGetDeviceClass(Profile) == Signature.ProfileClass.NamedColor)
+        if (cmsGetDeviceClass(Profile) == Signatures.ProfileClass.NamedColor)
         {
-            if (!WriteNamedColorCSA(mem, Profile, Intent)) goto Error;
+            if (!WriteNamedColorCSA(mem, Profile, Intent))
+                goto Error;
         }
         else
         {
@@ -921,28 +955,34 @@ public static partial class Lcms2
             // output (PCS) colorspace must be XYZ or LAB
             var ColorSpace = cmsGetPCS(Profile);
 
-            if (ColorSpace != Signature.Colorspace.XYZ &&
-                ColorSpace != Signature.Colorspace.Lab)
+            if (ColorSpace != Signatures.Colorspace.XYZ &&
+                ColorSpace != Signatures.Colorspace.Lab)
             {
-                LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Invalid output color space");
+                Context.LogError(ContextID, cmsERROR_COLORSPACE_CHECK, "Invalid output color space");
                 goto Error;
             }
 
             // Read the lut with all necessary conversion stages
             lut = _cmsReadInputLUT(Profile, Intent);
-            if (lut is null) goto Error;
+            if (lut is null)
+                goto Error;
 
             // TOne curves + matrix can be implemented without and LUT
             if (cmsPipelineCheckAndRetrieveStages(
-                lut, Signature.Stage.CurveSetElem, out var Shaper,
-                     Signature.Stage.MatrixElem, out var Matrix))
+                    lut,
+                    Signatures.Stage.CurveSetElem,
+                    out var Shaper,
+                    Signatures.Stage.MatrixElem,
+                    out var Matrix))
             {
-                if (!WriteInputMatrixShaper(mem, Profile, Matrix, Shaper)) goto Error;
+                if (!WriteInputMatrixShaper(mem, Profile, Matrix, Shaper))
+                    goto Error;
             }
             else
             {
                 // We need a LUT for the rest
-                if (!WriteInputLUT(mem, Profile, Intent, dwFlags)) goto Error;
+                if (!WriteInputLUT(mem, Profile, Intent, dwFlags))
+                    goto Error;
             }
         }
 
@@ -950,13 +990,15 @@ public static partial class Lcms2
         var dwBytesUsed = mem.UsedSpace;
 
         // Get rid of LUT
-        if (lut is not null) cmsPipelineFree(lut);
+        if (lut is not null)
+            cmsPipelineFree(lut);
 
         // Finally, return used byte count
         return dwBytesUsed;
 
     Error:
-        if (lut is not null) cmsPipelineFree(lut);
+        if (lut is not null)
+            cmsPipelineFree(lut);
         return 0;
     }
 
@@ -974,17 +1016,21 @@ public static partial class Lcms2
             m.PrintF("/MatrixPQR [1 0 0 0 1 0 0 0 1 ]\n");
             m.PrintF("/RangePQR [ -0.5 2 -0.5 2 -0.5 2 ]\n");
 
-            m.PrintF("% Absolute colorimetric -- encode to relative to maximize LUT usage\n" +
-                      "/TransformPQR [\n" +
-                      "{{0.9642 mul {0:g} div exch pop exch pop exch pop exch pop}} bind\n" +
-                      "{{1.0000 mul {1:g} div exch pop exch pop exch pop exch pop}} bind\n" +
-                      "{{0.8249 mul {2:g} div exch pop exch pop exch pop exch pop}} bind\n]\n",
-                      White.Value.X, White.Value.Y, White.Value.Z);
+            m.PrintF(
+                "% Absolute colorimetric -- encode to relative to maximize LUT usage\n" +
+                "/TransformPQR [\n" +
+                "{{0.9642 mul {0:g} div exch pop exch pop exch pop exch pop}} bind\n" +
+                "{{1.0000 mul {1:g} div exch pop exch pop exch pop exch pop}} bind\n" +
+                "{{0.8249 mul {2:g} div exch pop exch pop exch pop exch pop}} bind\n]\n",
+                White.Value.X,
+                White.Value.Y,
+                White.Value.Z);
             return;
         }
 
-        m.PrintF("% Bradford Cone Space\n" +
-                 "/MatrixPQR [0.8951 -0.7502 0.0389 0.2664 1.7135 -0.0685 -0.1614 0.0367 1.0296 ] \n");
+        m.PrintF(
+            "% Bradford Cone Space\n" +
+            "/MatrixPQR [0.8951 -0.7502 0.0389 0.2664 1.7135 -0.0685 -0.1614 0.0367 1.0296 ] \n");
 
         m.PrintF("/RangePQR [ -0.5 2 -0.5 2 -0.5 2 ]\n");
 
@@ -992,36 +1038,41 @@ public static partial class Lcms2
 
         if (!DoBPC)
         {
-            m.PrintF("% VonKries-like transform in Bradford Cone Space\n" +
-                      "/TransformPQR [\n" +
-                      "{{exch pop exch 3 get mul exch pop exch 3 get div}} bind\n" +
-                      "{{exch pop exch 4 get mul exch pop exch 4 get div}} bind\n" +
-                      "{{exch pop exch 5 get mul exch pop exch 5 get div}} bind\n]\n");
+            m.PrintF(
+                "% VonKries-like transform in Bradford Cone Space\n" +
+                "/TransformPQR [\n" +
+                "{{exch pop exch 3 get mul exch pop exch 3 get div}} bind\n" +
+                "{{exch pop exch 4 get mul exch pop exch 4 get div}} bind\n" +
+                "{{exch pop exch 5 get mul exch pop exch 5 get div}} bind\n]\n");
         }
         else
         {
             // BPC
 
-            m.PrintF("%% VonKries-like transform in Bradford Cone Space plus BPC\n" +
-                      "/TransformPQR [\n");
+            m.PrintF(
+                "%% VonKries-like transform in Bradford Cone Space plus BPC\n" +
+                "/TransformPQR [\n");
 
-            m.PrintF("{{4 index 3 get div 2 index 3 get mul " +
-                    "2 index 3 get 2 index 3 get sub mul " +
-                    "2 index 3 get 4 index 3 get 3 index 3 get sub mul sub " +
-                    "3 index 3 get 3 index 3 get exch sub div " +
-                    "exch pop exch pop exch pop exch pop }} bind\n");
+            m.PrintF(
+                "{{4 index 3 get div 2 index 3 get mul " +
+                "2 index 3 get 2 index 3 get sub mul " +
+                "2 index 3 get 4 index 3 get 3 index 3 get sub mul sub " +
+                "3 index 3 get 3 index 3 get exch sub div " +
+                "exch pop exch pop exch pop exch pop }} bind\n");
 
-            m.PrintF("{{4 index 4 get div 2 index 4 get mul " +
-                    "2 index 4 get 2 index 4 get sub mul " +
-                    "2 index 4 get 4 index 4 get 3 index 4 get sub mul sub " +
-                    "3 index 4 get 3 index 4 get exch sub div " +
-                    "exch pop exch pop exch pop exch pop }} bind\n");
+            m.PrintF(
+                "{{4 index 4 get div 2 index 4 get mul " +
+                "2 index 4 get 2 index 4 get sub mul " +
+                "2 index 4 get 4 index 4 get 3 index 4 get sub mul sub " +
+                "3 index 4 get 3 index 4 get exch sub div " +
+                "exch pop exch pop exch pop exch pop }} bind\n");
 
-            m.PrintF("{{4 index 5 get div 2 index 5 get mul " +
-                    "2 index 5 get 2 index 5 get sub mul " +
-                    "2 index 5 get 4 index 5 get 3 index 5 get sub mul sub " +
-                    "3 index 5 get 3 index 5 get exch sub div " +
-                    "exch pop exch pop exch pop exch pop }} bind\n]\n");
+            m.PrintF(
+                "{{4 index 5 get div 2 index 5 get mul " +
+                "2 index 5 get 2 index 5 get sub mul " +
+                "2 index 5 get 4 index 5 get 3 index 5 get sub mul sub " +
+                "3 index 5 get 3 index 5 get exch sub div " +
+                "exch pop exch pop exch pop exch pop }} bind\n]\n");
         }
     }
 
@@ -1052,7 +1103,8 @@ public static partial class Lcms2
         var InFrm = TYPE_Lab_16;
 
         var hLab = cmsCreateLab4ProfileTHR(m.ContextID, null);
-        if (hLab is null) return false;
+        if (hLab is null)
+            return false;
 
         var OutputFormat = cmsFormatterForColorspaceOfProfile(Profile, 2, false);
         var nChannels = T_CHANNELS(OutputFormat);
@@ -1069,14 +1121,23 @@ public static partial class Lcms2
         Profiles[0] = hLab;
         Profiles[1] = Profile;
 
-        var xform = cmsCreateMultiprofileTransformTHR(m.ContextID, Profiles, 2, TYPE_Lab_DBL, OutputFormat,
-                                                      RelativeEncodingIntent, 0);
+        var xform = cmsCreateMultiprofileTransformTHR(
+            m.ContextID,
+            Profiles,
+            2,
+            TYPE_Lab_DBL,
+            OutputFormat,
+            RelativeEncodingIntent,
+            0);
 
         cmsCloseProfile(hLab);
 
         if (xform is null)
         {
-            LogError(m.ContextID, cmsERROR_COLORSPACE_CHECK, "Cannot create transform Lab -> Profile in CRD creation");
+            Context.LogError(
+                m.ContextID,
+                cmsERROR_COLORSPACE_CHECK,
+                "Cannot create transform Lab -> Profile in CRD creation");
             return false;
         }
 
@@ -1086,17 +1147,23 @@ public static partial class Lcms2
         if (DeviceLink is null)
         {
             cmsDeleteTransform(xform);
-            LogError(m.ContextID, cmsERROR_CORRUPTION_DETECTED, "Cannot access link for CRD");
+            Context.LogError(m.ContextID, cmsERROR_CORRUPTION_DETECTED, "Cannot access link for CRD");
             return false;
         }
 
         // We need a CLUT
         dwFlags |= cmsFLAGS_FORCE_CLUT;
-        if (!_cmsOptimizePipeline(m.ContextID, ref DeviceLink, RelativeEncodingIntent, ref InFrm, ref OutputFormat, ref dwFlags))
+        if (!_cmsOptimizePipeline(
+                m.ContextID,
+                ref DeviceLink,
+                RelativeEncodingIntent,
+                ref InFrm,
+                ref OutputFormat,
+                ref dwFlags))
         {
             cmsPipelineFree(DeviceLink);
             cmsDeleteTransform(xform);
-            LogError(m.ContextID, cmsERROR_CORRUPTION_DETECTED, "Cannot create CLUT table for CRD");
+            Context.LogError(m.ContextID, cmsERROR_CORRUPTION_DETECTED, "Cannot create CLUT table for CRD");
             return false;
         }
 
@@ -1127,8 +1194,15 @@ public static partial class Lcms2
             WriteCLUT(m, first, "<"u8, ">\n"u8, ""u8, ""u8, lFixWhite, ColorSpace);
         }
 
-        WriteCLUT(m, cmsPipelineGetPtrToFirstStage(DeviceLink), "<"u8, ">\n"u8, ""u8,
-                  ""u8, lFixWhite, ColorSpace);
+        WriteCLUT(
+            m,
+            cmsPipelineGetPtrToFirstStage(DeviceLink),
+            "<"u8,
+            ">\n"u8,
+            ""u8,
+            ""u8,
+            lFixWhite,
+            ColorSpace);
 
         m.PrintF(" {0:d} {{}} bind ", nChannels);
 
@@ -1155,8 +1229,8 @@ public static partial class Lcms2
         Span<byte> Buff = stackalloc byte[32];
 
         Colorant[0] = 0;
-        if (nColorant > cmsMAXCHANNELS)
-            nColorant = cmsMAXCHANNELS;
+        if (nColorant > Context.MaxChannels)
+            nColorant = Context.MaxChannels;
 
         var format = "{0:f3}"u8;
         for (var j = 0; j < nColorant; j++)
@@ -1178,7 +1252,8 @@ public static partial class Lcms2
         var nColorant = (uint)T_CHANNELS(OutputFormat);
 
         var xform = cmsCreateTransform(hNamedColor, TYPE_NAMED_COLOR_INDEX, null, OutputFormat, Intent, dwFlags);
-        if (xform is null) return false;
+        if (xform is null)
+            return false;
 
         var NamedColorList = cmsGetNamedColorList(xform);
         if (NamedColorList is null)
@@ -1195,7 +1270,7 @@ public static partial class Lcms2
         var nColors = cmsNamedColorCount(NamedColorList);
 
         Span<ushort> In = stackalloc ushort[1];
-        Span<ushort> Out = stackalloc ushort[cmsMAXCHANNELS];
+        Span<ushort> Out = stackalloc ushort[Context.MaxChannels];
         for (var i = 0u; i < nColors; i++)
         {
             In[0] = (ushort)i;
@@ -1205,7 +1280,10 @@ public static partial class Lcms2
 
             cmsDoTransform(xform, In, Out, 1);
             BuildColorantList(Colorant, nColorant, Out);
-            m.PrintF("  ({0}) [ {1} ]\n", Encoding.ASCII.GetString(TrimBuffer(ColorName)), Encoding.ASCII.GetString(TrimBuffer(Colorant)));
+            m.PrintF(
+                "  ({0}) [ {1} ]\n",
+                Encoding.ASCII.GetString(TrimBuffer(ColorName)),
+                Encoding.ASCII.GetString(TrimBuffer(Colorant)));
         }
 
         m.PrintF("   >>");
@@ -1225,7 +1303,7 @@ public static partial class Lcms2
             EmitHeader(mem, "Color Rendering Dictionary (CRD)"u8, Profile);
 
         // Is a named color profile?
-        if (cmsGetDeviceClass(Profile) == Signature.ProfileClass.NamedColor)
+        if (cmsGetDeviceClass(Profile) == Signatures.ProfileClass.NamedColor)
         {
             if (!WriteNamedColorCRD(mem, Profile, Intent, dwFlags))
                 return 0;
@@ -1247,25 +1325,40 @@ public static partial class Lcms2
         return mem.UsedSpace;
     }
 
-    public static uint cmsGetPostScriptColorResource(Context? ContextID, PostScriptResourceType Type, Profile Profile,
-                                                     uint Intent, uint dwFlags, IOHandler io) =>
+    public static uint cmsGetPostScriptColorResource(Context? ContextID,
+                                                     PostScriptResourceType Type,
+                                                     Profile Profile,
+                                                     uint Intent,
+                                                     uint dwFlags,
+                                                     IOHandler io) =>
         Type switch
         {
             PostScriptResourceType.CSA => GenerateCSA(ContextID, Profile, Intent, dwFlags, io),
-            _ => GenerateCRD(ContextID, Profile, Intent, dwFlags, io)
+            _                          => GenerateCRD(ContextID, Profile, Intent, dwFlags, io)
         };
 
-    public static uint cmsGetPostScriptCRD(Context? ContextID, Profile Profile, uint Intent, uint dwFlags,
-                                           Memory<byte> Buffer, uint dwBufferLen)
+    public static uint cmsGetPostScriptCRD(Context? ContextID,
+                                           Profile Profile,
+                                           uint Intent,
+                                           uint dwFlags,
+                                           Memory<byte> Buffer,
+                                           uint dwBufferLen)
     {
         // Set up the serialization engine
         var mem = Buffer.IsEmpty
-            ? cmsOpenIOhandlerFromNULL(ContextID)
-            : cmsOpenIOhandlerFromMem(ContextID, Buffer, dwBufferLen, "w");
+                      ? cmsOpenIOhandlerFromNULL(ContextID)
+                      : cmsOpenIOhandlerFromMem(ContextID, Buffer, dwBufferLen, "w");
 
-        if (mem is null) return 0;
+        if (mem is null)
+            return 0;
 
-        var dwBytesUsed = cmsGetPostScriptColorResource(ContextID, PostScriptResourceType.CRD, Profile, Intent, dwFlags, mem);
+        var dwBytesUsed = cmsGetPostScriptColorResource(
+            ContextID,
+            PostScriptResourceType.CRD,
+            Profile,
+            Intent,
+            dwFlags,
+            mem);
 
         // Get rid of memory stream
         cmsCloseIOhandler(mem);
@@ -1273,17 +1366,28 @@ public static partial class Lcms2
         return dwBytesUsed;
     }
 
-    public static uint cmsGetPostScriptCSA(Context? ContextID, Profile Profile, uint Intent, uint dwFlags,
-                                           Memory<byte> Buffer, uint dwBufferLen)
+    public static uint cmsGetPostScriptCSA(Context? ContextID,
+                                           Profile Profile,
+                                           uint Intent,
+                                           uint dwFlags,
+                                           Memory<byte> Buffer,
+                                           uint dwBufferLen)
     {
         // Set up the serialization engine
         var mem = Buffer.IsEmpty
-            ? cmsOpenIOhandlerFromNULL(ContextID)
-            : cmsOpenIOhandlerFromMem(ContextID, Buffer, dwBufferLen, "w");
+                      ? cmsOpenIOhandlerFromNULL(ContextID)
+                      : cmsOpenIOhandlerFromMem(ContextID, Buffer, dwBufferLen, "w");
 
-        if (mem is null) return 0;
+        if (mem is null)
+            return 0;
 
-        var dwBytesUsed = cmsGetPostScriptColorResource(ContextID, PostScriptResourceType.CSA, Profile, Intent, dwFlags, mem);
+        var dwBytesUsed = cmsGetPostScriptColorResource(
+            ContextID,
+            PostScriptResourceType.CSA,
+            Profile,
+            Intent,
+            dwFlags,
+            mem);
 
         // Get rid of memory stream
         cmsCloseIOhandler(mem);
@@ -1294,7 +1398,8 @@ public static partial class Lcms2
     private static void EmitSafeGuardBegin(IOHandler m, ReadOnlySpan<byte> name)
     {
         Span<char> str = stackalloc char[name.Length];
-        for (var i = 0; i < name.Length; i++) str[i] = (char)name[i];
+        for (var i = 0; i < name.Length; i++)
+            str[i] = (char)name[i];
         var nameStr = new string(str);
         m.PrintF("%%LCMS2: Save previous definition of {0} on the operand stack\n", nameStr);
         m.PrintF("currentdict /{0} known {{ /{0} load }} {{ null }} ifelse\n", nameStr);
@@ -1303,7 +1408,8 @@ public static partial class Lcms2
     private static void EmitSafeGuardEnd(IOHandler m, ReadOnlySpan<byte> name, int depth)
     {
         Span<char> str = stackalloc char[name.Length];
-        for (var i = 0; i < name.Length; i++) str[i] = (char)name[i];
+        for (var i = 0; i < name.Length; i++)
+            str[i] = (char)name[i];
         var nameStr = new string(str);
 
         m.PrintF("%%LCMS2: Restore previous definition of {0}\n", nameStr);
@@ -1312,6 +1418,7 @@ public static partial class Lcms2
             // cycle topmost items on the stack to bring the previous definition to the front
             m.PrintF("{0} -1 roll ", depth);
         }
+
         m.PrintF("dup null eq {{ pop currentdict /{0} undef }} {{ /{0} exch def }} ifelse\n", nameStr);
     }
 }

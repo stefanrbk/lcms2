@@ -19,12 +19,12 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
 using lcms2.types;
 
 using S1Fixed15Number = System.Int32;
 
 namespace lcms2.FastFloatPlugin;
+
 public static partial class FastFloat
 {
     private static void MatShaperXform(Transform CMMcargo,
@@ -37,13 +37,25 @@ public static partial class FastFloat
         if (CMMcargo.UserData is not XMatShaperData p)
             return;
 
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -79,9 +91,12 @@ public static partial class FastFloat
                     p.IdentityMat
                         ? (r, g, b)
                         : (     // Evaluate the matrix in 1.14 fixed point
-                            ((p.Mat[(0 * 3) + 0] * r) + (p.Mat[(0 * 3) + 1] * g) + (p.Mat[(0 * 3) + 2] * b) + p.Off[0]) >> 15,
-                            ((p.Mat[(1 * 3) + 0] * r) + (p.Mat[(1 * 3) + 1] * g) + (p.Mat[(1 * 3) + 2] * b) + p.Off[1]) >> 15,
-                            ((p.Mat[(2 * 3) + 0] * r) + (p.Mat[(2 * 3) + 1] * g) + (p.Mat[(2 * 3) + 2] * b) + p.Off[2]) >> 15);
+                              ((p.Mat[(0 * 3) + 0] * r) + (p.Mat[(0 * 3) + 1] * g) + (p.Mat[(0 * 3) + 2] * b) +
+                               p.Off[0]) >> 15,
+                              ((p.Mat[(1 * 3) + 0] * r) + (p.Mat[(1 * 3) + 1] * g) + (p.Mat[(1 * 3) + 2] * b) +
+                               p.Off[1]) >> 15,
+                              ((p.Mat[(2 * 3) + 0] * r) + (p.Mat[(2 * 3) + 1] * g) + (p.Mat[(2 * 3) + 2] * b) +
+                               p.Off[2]) >> 15);
 
                 // Now we have to clip to 0..1.0 range
                 var ri = (uint)Math.Clamp(l1, 0, 0x8000);
@@ -143,10 +158,16 @@ public static partial class FastFloat
         var Src = Lut;
 
         // Check for shaper-matrix-matrix-shaper structure, that is what this optimizer stands for
-        if (!cmsPipelineCheckAndRetrieveStages(Src, Signature.Stage.CurveSetElem, out var Curve1,
-                                                    Signature.Stage.MatrixElem, out var Matrix1,
-                                                    Signature.Stage.MatrixElem, out var Matrix2,
-                                                    Signature.Stage.CurveSetElem, out var Curve2))
+        if (!cmsPipelineCheckAndRetrieveStages(
+                Src,
+                Signatures.Stage.CurveSetElem,
+                out var Curve1,
+                Signatures.Stage.MatrixElem,
+                out var Matrix1,
+                Signatures.Stage.MatrixElem,
+                out var Matrix2,
+                Signatures.Stage.CurveSetElem,
+                out var Curve2))
         {
             return false;
         }
@@ -184,7 +205,8 @@ public static partial class FastFloat
         cmsPipelineInsertStage(Dest, StageLoc.AtEnd, cmsStageDup(Curve2));
 
         {
-            if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 || cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
+            if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 ||
+                cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
                 return false;
 
             // In this particular optimization, cache does not help as it takes more time to deal with
@@ -192,7 +214,13 @@ public static partial class FastFloat
             dwFlags |= cmsFLAGS_NOCACHE;
 
             // Setup the optimization routines
-            UserData = XMatShaperData.SetShaper(ContextID, mpeC1.TheCurves, res, Data2.Offset is null ? default : new VEC3(Data2.Offset), mpeC2.TheCurves, IdentityMat);
+            UserData = XMatShaperData.SetShaper(
+                ContextID,
+                mpeC1.TheCurves,
+                res,
+                Data2.Offset is null ? default : new VEC3(Data2.Offset),
+                mpeC2.TheCurves,
+                IdentityMat);
             FreeUserData = FreeDisposable;
 
             TransformFn = MatShaperXform;
@@ -214,16 +242,30 @@ public class XMatShaperData(Context? context) : IDisposable
     private readonly S1Fixed15Number[] _mat = new S1Fixed15Number[9];
     private readonly S1Fixed15Number[] _off = new S1Fixed15Number[3];
     private readonly ushort[] _shapers = new ushort[MAX_NODES_IN_CURVE * 6];
-    public Span<S1Fixed15Number> Mat => _mat.AsSpan(..9);
-    public Span<S1Fixed15Number> Off => _off.AsSpan(..3);
 
-    public Span<ushort> Shaper1R => _shapers.AsSpan(..MAX_NODES_IN_CURVE);
-    public Span<ushort> Shaper1G => _shapers.AsSpan(MAX_NODES_IN_CURVE..(MAX_NODES_IN_CURVE * 2));
-    public Span<ushort> Shaper1B => _shapers.AsSpan((MAX_NODES_IN_CURVE * 2)..(MAX_NODES_IN_CURVE * 3));
+    public Span<S1Fixed15Number> Mat =>
+        _mat.AsSpan(..9);
 
-    public Span<ushort> Shaper2R => _shapers.AsSpan((MAX_NODES_IN_CURVE * 3)..(MAX_NODES_IN_CURVE * 4));
-    public Span<ushort> Shaper2G => _shapers.AsSpan((MAX_NODES_IN_CURVE * 4)..(MAX_NODES_IN_CURVE * 5));
-    public Span<ushort> Shaper2B => _shapers.AsSpan((MAX_NODES_IN_CURVE * 5)..(MAX_NODES_IN_CURVE * 6));
+    public Span<S1Fixed15Number> Off =>
+        _off.AsSpan(..3);
+
+    public Span<ushort> Shaper1R =>
+        _shapers.AsSpan(..MAX_NODES_IN_CURVE);
+
+    public Span<ushort> Shaper1G =>
+        _shapers.AsSpan(MAX_NODES_IN_CURVE..(MAX_NODES_IN_CURVE * 2));
+
+    public Span<ushort> Shaper1B =>
+        _shapers.AsSpan((MAX_NODES_IN_CURVE * 2)..(MAX_NODES_IN_CURVE * 3));
+
+    public Span<ushort> Shaper2R =>
+        _shapers.AsSpan((MAX_NODES_IN_CURVE * 3)..(MAX_NODES_IN_CURVE * 4));
+
+    public Span<ushort> Shaper2G =>
+        _shapers.AsSpan((MAX_NODES_IN_CURVE * 4)..(MAX_NODES_IN_CURVE * 5));
+
+    public Span<ushort> Shaper2B =>
+        _shapers.AsSpan((MAX_NODES_IN_CURVE * 5)..(MAX_NODES_IN_CURVE * 6));
 
     public bool IdentityMat;
 
@@ -275,10 +317,7 @@ public class XMatShaperData(Context? context) : IDisposable
                                             ReadOnlySpan<ToneCurve> Curve2,
                                             bool IdentityMat)
     {
-        var p = new XMatShaperData(ContextID)
-        {
-            IdentityMat = IdentityMat,
-        };
+        var p = new XMatShaperData(ContextID) { IdentityMat = IdentityMat, };
 
         p.Shaper1R.Clear();
         p.Shaper1G.Clear();

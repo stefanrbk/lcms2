@@ -19,9 +19,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 namespace lcms2.FastFloatPlugin;
 
 public static partial class FastFloat
@@ -36,13 +33,25 @@ public static partial class FastFloat
         if (CMMcargo.UserData is not Curves8Data Data)
             return;
 
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -102,13 +111,25 @@ public static partial class FastFloat
                                          uint LineCount,
                                          Stride Stride)
     {
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -171,13 +192,25 @@ public static partial class FastFloat
         if (CMMcargo.UserData is not Curves8Data Data)
             return;
 
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -227,13 +260,25 @@ public static partial class FastFloat
                                           uint LineCount,
                                           Stride Stride)
     {
-        Span<uint> SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-        Span<uint> DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+        Span<uint> SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> SourceIncrements = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestStartingOrder = stackalloc uint[Context.MaxChannels];
+        Span<uint> DestIncrements = stackalloc uint[Context.MaxChannels];
 
-        _cmsComputeComponentIncrements(cmsGetTransformInputFormat(CMMcargo), Stride.BytesPerPlaneIn, out _, out var nalpha, SourceStartingOrder, SourceIncrements);
-        _cmsComputeComponentIncrements(cmsGetTransformOutputFormat(CMMcargo), Stride.BytesPerPlaneOut, out _, out nalpha, DestStartingOrder, DestIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformInputFormat(CMMcargo),
+            Stride.BytesPerPlaneIn,
+            out _,
+            out var nalpha,
+            SourceStartingOrder,
+            SourceIncrements);
+        _cmsComputeComponentIncrements(
+            cmsGetTransformOutputFormat(CMMcargo),
+            Stride.BytesPerPlaneOut,
+            out _,
+            out nalpha,
+            DestStartingOrder,
+            DestIncrements);
 
         if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
             nalpha = 0;
@@ -310,7 +355,7 @@ public static partial class FastFloat
         // Only curves in this LUT?
         for (var mpe = cmsPipelineGetPtrToFirstStage(Src); mpe is not null; mpe = cmsStageNext(mpe))
         {
-            if (cmsStageType(mpe) != Signature.Stage.CurveSetElem)
+            if (cmsStageType(mpe) != Signatures.Stage.CurveSetElem)
                 return false;
         }
 
@@ -327,8 +372,8 @@ public static partial class FastFloat
         TransformFn =
             nChans is 1
                 ? Data.AllCurvesAreLinear
-                    ? FastGrayIdentity8
-                    : FastEvaluateGrayCurves8
+                      ? FastGrayIdentity8
+                      : FastEvaluateGrayCurves8
                 : Data.AllCurvesAreLinear
                     ? FastRGBIdentity8
                     : FastEvaluateRGBCurves8;
@@ -336,12 +381,14 @@ public static partial class FastFloat
         return true;
     }
 }
+
 file class Curves8Data : IDisposable
 {
     private bool disposedValue;
     public Context? ContextID;
     public int nCurves;
     private readonly byte[] _curves;
+
     public ref byte Curves(int a, int b) =>
         ref _curves[(a * 256) + b];
 
@@ -350,7 +397,7 @@ file class Curves8Data : IDisposable
         ContextID = context;
         //_curves = Context.GetPool<byte>(context).Rent(cmsMAXCHANNELS * 256);
         //Array.Clear(_curves);
-        _curves = new byte[cmsMAXCHANNELS * 256];
+        _curves = new byte[Context.MaxChannels * 256];
     }
 
     protected virtual void Dispose(bool disposing)

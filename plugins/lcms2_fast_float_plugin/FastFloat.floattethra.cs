@@ -19,10 +19,10 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2.FastFloatPlugin;
+
 public static partial class FastFloat
 {
     private static bool XFormSamplerFloat(ReadOnlySpan<float> In, Span<float> Out, object? Cargo)
@@ -54,25 +54,37 @@ public static partial class FastFloat
             {
                 var LutTable = _LutTable;
 
-                var @out = stackalloc byte*[cmsMAXCHANNELS];
+                var @out = stackalloc byte*[Context.MaxChannels];
 
-                var SourceStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-                var SourceIncrements = stackalloc uint[cmsMAXCHANNELS];
-                var DestStartingOrder = stackalloc uint[cmsMAXCHANNELS];
-                var DestIncrements = stackalloc uint[cmsMAXCHANNELS];
+                var SourceStartingOrder = stackalloc uint[Context.MaxChannels];
+                var SourceIncrements = stackalloc uint[Context.MaxChannels];
+                var DestStartingOrder = stackalloc uint[Context.MaxChannels];
+                var DestIncrements = stackalloc uint[Context.MaxChannels];
 
                 var InputFormat = cmsGetTransformInputFormat(CMMcargo);
                 var OutputFormat = cmsGetTransformOutputFormat(CMMcargo);
 
-                _cmsComputeComponentIncrements(InputFormat, Stride.BytesPerPlaneIn, out _, out var nalpha, new(SourceStartingOrder, cmsMAXCHANNELS), new(SourceIncrements, cmsMAXCHANNELS));
-                _cmsComputeComponentIncrements(OutputFormat, Stride.BytesPerPlaneOut, out _, out nalpha, new(DestStartingOrder, cmsMAXCHANNELS), new(DestIncrements, cmsMAXCHANNELS));
+                _cmsComputeComponentIncrements(
+                    InputFormat,
+                    Stride.BytesPerPlaneIn,
+                    out _,
+                    out var nalpha,
+                    new(SourceStartingOrder, Context.MaxChannels),
+                    new(SourceIncrements, Context.MaxChannels));
+                _cmsComputeComponentIncrements(
+                    OutputFormat,
+                    Stride.BytesPerPlaneOut,
+                    out _,
+                    out nalpha,
+                    new(DestStartingOrder, Context.MaxChannels),
+                    new(DestIncrements, Context.MaxChannels));
 
                 if ((CMMcargo.Flags & cmsFLAGS_COPY_ALPHA) is 0)
                     nalpha = 0;
 
                 nuint strideIn = 0;
                 nuint strideOut = 0;
-                
+
                 for (var i = 0; i < LineCount; i++)
                 {
                     var rin = Input + SourceStartingOrder[0] + strideIn;
@@ -84,7 +96,8 @@ public static partial class FastFloat
                             : default;
 
                     var TotalPlusAlpha = TotalOut;
-                    if (nalpha is not 0) TotalPlusAlpha++;
+                    if (nalpha is not 0)
+                        TotalPlusAlpha++;
 
                     for (var ii = 0; ii < TotalPlusAlpha; ii++)
                     {
@@ -105,9 +118,12 @@ public static partial class FastFloat
                         var py = g * p.Domain[1];
                         var pz = b * p.Domain[2];
 
-                        var x0 = (int)MathF.Floor(px); var rx = px - x0;
-                        var y0 = (int)MathF.Floor(py); var ry = py - y0;
-                        var z0 = (int)MathF.Floor(pz); var rz = pz - z0;
+                        var x0 = (int)MathF.Floor(px);
+                        var rx = px - x0;
+                        var y0 = (int)MathF.Floor(py);
+                        var ry = py - y0;
+                        var z0 = (int)MathF.Floor(pz);
+                        var rz = pz - z0;
 
                         var X0 = (int)p.opta[2] * x0;
                         var X1 = X0 + ((rx >= 1.0) ? 0 : (int)p.opta[2]);
@@ -126,51 +142,39 @@ public static partial class FastFloat
 
                             if (rx >= ry && ry >= rz)
                             {
-
                                 c1 = DENS(X1, Y0, Z0) - c0;
                                 c2 = DENS(X1, Y1, Z0) - DENS(X1, Y0, Z0);
                                 c3 = DENS(X1, Y1, Z1) - DENS(X1, Y1, Z0);
-
                             }
                             else if (rx >= rz && rz >= ry)
                             {
-
                                 c1 = DENS(X1, Y0, Z0) - c0;
                                 c2 = DENS(X1, Y1, Z1) - DENS(X1, Y0, Z1);
                                 c3 = DENS(X1, Y0, Z1) - DENS(X1, Y0, Z0);
-
                             }
                             else if (rz >= rx && rx >= ry)
                             {
-
                                 c1 = DENS(X1, Y0, Z1) - DENS(X0, Y0, Z1);
                                 c2 = DENS(X1, Y1, Z1) - DENS(X1, Y0, Z1);
                                 c3 = DENS(X0, Y0, Z1) - c0;
-
                             }
                             else if (ry >= rx && rx >= rz)
                             {
-
                                 c1 = DENS(X1, Y1, Z0) - DENS(X0, Y1, Z0);
                                 c2 = DENS(X0, Y1, Z0) - c0;
                                 c3 = DENS(X1, Y1, Z1) - DENS(X1, Y1, Z0);
-
                             }
                             else if (ry >= rz && rz >= rx)
                             {
-
                                 c1 = DENS(X1, Y1, Z1) - DENS(X0, Y1, Z1);
                                 c2 = DENS(X0, Y1, Z0) - c0;
                                 c3 = DENS(X0, Y1, Z1) - DENS(X0, Y1, Z0);
-
                             }
                             else if (rz >= ry && ry >= rx)
                             {
-
                                 c1 = DENS(X1, Y1, Z1) - DENS(X0, Y1, Z1);
                                 c2 = DENS(X0, Y1, Z1) - DENS(X0, Y0, Z1);
                                 c3 = DENS(X0, Y0, Z1) - c0;
-
                             }
                             else
                             {
@@ -236,7 +240,7 @@ public static partial class FastFloat
         var OriginalLut = Lut;
 
         var ContextID = cmsGetPipelineContextID(OriginalLut);
-        var nGridPoints = _cmsReasonableGridpointsByColorspace(Signature.Colorspace.Rgb, dwFlags);
+        var nGridPoints = _cmsReasonableGridpointsByColorspace(Signatures.Colorspace.Rgb, dwFlags);
 
         // Create the result LUT
         OptimizedLUT = cmsPipelineAlloc(ContextID, 3, cmsPipelineOutputChannels(OriginalLut));
@@ -244,7 +248,12 @@ public static partial class FastFloat
             goto Error;
 
         // Allocate the CLUT for result
-        var OptimizedCLUTmpe = cmsStageAllocCLutFloat(ContextID, nGridPoints, 3, cmsPipelineOutputChannels(OriginalLut), null);
+        var OptimizedCLUTmpe = cmsStageAllocCLutFloat(
+            ContextID,
+            nGridPoints,
+            3,
+            cmsPipelineOutputChannels(OriginalLut),
+            null);
 
         // Add the CLUT to the destination LUT
         cmsPipelineInsertStage(OptimizedLUT, StageLoc.AtBegin, OptimizedCLUTmpe);
@@ -291,6 +300,7 @@ file class FloatCLUTData(Context? context, InterpParams<float> p) : IDisposable
         if (!disposedValue)
         {
             if (disposing) { }
+
             disposedValue = true;
         }
     }
@@ -300,6 +310,7 @@ file class FloatCLUTData(Context? context, InterpParams<float> p) : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
     public static FloatCLUTData Alloc(Context? ContextID, InterpParams<float> p) =>
         new(ContextID, p);
 }

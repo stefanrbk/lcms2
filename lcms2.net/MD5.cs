@@ -24,9 +24,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-using lcms2.types;
-
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -34,13 +31,18 @@ namespace lcms2;
 
 internal readonly struct MD5(Context? context) : IDisposable    // cmsMD5alloc
 {
-    private readonly uint[] _buf = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476];
+    private readonly uint[] _buf = [ 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 ];
     private readonly uint[] _bits = new uint[2];
     private readonly byte[] _in = new byte[64];
 
-    public readonly Span<uint> Buf => _buf.AsSpan();
-    public readonly Span<uint> Bits => _bits.AsSpan();
-    public readonly Span<byte> In => _in.AsSpan();
+    public readonly Span<uint> Buf =>
+        _buf.AsSpan();
+
+    public readonly Span<uint> Bits =>
+        _bits.AsSpan();
+
+    public readonly Span<byte> In =>
+        _in.AsSpan();
 
     public readonly Context? ContextID = context;
 

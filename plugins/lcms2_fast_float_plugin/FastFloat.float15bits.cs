@@ -19,12 +19,11 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.types;
-
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace lcms2.FastFloatPlugin;
+
 public static partial class FastFloat
 {
     //---------------------------------------------------------------------------------
@@ -53,7 +52,10 @@ public static partial class FastFloat
     private static ushort From15To16(ushort x15) =>
         (ushort)((((ulong)x15 * 0xFFFF) + 0x4000L) >> 15);
 
-    private static ReadOnlySpan<byte> Unroll15bitsGray(Transform _1, Span<ushort> Values, ReadOnlySpan<byte> Buffer, uint _2)
+    private static ReadOnlySpan<byte> Unroll15bitsGray(Transform _1,
+                                                       Span<ushort> Values,
+                                                       ReadOnlySpan<byte> Buffer,
+                                                       uint _2)
     {
         Values[0] = From15To16(BitConverter.ToUInt16(Buffer));
 
@@ -66,12 +68,15 @@ public static partial class FastFloat
         return Buffer[sizeof(ushort)..];
     }
 
-    private static ReadOnlySpan<byte> Unroll15bitsRGB(Transform _1, Span<ushort> Values, ReadOnlySpan<byte> Buffer, uint _2)
+    private static ReadOnlySpan<byte> Unroll15bitsRGB(Transform _1,
+                                                      Span<ushort> Values,
+                                                      ReadOnlySpan<byte> Buffer,
+                                                      uint _2)
     {
         Values[0] = From15To16(BitConverter.ToUInt16(Buffer));
         Values[1] = From15To16(BitConverter.ToUInt16(Buffer[2..]));
         Values[2] = From15To16(BitConverter.ToUInt16(Buffer[4..]));
-        
+
         return Buffer[6..];
     }
 
@@ -83,7 +88,10 @@ public static partial class FastFloat
         return Buffer[6..];
     }
 
-    private static ReadOnlySpan<byte> Unroll15bitsRGBA(Transform _1, Span<ushort> Values, ReadOnlySpan<byte> Buffer, uint _2)
+    private static ReadOnlySpan<byte> Unroll15bitsRGBA(Transform _1,
+                                                       Span<ushort> Values,
+                                                       ReadOnlySpan<byte> Buffer,
+                                                       uint _2)
     {
         Values[0] = From15To16(BitConverter.ToUInt16(Buffer));
         Values[1] = From15To16(BitConverter.ToUInt16(Buffer[2..]));
@@ -103,7 +111,10 @@ public static partial class FastFloat
         return Buffer[8..];
     }
 
-    private static ReadOnlySpan<byte> Unroll15bitsBGR(Transform _1, Span<ushort> Values, ReadOnlySpan<byte> Buffer, uint _2)
+    private static ReadOnlySpan<byte> Unroll15bitsBGR(Transform _1,
+                                                      Span<ushort> Values,
+                                                      ReadOnlySpan<byte> Buffer,
+                                                      uint _2)
     {
         Values[2] = From15To16(BitConverter.ToUInt16(Buffer));
         Values[1] = From15To16(BitConverter.ToUInt16(Buffer[2..]));
@@ -120,7 +131,10 @@ public static partial class FastFloat
         return Buffer[6..];
     }
 
-    private static ReadOnlySpan<byte> Unroll15bitsCMYK(Transform _1, Span<ushort> Values, ReadOnlySpan<byte> Buffer, uint _2)
+    private static ReadOnlySpan<byte> Unroll15bitsCMYK(Transform _1,
+                                                       Span<ushort> Values,
+                                                       ReadOnlySpan<byte> Buffer,
+                                                       uint _2)
     {
         Values[0] = From15To16((ushort)(0x8000 - BitConverter.ToUInt16(Buffer)));
         Values[1] = From15To16((ushort)(0x8000 - BitConverter.ToUInt16(Buffer[2..])));
@@ -142,12 +156,13 @@ public static partial class FastFloat
 
     [DebuggerStepThrough, MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ushort UnrollOne(ushort x, bool Reverse, bool SwapEndian) =>
-        From15To16((Reverse, SwapEndian) switch
-        {
-            (_, true) => (ushort)((x << 8) | (x >> 8)),
-            (true, _) => (ushort)(0xffff - x),
-            _ => x
-        });
+        From15To16(
+            (Reverse, SwapEndian) switch
+            {
+                (_, true) => (ushort)((x << 8) | (x >> 8)),
+                (true, _) => (ushort)(0xffff - x),
+                _         => x
+            });
 
     [DebuggerStepThrough, MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ushort PackOne(ushort x, bool Reverse, bool SwapEndian) =>
@@ -155,10 +170,13 @@ public static partial class FastFloat
         {
             (true, _) => (ushort)(0xffff - From16To15(x)),
             (_, true) => CHANGE_ENDIAN(From16To15(x)),
-            _ => From16To15(x)
+            _         => From16To15(x)
         };
 
-    private static ReadOnlySpan<byte> Unroll15bitsPlanar(Transform CMMcargo, Span<ushort> wIn, ReadOnlySpan<byte> accum, uint Stride)
+    private static ReadOnlySpan<byte> Unroll15bitsPlanar(Transform CMMcargo,
+                                                         Span<ushort> wIn,
+                                                         ReadOnlySpan<byte> accum,
+                                                         uint Stride)
     {
         var head = (_xform_head)CMMcargo;
         var nChan = T_CHANNELS(head.InputFormat);
@@ -182,7 +200,10 @@ public static partial class FastFloat
         return init[sizeof(ushort)..];
     }
 
-    private static Span<byte> Pack15bitsPlanar(Transform CMMcargo, ReadOnlySpan<ushort> wOut, Span<byte> output, uint Stride)
+    private static Span<byte> Pack15bitsPlanar(Transform CMMcargo,
+                                               ReadOnlySpan<ushort> wOut,
+                                               Span<byte> output,
+                                               uint Stride)
     {
         var head = (_xform_head)CMMcargo;
         var nChan = T_CHANNELS(head.OutputFormat);
@@ -206,7 +227,10 @@ public static partial class FastFloat
         return init[sizeof(ushort)..];
     }
 
-    private static ReadOnlySpan<byte> Unroll15bitsChunky(Transform CMMcargo, Span<ushort> Values, ReadOnlySpan<byte> Buffer, uint _1)
+    private static ReadOnlySpan<byte> Unroll15bitsChunky(Transform CMMcargo,
+                                                         Span<ushort> Values,
+                                                         ReadOnlySpan<byte> Buffer,
+                                                         uint _1)
     {
         var head = (_xform_head)CMMcargo;
         var nChan = T_CHANNELS(head.InputFormat);
@@ -229,7 +253,10 @@ public static partial class FastFloat
         return Buffer;
     }
 
-    private static Span<byte> Pack15bitsChunky(Transform CMMcargo, ReadOnlySpan<ushort> Values, Span<byte> Buffer, uint _1)
+    private static Span<byte> Pack15bitsChunky(Transform CMMcargo,
+                                               ReadOnlySpan<ushort> Values,
+                                               Span<byte> Buffer,
+                                               uint _1)
     {
         var head = (_xform_head)CMMcargo;
         var nChan = T_CHANNELS(head.OutputFormat);
@@ -252,9 +279,12 @@ public static partial class FastFloat
         return Buffer;
     }
 
-    private static readonly int[] err = new int[cmsMAXCHANNELS];
+    private static readonly int[] err = new int[Context.MaxChannels];
 
-    private static Span<byte> PackNBytesDither(Transform CMMcargo, ReadOnlySpan<ushort> Values, Span<byte> Buffer, uint _1)
+    private static Span<byte> PackNBytesDither(Transform CMMcargo,
+                                               ReadOnlySpan<ushort> Values,
+                                               Span<byte> Buffer,
+                                               uint _1)
     {
         var info = (_xform_head)CMMcargo;
         var nChan = T_CHANNELS(info.OutputFormat);
@@ -265,8 +295,8 @@ public static partial class FastFloat
             {
                 var n = Values[i] + err[i]; // Value
 
-                var pe = n / 257;   // Whole part
-                var pf = n % 257;   // Fractional part
+                var pe = n / 257; // Whole part
+                var pf = n % 257; // Fractional part
 
                 err[i] = pf;    // Store it for next pixel
 
@@ -279,7 +309,10 @@ public static partial class FastFloat
         return Buffer[T_EXTRA(info.OutputFormat)..];
     }
 
-    private static Span<byte> PackNBytesSwapDither(Transform CMMcargo, ReadOnlySpan<ushort> Values, Span<byte> Buffer, uint _1)
+    private static Span<byte> PackNBytesSwapDither(Transform CMMcargo,
+                                                   ReadOnlySpan<ushort> Values,
+                                                   Span<byte> Buffer,
+                                                   uint _1)
     {
         var info = (_xform_head)CMMcargo;
         var nChan = T_CHANNELS(info.OutputFormat);
@@ -290,8 +323,8 @@ public static partial class FastFloat
             {
                 var n = Values[i] + err[i]; // Value
 
-                var pe = n / 257;   // Whole part
-                var pf = n % 257;   // Fractional part
+                var pe = n / 257; // Whole part
+                var pf = n % 257; // Fractional part
 
                 err[i] = pf;    // Store it for next pixel
 
