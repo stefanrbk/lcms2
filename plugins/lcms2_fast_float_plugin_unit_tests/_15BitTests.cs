@@ -29,11 +29,15 @@ namespace lcms2.FastFloatPlugin.tests;
 //[Parallelizable(ParallelScope.All)]
 public class _15BitTests
 {
-    private static readonly Context _ctx = new();
+    private static readonly Context _ctx = cmsCreateContext()!;
 
     [OneTimeSetUp]
     public void Setup() =>
-        _ctx.RegisterPlugin(cmsFastFloatExtensions());
+        cmsPluginTHR(_ctx, cmsFastFloatExtensions());
+
+    [OneTimeTearDown]
+    public void Cleanup() =>
+        cmsDeleteContext(_ctx);
 
 
     [TestCaseSource(nameof(Test15BitFormattersReturnInputsAfterRoundTripCases))]

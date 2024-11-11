@@ -93,8 +93,8 @@ internal static partial class Testbed
 
     private static bool TestSingleFixed15_16(double value)
     {
-        var f = DoubleToS15Fixed16(value);
-        var roundTrip = S15Fixed16ToDouble(f);
+        var f = _cmsDoubleTo15Fixed16(value);
+        var roundTrip = _cms15Fixed16toDouble(f);
         var error = Math.Abs(value - roundTrip);
 
         return error <= FIXED_PRECISION_15_16;
@@ -115,8 +115,8 @@ internal static partial class Testbed
 
     private static bool TestSingleFixed8_8(double value)
     {
-        var f = DoubleToU8Fixed8(value);
-        var roundTrip = U8Fixed8ToDouble(f);
+        var f = _cmsDoubleTo8Fixed8(value);
+        var roundTrip = _cms8Fixed8toDouble(f);
         var error = Math.Abs(value - roundTrip);
 
         return error <= FIXED_PRECISION_8_8;
@@ -136,17 +136,17 @@ internal static partial class Testbed
         const double d50y2 = 1.0;
         const double d50z2 = 0.82490540;
 
-        var xe = DoubleToS15Fixed16(CIEXYZ.D50.X);
-        var ye = DoubleToS15Fixed16(CIEXYZ.D50.Y);
-        var ze = DoubleToS15Fixed16(CIEXYZ.D50.Z);
+        var xe = _cmsDoubleTo15Fixed16(cmsD50X);
+        var ye = _cmsDoubleTo15Fixed16(cmsD50Y);
+        var ze = _cmsDoubleTo15Fixed16(cmsD50Z);
 
-        var x = S15Fixed16ToDouble(xe);
-        var y = S15Fixed16ToDouble(ye);
-        var z = S15Fixed16ToDouble(ze);
+        var x = _cms15Fixed16toDouble(xe);
+        var y = _cms15Fixed16toDouble(ye);
+        var z = _cms15Fixed16toDouble(ze);
 
-        var dx = Math.Abs(CIEXYZ.D50.X - x);
-        var dy = Math.Abs(CIEXYZ.D50.Y - y);
-        var dz = Math.Abs(CIEXYZ.D50.Z - z);
+        var dx = Math.Abs(cmsD50X - x);
+        var dy = Math.Abs(cmsD50Y - y);
+        var dz = Math.Abs(cmsD50Z - z);
 
         var euc = Math.Sqrt((dx * dx) + (dy * dy) + (dz * dz));
 
@@ -156,13 +156,13 @@ internal static partial class Testbed
             return false;
         }
 
-        xe = DoubleToS15Fixed16(d50x2);
-        ye = DoubleToS15Fixed16(d50y2);
-        ze = DoubleToS15Fixed16(d50z2);
+        xe = _cmsDoubleTo15Fixed16(d50x2);
+        ye = _cmsDoubleTo15Fixed16(d50y2);
+        ze = _cmsDoubleTo15Fixed16(d50z2);
 
-        x = S15Fixed16ToDouble(xe);
-        y = S15Fixed16ToDouble(ye);
-        z = S15Fixed16ToDouble(ze);
+        x = _cms15Fixed16toDouble(xe);
+        y = _cms15Fixed16toDouble(ye);
+        z = _cms15Fixed16toDouble(ze);
 
         dx = Math.Abs(d50x2 - x);
         dy = Math.Abs(d50y2 - y);

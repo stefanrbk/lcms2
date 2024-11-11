@@ -100,7 +100,7 @@ internal static partial class Testbed
     [DebuggerStepThrough]
     public static Context DbgThread()
     {
-        return new(null, thread++ % 0xff0);
+        return new() { UserData = thread++ % 0xff0 };
     }
 
 //    public static void* DebugMalloc(Context? ContextID, uint size, Type type)
@@ -216,8 +216,19 @@ internal static partial class Testbed
     //    CheckHeap();
     //}
 
-    public static Context WatchDogContext(object? usr) =>
-        new(usr);
+    public static Context WatchDogContext(object? usr)
+    {
+        //var ctx = cmsCreateContext(DebugMemHandler, usr);
+        var ctx = cmsCreateContext(UserData: usr);
+
+        if (ctx is null)
+        {
+            Die("Unable to create memory managed context");
+        }
+
+        //DebugMemDontCheckThis(ctx);
+        return ctx;
+    }
 
     public static ILoggerFactory BuildDebugLogger()
     {
@@ -239,7 +250,7 @@ internal static partial class Testbed
         Die(eventId, text);
 
     public static void ResetFatalError() =>
-        Context.Shared.SetLoggerFactory(BuildDebugLogger());
+        cmsSetLogErrorHandler(BuildDebugLogger());
 
     public static void Check(string title, Func<bool> test)
     {

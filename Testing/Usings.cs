@@ -26,5 +26,4 @@
 
 global using static lcms2.Lcms2;
 global using static lcms2.Plugin;
-global using static lcms2.Conversions;
 global using static lcms2.testbed.Testbed;

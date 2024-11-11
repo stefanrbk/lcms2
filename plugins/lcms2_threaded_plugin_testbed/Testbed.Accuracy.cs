@@ -19,7 +19,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
 using lcms2.types;
 
 namespace lcms2.ThreadedPlugin.testbed;
@@ -63,8 +62,8 @@ internal static partial class Testbed
 
     private static void TryAllValues8bits(Profile hlcmsProfileIn, Profile hlcmsProfileOut, int Intent)
     {
-        var Raw = new Context();
-        var Plugin = new Context([cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0)], null);
+        var Raw = cmsCreateContext();
+        var Plugin = cmsCreateContext(cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0), null);
 
         const int npixels = 256 * 256 * 256;
 
@@ -130,6 +129,9 @@ internal static partial class Testbed
 
         cmsDeleteTransform(xformRaw);
         cmsDeleteTransform(xformPlugin);
+
+        cmsDeleteContext(Plugin);
+        cmsDeleteContext(Raw);
     }
 
     public static void CheckAccuracy8Bits()
@@ -144,8 +146,8 @@ internal static partial class Testbed
 
     private static void TryAllValues16bits(Profile hlcmsProfileIn, Profile hlcmsProfileOut, int Intent)
     {
-        var Raw = new Context();
-        var Plugin = new Context([cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0)], null);
+        var Raw = cmsCreateContext();
+        var Plugin = cmsCreateContext(cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0), null);
 
         const int npixels = 256 * 256 * 256;
 
@@ -211,6 +213,9 @@ internal static partial class Testbed
 
         cmsDeleteTransform(xformRaw);
         cmsDeleteTransform(xformPlugin);
+
+        cmsDeleteContext(Plugin);
+        cmsDeleteContext(Raw);
     }
 
     public static void CheckAccuracy16Bits()

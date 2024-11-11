@@ -19,8 +19,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
-
 var now = DateTime.Now;
 
 var cliResult = CommandLine.Parser.Default.ParseArguments<lcms2.ThreadedPlugin.testbed.CliOptions>(args);
@@ -34,13 +32,13 @@ trace("Copyright (c) 2022-2023 Stefan Kewatt, all rights reserved\n");
 
 using (logger.BeginScope("Installing error logger"))
 {
-    Context.Shared.SetLoggerFactory(BuildDebugLogger());
+    cmsSetLogErrorHandler(BuildDebugLogger());
     trace("Done");
 }
 
 using (logger.BeginScope("Installing plugin"))
 {
-    Context.Shared.RegisterPlugin(cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0));
+    cmsPlugin(cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0));
     trace("Done");
 }
 
@@ -62,7 +60,7 @@ if (doSpeedTests)
     ComparativeLineStride8bits();
 }
 
-Context.Shared.ClearAllPlugins();
+cmsUnregisterPlugins();
 
 Console.WriteLine();
 trace("All tests passed OK");

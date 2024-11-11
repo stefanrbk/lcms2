@@ -28,16 +28,18 @@ using System.Numerics;
 namespace lcms2.FastFloatPlugin.tests;
 public class Lab2RGBTests
 {
-    private static readonly Context _pluginCtx = new();
-    private static readonly Context _rawCtx = new();
+    private static readonly Context _pluginCtx = cmsCreateContext()!;
+    private static readonly Context _rawCtx = cmsCreateContext()!;
 
     [OneTimeSetUp]
     public void Setup() =>
-        _pluginCtx.RegisterPlugin(cmsFastFloatExtensions());
+        cmsPluginTHR(_pluginCtx, cmsFastFloatExtensions());
 
     [OneTimeTearDown]
     public void Cleanup()
     {
+        cmsDeleteContext(_rawCtx);
+        cmsDeleteContext(_pluginCtx);
     }
 
     [Test]

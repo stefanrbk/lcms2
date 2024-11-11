@@ -19,7 +19,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.state;
 using Microsoft.Extensions.Logging;
 
 var now = DateTime.Now;
@@ -47,13 +46,13 @@ logger.LogInformation(
 
 using (logger.BeginScope("Installing error logger"))
 {
-    Context.Shared.SetLoggerFactory(BuildDebugLogger());
+    cmsSetLogErrorHandler(BuildDebugLogger());
     trace("Done");
 }
 
 using (logger.BeginScope("Installing plugin"))
 {
-    Context.Shared.RegisterPlugin(cmsFastFloatExtensions());
+    cmsPlugin(cmsFastFloatExtensions());
     trace("Done");
 }
 
@@ -106,6 +105,8 @@ if (doSpeedTests)
 }
 
 trace("All tests passed!");
+
+cmsDeleteContext(null);
 
 Thread.Sleep(10);
 

@@ -63,7 +63,7 @@ internal static partial class Testbed
         //if (tab is null) return false;
         var tab = new ushort[numNodesToCheck];
 
-        var p = InterpParams<ushort>.Create(DbgThread(), (uint)numNodesToCheck, 1, 1, tab, LerpFlag.Ushort);
+        var p = _cmsComputeInterpParams(DbgThread(), (uint)numNodesToCheck, 1, 1, tab, LerpFlag.Ushort);
         if (p is null) return false;
 
         BuildTable(numNodesToCheck, tab, down);
@@ -80,13 +80,13 @@ internal static partial class Testbed
             if (Math.Abs(@out[0] - @in[0]) > maxErr)
             {
                 logger.LogWarning("({numNodesToCheck}): Must be {in}, but was {out}", numNodesToCheck, @in[0], @out[0]);
-                p.Dispose();
+                _cmsFreeInterpParams(p);
                 //free(tab);
                 return false;
             }
         }
 
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         //free(tab);
         return true;
     }
@@ -278,7 +278,7 @@ internal static partial class Testbed
         Span<float> @in = stackalloc float[3];
         Span<float> @out = stackalloc float[3];
 
-        var p = InterpParams<float>.Create(DbgThread(), 2, 3, 3, floatTable, LerpFlag.Float);
+        var p = _cmsComputeInterpParams(DbgThread(), 2, 3, 3, floatTable, LerpFlag.Float);
 
         MaxErr = 0.0;
         for (var i = 0; i < 0xFFFF; i++)
@@ -295,10 +295,10 @@ internal static partial class Testbed
         if (MaxErr > 0)
             logger.LogInformation("|Err|<{MaxErr}", MaxErr);
 
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return true;
     Error:
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return false;
     }
 
@@ -341,7 +341,7 @@ internal static partial class Testbed
         Span<float> @in = stackalloc float[3];
         Span<float> @out = stackalloc float[3];
 
-        var p = InterpParams<float>.Create(DbgThread(), 2, 3, 3, floatTable, LerpFlag.Float | LerpFlag.Trilinear);
+        var p = _cmsComputeInterpParams(DbgThread(), 2, 3, 3, floatTable, LerpFlag.Float | LerpFlag.Trilinear);
 
         MaxErr = 0.0;
         for (var i = 0; i < 0xFFFF; i++)
@@ -357,10 +357,10 @@ internal static partial class Testbed
 
         if (MaxErr > 0)
             logger.LogInformation("|Err|<{MaxErr}", MaxErr);
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return true;
     Error:
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return false;
     }
 
@@ -403,7 +403,7 @@ internal static partial class Testbed
         Span<ushort> @in = stackalloc ushort[3];
         Span<ushort> @out = stackalloc ushort[3];
 
-        var p = InterpParams<ushort>.Create(DbgThread(), 2, 3, 3, table, LerpFlag.Ushort);
+        var p = _cmsComputeInterpParams(DbgThread(), 2, 3, 3, table, LerpFlag.Ushort);
 
         MaxErr = 0;
         for (var i = 0; i < 0xFFFF; i++)
@@ -419,10 +419,10 @@ internal static partial class Testbed
 
         if (MaxErr > 0)
             logger.LogInformation("|Err|<{MaxErr}", MaxErr);
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return true;
     Error:
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return false;
     }
 
@@ -465,7 +465,7 @@ internal static partial class Testbed
         Span<ushort> @in = stackalloc ushort[3];
         Span<ushort> @out = stackalloc ushort[3];
 
-        var p = InterpParams<ushort>.Create(DbgThread(), 2, 3, 3, table, LerpFlag.Trilinear);
+        var p = _cmsComputeInterpParams(DbgThread(), 2, 3, 3, table, LerpFlag.Trilinear);
 
         MaxErr = 0;
         for (var i = 0; i < 0xFFFF; i++)
@@ -481,10 +481,10 @@ internal static partial class Testbed
 
         if (MaxErr > 0)
             logger.LogInformation("|Err|<{MaxErr}", MaxErr);
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return true;
     Error:
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return false;
     }
 
@@ -594,7 +594,7 @@ internal static partial class Testbed
         bool[,,] check = new bool[256, 256, 256];
         bool[,,] isGood = new bool[256, 256, 256];
 
-        var p = InterpParams<float>.Create(DbgThread(), 2, 3, 3, floatTable, LerpFlag.Float);
+        var p = _cmsComputeInterpParams(DbgThread(), 2, 3, 3, floatTable, LerpFlag.Float);
 
         MaxErr = 0.0;
 
@@ -606,7 +606,7 @@ internal static partial class Testbed
 
         if (MaxErr > 0)
             logger.LogInformation("|Err|<{MaxErr}", MaxErr);
-        p.Dispose();
+        _cmsFreeInterpParams(p);
 
         return Validate3DInterpolationValues(check, isGood);
     }
@@ -650,7 +650,7 @@ internal static partial class Testbed
         bool[,,] check = new bool[256, 256, 256];
         bool[,,] isGood = new bool[256, 256, 256];
 
-        var p = InterpParams<float>.Create(DbgThread(), 2, 3, 3, floatTable, LerpFlag.Float | LerpFlag.Trilinear);
+        var p = _cmsComputeInterpParams(DbgThread(), 2, 3, 3, floatTable, LerpFlag.Float | LerpFlag.Trilinear);
 
         MaxErr = 0.0;
 
@@ -663,7 +663,7 @@ internal static partial class Testbed
         if (MaxErr > 0)
             logger.LogInformation("|Err|<{MaxErr}", MaxErr);
 
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return Validate3DInterpolationValues(check, isGood);
     }
 
@@ -733,7 +733,7 @@ internal static partial class Testbed
         bool[,,] check = new bool[256, 256, 256];
         bool[,,] isGood = new bool[256, 256, 256];
 
-        var p = InterpParams<ushort>.Create(DbgThread(), 2, 3, 3, table, LerpFlag.Ushort);
+        var p = _cmsComputeInterpParams(DbgThread(), 2, 3, 3, table, LerpFlag.Ushort);
 
         MaxErr = 0.0;
         var tasks = new List<Task>(16);
@@ -746,7 +746,7 @@ internal static partial class Testbed
 
         if (MaxErr > 0)
             logger.LogInformation("|Err|<{MaxErr}", MaxErr);
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return Validate3DInterpolationValues(check, isGood);
     }
 
@@ -785,7 +785,7 @@ internal static partial class Testbed
         bool[,,] check = new bool[256, 256, 256];
         bool[,,] isGood = new bool[256, 256, 256];
 
-        var p = InterpParams<ushort>.Create(DbgThread(), 2, 3, 3, table, LerpFlag.Trilinear);
+        var p = _cmsComputeInterpParams(DbgThread(), 2, 3, 3, table, LerpFlag.Trilinear);
 
         MaxErr = 0.0;
         var tasks = new List<Task>(16);
@@ -798,7 +798,7 @@ internal static partial class Testbed
 
         if (MaxErr > 0)
             logger.LogInformation("|Err|<{MaxErr}", MaxErr);
-        p.Dispose();
+        _cmsFreeInterpParams(p);
         return Validate3DInterpolationValues(check, isGood);
     }
 

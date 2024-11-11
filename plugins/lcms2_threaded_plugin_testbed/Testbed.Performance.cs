@@ -281,7 +281,7 @@ internal static partial class Testbed
 
     public static void SpeedTest8()
     {
-        var noPlugin = new Context();
+        var noPlugin = cmsCreateContext();
 
         var t = new double[10];
 
@@ -309,12 +309,14 @@ internal static partial class Testbed
                 Performance("8 bits on same Matrix-Shaper profile", SpeedTest8bitsRGB, null, "test0", "test0", sz, t[2]);
                 Performance("8 bits on curves", SpeedTest8bitsRGB, null, "*curves", "*curves", sz, t[3]);
             }
+
+            cmsDeleteContext(noPlugin);
         }
     }
 
     public static void SpeedTest16()
     {
-        var noPlugin = new Context();
+        var noPlugin = cmsCreateContext();
 
         var t = new double[10];
 
@@ -345,6 +347,8 @@ internal static partial class Testbed
                 Performance("16 bits on curves", SpeedTest16bitsRGB, null, "*curves", "*curves", sz, t[3]);
                 Performance("16 bits on CMYK CLUT profiles", SpeedTest16bitsCMYK, null, "test1", "test2", szCmyk, t[4]);
             }
+
+            cmsDeleteContext(noPlugin);
         }
     }
 
@@ -480,8 +484,8 @@ internal static partial class Testbed
 
     public static void ComparativeLineStride8bits()
     {
-        var noPlugin = new Context();
-        var Plugin = new Context([cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0)], null);
+        var noPlugin = cmsCreateContext();
+        var Plugin = cmsCreateContext(cmsThreadedExtensions(CMS_THREADED_GUESS_MAX_THREADS, 0), null);
 
         using (logger.BeginScope("Multithreaded performance (comparisons)"))
         {
@@ -492,6 +496,9 @@ internal static partial class Testbed
             ComparativeCt(noPlugin, Plugin, "Matrix-Shaper", SpeedTest8bitDoTransform, SpeedTest8bitLineStride, "test5", "test0");
             ComparativeCt(noPlugin, Plugin, "same Matrix-Shaper", SpeedTest8bitDoTransform, SpeedTest8bitLineStride, "test0", "test0");
             ComparativeCt(noPlugin, Plugin, "curves", SpeedTest8bitDoTransform, SpeedTest8bitLineStride, "", "");
+
+            cmsDeleteContext(Plugin);
+            cmsDeleteContext(noPlugin);
         }
     }
 }

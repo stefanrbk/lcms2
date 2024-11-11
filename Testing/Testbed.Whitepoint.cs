@@ -24,26 +24,22 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.types;
-
 namespace lcms2.testbed;
 
 internal static partial class Testbed
 {
     public static bool CheckTemp2CHRM()
     {
-        var max = 0.0;
+        double max = 0.0;
 
         for (var j = 4000; j < 25000; j++)
         {
-            var White = (CIExyY)WhitePoint.FromTemp(j);
-            var v = WhitePoint.ToTemp(White);
-            if (v.IsNone)
-                return false;
+            var White = cmsWhitePointFromTemp(j);
+            var v = cmsTempFromWhitePoint(White);
+            if (double.IsNaN(v)) return false;
 
-            var d = Math.Abs((double)v - j);
-            if (d > max)
-                max = d;
+            var d = Math.Abs(v - j);
+            if (d > max) max = d;
         }
 
         // the actual resolution is 100 degrees

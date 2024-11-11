@@ -48,10 +48,10 @@ internal static partial class Testbed
                     Lab.a = a;
                     Lab.b = b;
 
-                    LCh = Lab.AsLCh;
-                    Lab2 = LCh.AsLab;
+                    LCh = cmsLab2LCh(Lab);
+                    Lab2 = cmsLCh2Lab(LCh);
 
-                    var dist = DeltaE.De76(Lab, Lab2);
+                    var dist = cmsDeltaE(Lab, Lab2);
                     Max = Math.Max(dist, Max);
                 }
             }
@@ -76,10 +76,10 @@ internal static partial class Testbed
                     Lab.a = a;
                     Lab.b = b;
 
-                    XYZ = Lab.AsXYZ();
-                    Lab2 = XYZ.AsLab();
+                    cmsLab2XYZ(null, out XYZ, Lab);
+                    cmsXYZ2Lab(null, out Lab2, XYZ);
 
-                    var dist = DeltaE.De76(Lab, Lab2);
+                    var dist = cmsDeltaE(Lab, Lab2);
                     Max = Math.Max(dist, Max);
                 }
             }
@@ -105,12 +105,12 @@ internal static partial class Testbed
                     Lab.a = a;
                     Lab.b = b;
 
-                    XYZ = Lab.AsXYZ();
-                    xyY = XYZ.As_xyY;
-                    XYZ = xyY.AsXYZ;
-                    Lab2 = XYZ.AsLab();
+                    cmsLab2XYZ(null, out XYZ, Lab);
+                    xyY = cmsXYZ2xyY(XYZ);
+                    XYZ = cmsxyY2XYZ(xyY);
+                    cmsXYZ2Lab(null, out Lab2, XYZ);
 
-                    var dist = DeltaE.De76(Lab, Lab2);
+                    var dist = cmsDeltaE(Lab, Lab2);
                     if (!Double.IsNaN(dist))
                         Max = Math.Max(dist, Max);
                     if (Max > 1e-12)
@@ -136,8 +136,8 @@ internal static partial class Testbed
         {
             Inw[0] = Inw[1] = Inw[2] = (ushort)j;
 
-            Lab = Inw.LabEncodedToFloatV2();
-            aw = Lab.FloatToEncodedV2();
+            Lab = cmsLabEncoded2FloatV2(Inw);
+            cmsFloat2LabEncodedV2(aw, Lab);
 
             for (var i = 0; i < 3; i++)
             {
@@ -160,8 +160,8 @@ internal static partial class Testbed
         {
             Inw[0] = Inw[1] = Inw[2] = (ushort)j;
 
-            Lab = Inw.LabEncodedToFloat();
-            aw = Lab.FloatToEncoded();
+            Lab = cmsLabEncoded2Float(Inw);
+            cmsFloat2LabEncoded(aw, Lab);
 
             for (var i = 0; i < 3; i++)
             {
