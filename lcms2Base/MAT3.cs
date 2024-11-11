@@ -27,33 +27,36 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace lcms2.types;
+namespace lcms2;
 
 [DebuggerStepThrough, StructLayout(LayoutKind.Explicit)]
 public struct MAT3(VEC3 x, VEC3 y, VEC3 z)
 {
-    [FieldOffset(0)]
-    public VEC3 X = x;
+    [FieldOffset(0)] public VEC3 X = x;
 
-    [FieldOffset(24)]
-    public VEC3 Y = y;
+    [FieldOffset(24)] public VEC3 Y = y;
 
-    [FieldOffset(48)]
-    public VEC3 Z = z;
+    [FieldOffset(48)] public VEC3 Z = z;
 
-    public MAT3(double xx, double xy, double xz, double yx, double yy, double yz, double zx, double zy, double zz)
+    public MAT3(double xx,
+                double xy,
+                double xz,
+                double yx,
+                double yy,
+                double yz,
+                double zx,
+                double zy,
+                double zz)
         : this(
             new(xx, xy, xz),
             new(yx, yy, yz),
-            new(zx, zy, zz))
-    { }
+            new(zx, zy, zz)) { }
 
     public MAT3(ReadOnlySpan<double> d)
         : this(
             new(d[0], d[1], d[2]),
             new(d[3], d[4], d[5]),
-            new(d[6], d[7], d[8]))
-    { }
+            new(d[6], d[7], d[8])) { }
 
     public VEC3 this[int index]
     {
@@ -61,20 +64,31 @@ public struct MAT3(VEC3 x, VEC3 y, VEC3 z)
         {
             switch (index)
             {
-                case 0: return X;
-                case 1: return Y;
-                case 2: return Z;
-                default: throw new IndexOutOfRangeException(nameof(index));
+                case 0:
+                    return X;
+                case 1:
+                    return Y;
+                case 2:
+                    return Z;
+                default:
+                    throw new IndexOutOfRangeException(nameof(index));
             }
         }
         set
         {
             switch (index)
             {
-                case 0: X = value; break;
-                case 1: Y = value; break;
-                case 2: Z = value; break;
-                default: throw new IndexOutOfRangeException(nameof(index));
+                case 0:
+                    X = value;
+                    break;
+                case 1:
+                    Y = value;
+                    break;
+                case 2:
+                    Z = value;
+                    break;
+                default:
+                    throw new IndexOutOfRangeException(nameof(index));
             }
         }
     }
@@ -82,7 +96,7 @@ public struct MAT3(VEC3 x, VEC3 y, VEC3 z)
     public readonly void Deconstruct(out VEC3 x, out VEC3 y, out VEC3 z) =>
         (x, y, z) = (X, Y, Z);
 
-    public readonly double[] AsArray(/*ArrayPool<double>? pool = null*/)
+    public readonly double[] AsArray( /*ArrayPool<double>? pool = null*/)
     {
         var result = /*(pool is null)
             ?*/ new double[9]
@@ -108,9 +122,12 @@ public struct MAT3(VEC3 x, VEC3 y, VEC3 z)
         X.IsNaN || Y.IsNaN || Z.IsNaN;
 
     public static MAT3 Identity =>  // _cmsMAT3identity
-        new(new(1, 0, 0),
+        new(
+            new(1, 0, 0),
             new(0, 1, 0),
             new(0, 0, 1));
+
+    internal const double DetTolerance = 1e-4;
 
     private static bool CloseEnough(double a, double b) =>
         Math.Abs(b - a) < (1.0 / 65535.0);
@@ -136,15 +153,24 @@ public struct MAT3(VEC3 x, VEC3 y, VEC3 z)
             return (y * 3) + x;
         }
 
-        av[get(0, 0)] = a.X.X; bv[get(0, 0)] = b.X.X;
-        av[get(0, 1)] = a.X.Y; bv[get(0, 1)] = b.X.Y;
-        av[get(0, 2)] = a.X.Z; bv[get(0, 2)] = b.X.Z;
-        av[get(1, 0)] = a.Y.X; bv[get(1, 0)] = b.Y.X;
-        av[get(1, 1)] = a.Y.Y; bv[get(1, 1)] = b.Y.Y;
-        av[get(1, 2)] = a.Y.Z; bv[get(1, 2)] = b.Y.Z;
-        av[get(2, 0)] = a.Z.X; bv[get(2, 0)] = b.Z.X;
-        av[get(2, 1)] = a.Z.Y; bv[get(2, 1)] = b.Z.Y;
-        av[get(2, 2)] = a.Z.Z; bv[get(2, 2)] = b.Z.Z;
+        av[get(0, 0)] = a.X.X;
+        bv[get(0, 0)] = b.X.X;
+        av[get(0, 1)] = a.X.Y;
+        bv[get(0, 1)] = b.X.Y;
+        av[get(0, 2)] = a.X.Z;
+        bv[get(0, 2)] = b.X.Z;
+        av[get(1, 0)] = a.Y.X;
+        bv[get(1, 0)] = b.Y.X;
+        av[get(1, 1)] = a.Y.Y;
+        bv[get(1, 1)] = b.Y.Y;
+        av[get(1, 2)] = a.Y.Z;
+        bv[get(1, 2)] = b.Y.Z;
+        av[get(2, 0)] = a.Z.X;
+        bv[get(2, 0)] = b.Z.X;
+        av[get(2, 1)] = a.Z.Y;
+        bv[get(2, 1)] = b.Z.Y;
+        av[get(2, 2)] = a.Z.Z;
+        bv[get(2, 2)] = b.Z.Z;
 
         double ROWCOL(Span<double> a, Span<double> b, int i, int j)
         {
@@ -152,9 +178,15 @@ public struct MAT3(VEC3 x, VEC3 y, VEC3 z)
         }
 
         return new(
-            ROWCOL(av, bv, 0, 0), ROWCOL(av, bv, 0, 1), ROWCOL(av, bv, 0, 2),
-            ROWCOL(av, bv, 1, 0), ROWCOL(av, bv, 1, 1), ROWCOL(av, bv, 1, 2),
-            ROWCOL(av, bv, 2, 0), ROWCOL(av, bv, 2, 1), ROWCOL(av, bv, 2, 2));
+            ROWCOL(av, bv, 0, 0),
+            ROWCOL(av, bv, 0, 1),
+            ROWCOL(av, bv, 0, 2),
+            ROWCOL(av, bv, 1, 0),
+            ROWCOL(av, bv, 1, 1),
+            ROWCOL(av, bv, 1, 2),
+            ROWCOL(av, bv, 2, 0),
+            ROWCOL(av, bv, 2, 1),
+            ROWCOL(av, bv, 2, 2));
     }
 
     public readonly MAT3 Inverse    // _cmsMAT3inverse
@@ -167,7 +199,7 @@ public struct MAT3(VEC3 x, VEC3 y, VEC3 z)
 
             var det = (X.X * c0) + (X.Y * c1) + (X.Z * c2);
 
-            if (Math.Abs(det) < MATRIX_DET_TOLERANCE)
+            if (Math.Abs(det) < DetTolerance)
                 return NaN;  // singular matrix; can't invert
 
             return new(
@@ -186,7 +218,8 @@ public struct MAT3(VEC3 x, VEC3 y, VEC3 z)
     public readonly VEC3 Solve(VEC3 vec)    // _cmsMAT3solve
     {
         var a_1 = Inverse;
-        if (a_1.IsNaN) return VEC3.NaN;  // Singular matrix
+        if (a_1.IsNaN)
+            return VEC3.NaN;  // Singular matrix
 
         return a_1.Eval(vec);
     }

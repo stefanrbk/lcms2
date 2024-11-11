@@ -590,5 +590,93 @@ public class Lcms2
 
     #endregion CIECAM02
 
+    #region Tone curves
+
+    public static ToneCurve? cmsBuildSegmentedToneCurve(Context? context,
+                                                        uint nSegments,
+                                                        ReadOnlySpan<CurveSegment> segments) =>
+        ToneCurve.BuildSegmented(context, nSegments, segments);
+
+    public static ToneCurve? cmsBuildParametricToneCurve(Context? context, int type, ReadOnlySpan<double> @params) =>
+        ToneCurve.BuildParametric(context, type, @params);
+
+    public static ToneCurve? cmsBuildGamma(Context? context, double gamma) =>
+        ToneCurve.BuildGamma(context, gamma);
+
+    public static ToneCurve? cmsBuildTabulatedToneCurve16(Context? context,
+                                                          uint nEntries,
+                                                          ReadOnlySpan<ushort> values) =>
+        ToneCurve.BuildTabulated(context, nEntries, values);
+
+    public static ToneCurve? cmsBuildTabulatedToneCurveFloat(Context? context,
+                                                             uint nEntries,
+                                                             ReadOnlySpan<float> values) =>
+        ToneCurve.BuildTabulated(context, nEntries, values);
+
+    public static void cmsFreeToneCurve(ToneCurve? toneCurve) =>
+        toneCurve?.Dispose();
+
+    public static void cmsFreeToneCurveTriple(Span<ToneCurve> toneCurves)
+    {
+        if (toneCurves.Length > 3)
+            toneCurves = toneCurves[..3];
+
+        foreach (ref var toneCurve in toneCurves)
+        {
+            toneCurve.Dispose();
+            toneCurve = null!;
+        }
+    }
+
+    public static ToneCurve? cmsDupToneCurve(ToneCurve? toneCurve) =>
+        toneCurve?.Clone();
+
+    public static ToneCurve? cmsReverseToneCurve(ToneCurve? gamma) =>
+        gamma?.Reverse();
+
+    public static ToneCurve? cmsReverseToneCurveEx(uint nResultSamples, ToneCurve? gamma) =>
+        gamma?.Reverse(nResultSamples);
+
+    public static ToneCurve? cmsJoinToneCurve(Context? context, ToneCurve X, ToneCurve Y, uint nPoints) =>
+        X.Join(context, Y, nPoints);
+
+    public static bool cmsSmoothToneCurve(ToneCurve? tab, double lambda) =>
+        tab?.Smooth(lambda) ?? false;
+
+    public static float cmsEvalToneCurveFloat(ToneCurve? curve, float v) =>
+        curve.Evaluate(v);
+
+    public static ushort cmsEvalToneCurve16(ToneCurve? curve, ushort v) =>
+        curve.Evaluate(v);
+
+    public static bool cmsIsToneCurveMultisegment(ToneCurve? inGamma) =>
+        inGamma.IsMultisegment;
+
+    public static bool cmsIsToneCurveLinear(ToneCurve? curve) =>
+        curve.IsLinear;
+
+    public static bool cmsIsToneCurveMonotonic(ToneCurve? t) =>
+        t.IsMonotonic;
+
+    public static bool cmsIsToneCurveDescending(ToneCurve? t) =>
+        t.IsDescending;
+
+    public static int cmsGetToneCurveParametricType(ToneCurve? t) =>
+        t.ParametricType;
+
+    public static double cmsEstimateGamma(ToneCurve? t, double precision) =>
+        t.EstimateGamma(precision);
+
+    public static ref CurveSegment cmsGetToneCurveSegment(int n, ToneCurve? t) =>
+        ref t.GetSegment(n);
+
+    public static uint cmsGetToneCurveEstimatedTableEntries(ToneCurve? t) =>
+        t.EstimatedTableEntries;
+
+    public static Span<ushort> cmsGetToneCurveEstimatedTable(ToneCurve? t) =>
+        t.EstimatedTable;
+
+    #endregion Tone curves
+
     #endregion cms* Functions
 }

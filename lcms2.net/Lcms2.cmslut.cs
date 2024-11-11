@@ -24,7 +24,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 using lcms2.types;
@@ -830,13 +829,6 @@ public static partial class Lcms2
         return mpe;
     }
 
-    [DebuggerStepThrough]
-    internal static ushort _cmsQuantizeVal(double i, uint MaxSamples)
-    {
-        var x = (i * 65535.0) / (MaxSamples - 1);
-        return QuickSaturateWord(x);
-    }
-
     public static bool cmsStageSampleCLut16bit(Stage? mpe, SAMPLER16 Sampler, object? Cargo, SamplerFlag dwFlags)
     {
         Span<ushort> In = stackalloc ushort[Context.MaxInputDimensions + 1];
@@ -872,7 +864,7 @@ public static partial class Lcms2
 
                 rest /= (int)nSamples[t];
 
-                In[t] = _cmsQuantizeVal(Colorant, nSamples[t]);
+                In[t] = QuantizeDoubleToUShort(Colorant, nSamples[t]);
             }
 
             if (!clut.TUshort.IsEmpty)
@@ -934,7 +926,7 @@ public static partial class Lcms2
 
                 rest /= (int)nSamples[t];
 
-                In[t] = (float)(_cmsQuantizeVal(Colorant, nSamples[t]) / 65535.0);
+                In[t] = (float)(QuantizeDoubleToUShort(Colorant, nSamples[t]) / 65535.0);
             }
 
             if (!clut.TFloat.IsEmpty)
@@ -980,7 +972,7 @@ public static partial class Lcms2
                 var Colorant = (uint)(rest % clutPoints[t]);
 
                 rest /= (int)clutPoints[t];
-                In[t] = _cmsQuantizeVal(Colorant, clutPoints[t]);
+                In[t] = QuantizeDoubleToUShort(Colorant, clutPoints[t]);
             }
 
             if (!Sampler(In, null, Cargo))
@@ -1012,7 +1004,7 @@ public static partial class Lcms2
                 var Colorant = (uint)(rest % clutPoints[t]);
 
                 rest /= (int)clutPoints[t];
-                In[t] = (float)(_cmsQuantizeVal(Colorant, clutPoints[t]) / 65535.0);
+                In[t] = (float)(QuantizeDoubleToUShort(Colorant, clutPoints[t]) / 65535.0);
             }
 
             if (!Sampler(In, null, Cargo))

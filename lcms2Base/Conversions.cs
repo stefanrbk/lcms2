@@ -173,4 +173,11 @@ public static class Conversions
     [MethodImpl(MethodImplOptions.AggressiveInlining), DebuggerStepThrough]
     internal static int FromFixedDomain(int a) =>
         a - ((a + 0x7fff) >> 16);
+
+    [DebuggerStepThrough]
+    internal static ushort QuantizeDoubleToUShort(double i, uint MaxSamples)
+    {
+        var x = (i * 65535.0) / (MaxSamples - 1);
+        return QuickSaturateWord(x);
+    }
 }
