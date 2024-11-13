@@ -24,34 +24,11 @@
 //
 //---------------------------------------------------------------------------------
 
-namespace lcms2;
+namespace lcms2.stages;
 
-public class StageToneCurvesData(Context? context, uint numCurves) : IDisposable
+[Flags]
+public enum SamplerFlag : uint
 {
-    private readonly Context? ctx = context;
-
-    public uint nCurves = numCurves;
-
-    //public ToneCurve[] TheCurves = Context.GetPool<ToneCurve>(context).Rent((int)numCurves);
-    public ToneCurve[] TheCurves = new ToneCurve[numCurves];
-    private bool disposedValue;
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            //if (disposing)
-            //{
-            //    ReturnArray(ctx, TheCurves); TheCurves = null!;
-            //}
-
-            disposedValue = true;
-        }
-    }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
+    None = 0,
+    Inspect = 0x01000000,
 }

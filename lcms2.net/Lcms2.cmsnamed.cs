@@ -27,6 +27,8 @@
 using System.Diagnostics;
 using System.Text;
 
+using lcms2.stages;
+
 namespace lcms2;
 
 public static partial class Lcms2
@@ -985,69 +987,16 @@ public static partial class Lcms2
         return -1;
     }
 
-    private static void FreeNamedColorList(Stage mpe) =>
-        cmsFreeNamedColorList(mpe.Data as NamedColorList);
-
-    private static object? DupNamedColorList(Stage mpe) =>
-        cmsDupNamedColorList(mpe.Data as NamedColorList);
-
-    private static void EvalNamedColorPCS(ReadOnlySpan<float> In, Span<float> Out, Stage mpe)
-    {
-        if (mpe.Data is not NamedColorList NamedColorList)
-            return;
-        var index = QuickSaturateWord(In[0] * 65535.0);
-
-        if (index >= NamedColorList.nColors)
-        {
-            Context.LogError(NamedColorList.ContextID, ErrorCodes.Range, $"Color {index} out of range");
-            Out[0] = Out[1] = Out[2] = 0f;
-        }
-        else
-        {
-            // Named color always uses Lab
-            Out[0] = (float)(NamedColorList.List[index].PCS[0] / 65535.0);
-            Out[1] = (float)(NamedColorList.List[index].PCS[1] / 65535.0);
-            Out[2] = (float)(NamedColorList.List[index].PCS[2] / 65535.0);
-        }
-    }
-
-    private static void EvalNamedColor(ReadOnlySpan<float> In, Span<float> Out, Stage mpe)
-    {
-        if (mpe.Data is not NamedColorList NamedColorList)
-            return;
-
-        var index = QuickSaturateWord(In[0] * 65535.0);
-
-        if (index >= NamedColorList.nColors)
-        {
-            Context.LogError(NamedColorList.ContextID, ErrorCodes.Range, $"Color {index} out of range");
-            for (var j = 0; j < NamedColorList.ColorantCount; j++)
-                Out[j] = 0.0f;
-        }
-        else
-        {
-            for (var j = 0; j < NamedColorList.ColorantCount; j++)
-                Out[j] = (float)(NamedColorList.List[index].DeviceColorant[j] / 65535.0);
-        }
-    }
-
-    internal static Stage? _cmsStageAllocNamedColor(NamedColorList NamedColorList, bool UsePCS) =>
-        new(
-            NamedColorList.ContextID,
-            Signatures.Stage.NamedColorElem,
-            1,
-            UsePCS ? 3 : NamedColorList.ColorantCount,
-            UsePCS ? EvalNamedColorPCS : EvalNamedColor,
-            DupNamedColorList,
-            FreeNamedColorList,
-            cmsDupNamedColorList(NamedColorList));
-
     public static NamedColorList? cmsGetNamedColorList(Transform? xform)
     {
         var mpe = xform?.Lut?.Elements;
 
         return (mpe?.Type == Signatures.Stage.NamedColorElem)
-                   ? mpe.Data as NamedColorList
+                   ? (mpe is NamedColorListStage nc)
+                         ? nc.List
+                         : (mpe is NamedColorListPcsStage pcs)
+                             ? pcs.List
+                             : null
                    : null;
     }
 

@@ -24,7 +24,6 @@
 //
 //---------------------------------------------------------------------------------
 
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -42,17 +41,22 @@ public struct VEC3(double x, double y, double z)    // _cmsVEC3init
     public VEC3(ReadOnlySpan<double> d)
         : this(d[0], d[1], d[2]) { }
 
-    internal readonly double[] AsArray(ArrayPool<double>? pool = null)
+    internal readonly Span<double> IntoArray(Span<double> array)
     {
-        var result = pool is not null
-                         ? pool.Rent(3)
-                         : new double[3];
+        array[0] = X;
+        array[1] = Y;
+        array[2] = Z;
 
-        result[0] = X;
-        result[1] = Y;
-        result[2] = Z;
+        return array;
+    }
 
-        return result;
+    internal readonly double[] AsArray()
+    {
+        var array = new double[3];
+
+        IntoArray(array);
+
+        return array;
     }
 
     public double this[int index]

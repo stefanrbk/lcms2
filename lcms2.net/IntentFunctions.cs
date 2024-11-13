@@ -1,4 +1,4 @@
-﻿using lcms2.types;
+﻿using lcms2.stages;
 
 namespace lcms2;
 
@@ -32,9 +32,7 @@ public static class IntentFunctions
             return null;
 
         // Allocate an empty LUT for holding the result. 0 as channel count means 'undefined'
-        Result = cmsPipelineAlloc(ContextID, 0, 0);
-        if (Result is null)
-            return null;
+        Result = new Pipeline(ContextID, 0, 0);
 
         CurrentColorSpace = cmsGetColorSpace(Profiles[0]);
 
@@ -110,10 +108,9 @@ public static class IntentFunctions
             }
 
             // Concatenate to the output LUT
-            if (!cmsPipelineCat(Result, Lut))
+            if (!Result.Concat(Lut))
                 goto Error;
 
-            cmsPipelineFree(Lut);
             Lut = null;
 
             // Update current space
@@ -133,19 +130,14 @@ public static class IntentFunctions
         if (clip is null)
             goto Error;
 
-        if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, clip))
+        if (!Result.InsertStageAtEnd(clip))
         {
-            //cmsStageFree(clip);
             goto Error;
         }
 
         return Result;
 
     Error:
-        if (Lut is not null)
-            cmsPipelineFree(Lut);
-        if (Result is not null)
-            cmsPipelineFree(Result);
         return null;
     }
 
@@ -160,7 +152,6 @@ public static class IntentFunctions
         GrayOnlyParams bp = new();
         Pipeline? Result;
         Span<uint> ICCIntents = stackalloc uint[256];
-        Stage? CLUT;
         uint nGridPoints, lastProfilePos, preservationProfilesCount;
         Profile hLastProfile;
 
@@ -194,11 +185,7 @@ public static class IntentFunctions
             return ICCDefault(ContextID, nProfiles, ICCIntents, Profiles, BPC, AdaptationStates, dwFlags);
 
         // Allocate an empty LUT for holding the result
-        Result = cmsPipelineAlloc(ContextID, 4, 4);
-        if (Result is null)
-            return null;
-
-        //memset(&bp, 0);
+        Result = new Pipeline(ContextID, 4, 4);
 
         // Create a LUT holding normal ICC transform
         bp.cmyk2cmyk = ICCDefault(
@@ -231,16 +218,14 @@ public static class IntentFunctions
         nGridPoints = _cmsReasonableGridpointsByColorspace(Signatures.Colorspace.Cmyk, dwFlags);
 
         // Create the CLUT. 16 bit
-        CLUT = cmsStageAllocCLut16bit(ContextID, nGridPoints, 4, 4, null);
-        if (CLUT is null)
-            goto Error;
+        var CLUT = new CLutStage<ushort>(ContextID, nGridPoints, 4, 4, null);
 
         // This is the one and only MPE in this LUT
-        if (!cmsPipelineInsertStage(Result, StageLoc.AtBegin, CLUT))
+        if (!Result.InsertStageAtStart(CLUT))
             goto Error2;
 
         // Sample it. We cannot afford pre/post linearization this time.
-        if (!cmsStageSampleCLut16bit(CLUT, BlackPreservingGrayOnlySampler, new Box<GrayOnlyParams>(bp), 0))
+        if (!CLUT.Sample(BlackPreservingGrayOnlySampler, new Box<GrayOnlyParams>(bp), 0))
             goto Error;
 
         // Insert possible devicelinks at the end
@@ -250,27 +235,16 @@ public static class IntentFunctions
             if (devlink is null)
                 goto Error;
 
-            if (!cmsPipelineCat(Result, devlink))
+            if (!Result.Concat(devlink))
             {
-                cmsPipelineFree(devlink);
                 goto Error;
             }
         }
-
-        // Get rid of xform and tone curve
-        cmsPipelineFree(bp.cmyk2cmyk);
-        cmsFreeToneCurve(bp.KTone);
 
         return Result;
 
     Error2:
     Error:
-        if (bp.cmyk2cmyk is not null)
-            cmsPipelineFree(bp.cmyk2cmyk);
-        if (bp.KTone is not null)
-            cmsFreeToneCurve(bp.KTone);
-        if (Result is not null)
-            cmsPipelineFree(Result);
         return null;
     }
 
@@ -284,7 +258,6 @@ public static class IntentFunctions
     {
         Pipeline? Result = null;
         Span<uint> ICCIntents = stackalloc uint[256];
-        Stage? CLUT;
         uint nGridPoints, lastProfilePos, preservationProfilesCount;
         Profile? hLastProfile, hLab;
 
@@ -318,9 +291,7 @@ public static class IntentFunctions
             return ICCDefault(ContextID, nProfiles, ICCIntents, Profiles, BPC, AdaptationStates, dwFlags);
 
         // Allocate an empty LUT for holding the result
-        Result = cmsPipelineAlloc(ContextID, 4, 4);
-        if (Result is null)
-            return null;
+        Result = new Pipeline(ContextID, 4, 4);
 
         //memset(&bp, 0);
         var bp = new PreserveKPlaneParams();
@@ -357,7 +328,7 @@ public static class IntentFunctions
             Profiles,
             BPC,
             AdaptationStates,
-            dwFlags)!;
+            dwFlags);
         if (bp.KTone is null)
             goto Cleanup;
 
@@ -393,14 +364,12 @@ public static class IntentFunctions
         // How many gridpoints are we going to use?
         nGridPoints = _cmsReasonableGridpointsByColorspace(Signatures.Colorspace.Cmyk, dwFlags);
 
-        CLUT = cmsStageAllocCLut16bit(ContextID, nGridPoints, 4, 4, null);
-        if (CLUT is null)
+        var CLUT = new CLutStage<ushort>(ContextID, nGridPoints, 4, 4, null);
+
+        if (!Result.InsertStageAtStart(CLUT))
             goto Cleanup;
 
-        if (!cmsPipelineInsertStage(Result, StageLoc.AtBegin, CLUT))
-            goto Cleanup;
-
-        cmsStageSampleCLut16bit(CLUT, BlackPreservingSampler, bp, 0);
+        CLUT.Sample(BlackPreservingSampler, bp, 0);
 
         // Insert possible devicelinks at the end
         for (var i = lastProfilePos + 1; i < nProfiles; i++)
@@ -409,26 +378,13 @@ public static class IntentFunctions
             if (devlink is null)
                 goto Cleanup;
 
-            if (!cmsPipelineCat(Result, devlink))
+            if (!Result.Concat(devlink))
             {
-                cmsPipelineFree(devlink);
                 goto Cleanup;
             }
         }
 
     Cleanup:
-        if (bp.cmyk2cmyk is not null)
-            cmsPipelineFree(bp.cmyk2cmyk);
-        if (bp.cmyk2Lab is not null)
-            cmsDeleteTransform(bp.cmyk2Lab);
-        if (bp.hProofOutput is not null)
-            cmsDeleteTransform(bp.hProofOutput);
-
-        if (bp.KTone is not null)
-            cmsFreeToneCurve(bp.KTone);
-        if (bp.LabK2cmyk is not null)
-            cmsPipelineFree(bp.LabK2cmyk);
-
         return Result;
     }
 
@@ -541,22 +497,16 @@ public static class IntentFunctions
             if (OutPCS == Signatures.Colorspace.XYZ) // XYZ -> XYZ
             {
                 if (!IsEmptyLayer(m, off) &&
-                    !cmsPipelineInsertStage(
-                        Result,
-                        StageLoc.AtEnd,
-                        cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
+                    !Result.InsertStageAtEnd(new MatrixStage(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
                     goto Error;
             }
             else if (OutPCS == Signatures.Colorspace.Lab)  // XYZ -> Lab
             {
                 if (!IsEmptyLayer(m, off) &&
-                    !cmsPipelineInsertStage(
-                        Result,
-                        StageLoc.AtEnd,
-                        cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
+                    !Result.InsertStageAtEnd(new MatrixStage(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
                     goto Error;
 
-                if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocXYZ2Lab(Result.ContextID)))
+                if (!Result.InsertStageAtEnd(_cmsStageAllocXYZ2Lab(Result.ContextID)))
                     goto Error;
             }
             else // Colorspace mismatch
@@ -566,25 +516,19 @@ public static class IntentFunctions
         {
             if (OutPCS == Signatures.Colorspace.XYZ) // Lab -> XYZ
             {
-                if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocLab2XYZ(Result.ContextID)))
+                if (!Result.InsertStageAtEnd(_cmsStageAllocLab2XYZ(Result.ContextID)))
                     goto Error;
                 if (!IsEmptyLayer(m, off) &&
-                    !cmsPipelineInsertStage(
-                        Result,
-                        StageLoc.AtEnd,
-                        cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
+                    !Result.InsertStageAtEnd(new MatrixStage(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)))
                     goto Error;
             }
             else if (OutPCS == Signatures.Colorspace.Lab)  // Lab -> Lab
             {
                 if (!IsEmptyLayer(m, off))
                 {
-                    if (!cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocLab2XYZ(Result.ContextID)) ||
-                        !cmsPipelineInsertStage(
-                            Result,
-                            StageLoc.AtEnd,
-                            cmsStageAllocMatrix(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)) ||
-                        !cmsPipelineInsertStage(Result, StageLoc.AtEnd, _cmsStageAllocXYZ2Lab(Result.ContextID)))
+                    if (!Result.InsertStageAtEnd(_cmsStageAllocLab2XYZ(Result.ContextID)) ||
+                        !Result.InsertStageAtEnd(new MatrixStage(Result.ContextID, 3, 3, m_as_dbl, off_as_dbl)) ||
+                        !Result.InsertStageAtEnd(_cmsStageAllocXYZ2Lab(Result.ContextID)))
                         goto Error;
                 }
             }
@@ -737,7 +681,7 @@ public static class IntentFunctions
         {
             // TAC does not apply because it is black ink!
             Out[0] = Out[1] = Out[2] = 0;
-            Out[3] = cmsEvalToneCurve16(bp.Value.KTone, In[3]);
+            Out[3] = bp.Value.KTone.Evaluate(In[3]);
             return true;
         }
 
@@ -765,7 +709,7 @@ public static class IntentFunctions
             Inf[i] = (float)(In[i] / 65535.0);
 
         // Get the K across Tone curve
-        LabK[3] = cmsEvalToneCurveFloat(bp.KTone, Inf[3]);
+        LabK[3] = bp.KTone.Evaluate(Inf[3]);
 
         // If going across black only, keep black only
         if (In[0] is 0 && In[1] is 0 && In[2] is 0)
@@ -776,7 +720,7 @@ public static class IntentFunctions
         }
 
         // Try the original transform.
-        cmsPipelineEvalFloat(Inf, Outf, bp.cmyk2cmyk);
+        bp.cmyk2cmyk.Evaluate(Inf, Outf);
 
         // Store a copy of the floating point result into 16-bit
         for (var i = 0; i < 4; i++)
@@ -792,7 +736,7 @@ public static class IntentFunctions
 
         // Obtain the corresponding CMY using reverse interpolation
         // (K is fixed in LabK[3])
-        if (!cmsPipelineEvalReverseFloat(LabK, Outf, Outf, bp.LabK2cmyk))
+        if (!bp.LabK2cmyk.EvaluateReverse(LabK, Outf, Outf))
         {
             // Cannot find a suitable value, so use colorimetric xform
             // which is already stored in Out[]

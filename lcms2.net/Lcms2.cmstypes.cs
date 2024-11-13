@@ -27,6 +27,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using lcms2.stages;
 using lcms2.types;
 
 namespace lcms2;
@@ -1455,7 +1456,7 @@ public static partial class Lcms2
             {
                 SingleGamma[0] = 1.0;
 
-                var NewGamma = cmsBuildParametricToneCurve(self.ContextID, 1, SingleGamma);
+                var NewGamma = ToneCurve.BuildParametric(self.ContextID, 1, SingleGamma);
                 if (NewGamma is null)
                     return null;
                 nItems = 1;
@@ -1468,20 +1469,19 @@ public static partial class Lcms2
                 SingleGamma[0] = U8Fixed8ToDouble(SingleGammaFixed);
 
                 nItems = 1;
-                return cmsBuildParametricToneCurve(self.ContextID, 1, SingleGamma);
+                return ToneCurve.BuildParametric(self.ContextID, 1, SingleGamma);
             }
             default:
             {
                 if (Count > 0x7FFF)
                     return null;    // This is to prevent bad guys from doing bad things
 
-                var NewGamma = cmsBuildTabulatedToneCurve16(self.ContextID, Count, null);
+                var NewGamma = ToneCurve.BuildTabulated(self.ContextID, Count, ReadOnlySpan<ushort>.Empty);
                 if (NewGamma is null)
                     return null;
 
                 if (!io.ReadUshortArray(Count, NewGamma.Table16))
                 {
-                    cmsFreeToneCurve(NewGamma);
                     return null;
                 }
 
@@ -1558,7 +1558,7 @@ public static partial class Lcms2
             if (!io.ReadFixed15_16(out Params[i]))
                 return null;
 
-        var NewGamma = cmsBuildParametricToneCurve(self.ContextID, Type + 1, Params);
+        var NewGamma = ToneCurve.BuildParametric(self.ContextID, Type + 1, Params);
 
         nItems = 1;
         return NewGamma;
@@ -1939,7 +1939,7 @@ public static partial class Lcms2
 
         for (var i = 0; i < nChannels; i++)
         {
-            Tables[i] = cmsBuildTabulatedToneCurve16(ContextID, 256, null)!;
+            Tables[i] = ToneCurve.BuildTabulated(ContextID, 256, ReadOnlySpan<ushort>.Empty);
             if (Tables[i] is null)
                 goto Error;
         }
@@ -1954,42 +1954,29 @@ public static partial class Lcms2
                     Tables[i].Table16![j] = FROM_8_TO_16(Temp[j]);
         }
 
-        //ReturnArray(ContextID, Temp);
         Temp = null;
 
-        if (!cmsPipelineInsertStage(lut, StageLoc.AtEnd, cmsStageAllocToneCurves(ContextID, nChannels, Tables)))
+        if (!lut.InsertStageAtEnd(new ToneCurvesStage(ContextID, Tables[..(int)nChannels])))
             goto Error;
-
-        for (var i = 0; i < nChannels; i++)
-            cmsFreeToneCurve(Tables[i]);
 
         return true;
 
     Error:
-        for (var i = 0; i < nChannels; i++)
-        {
-            if (Tables[i] is not null)
-                cmsFreeToneCurve(Tables[i]);
-        }
-
-        //if (Temp is not null) ReturnArray(ContextID, Temp);
-
     Error2:
-        //ReturnArray(pool, Tables);
         return false;
     }
 
-    private static bool Write8bitTables(Context? ContextID, IOHandler io, uint n, StageToneCurvesData? Tables)
+    private static bool Write8bitTables(Context? ContextID, IOHandler io, uint n, ToneCurvesStage? Tables)
     {
         if (Tables is not null)
         {
             for (var i = 0; i < n; i++)
             {
                 // Usual case of identity curves
-                if ((Tables.TheCurves[i].nEntries is 2) &&
-                    (Tables.TheCurves[i].Table16 is not null) &&
-                    (Tables.TheCurves[i].Table16![0] is 0) &&
-                    (Tables.TheCurves[i].Table16![1] is 65535))
+                if ((Tables.Curves[i].nEntries is 2) &&
+                    (Tables.Curves[i].Table16 is not null) &&
+                    (Tables.Curves[i].Table16![0] is 0) &&
+                    (Tables.Curves[i].Table16![1] is 65535))
                 {
                     for (var j = 0; j < 256; j++)
                         if (!io.Write((byte)j))
@@ -1997,7 +1984,7 @@ public static partial class Lcms2
                 }
                 else
                 {
-                    if (Tables.TheCurves[i].nEntries is not 256)
+                    if (Tables.Curves[i].nEntries is not 256)
                     {
                         Context.LogError(ContextID, ErrorCodes.Range, "LUT8 needs 256 entries on prelinearization");
                         return false;
@@ -2006,7 +1993,7 @@ public static partial class Lcms2
                     {
                         for (var j = 0; j < 256; j++)
                         {
-                            var val = FROM_16_TO_8(Tables.TheCurves[i].Table16[j]);
+                            var val = FROM_16_TO_8(Tables.Curves[i].Table16[j]);
                             if (!io.Write(val))
                                 return false;
                         }
@@ -2071,9 +2058,7 @@ public static partial class Lcms2
             goto Error;
 
         // Allocates an empty Pipeline
-        NewLUT = cmsPipelineAlloc(self.ContextID, InputChannels, OutputChannels);
-        if (NewLUT is null)
-            goto Error;
+        NewLUT = new Pipeline(self.ContextID, InputChannels, OutputChannels);
 
         // Read the Matrix
         for (var i = 0; i < 9; i++)
@@ -2083,7 +2068,7 @@ public static partial class Lcms2
         // Only operates if not identity...
         if ((InputChannels is 3) &&
             !new MAT3(Matrix).IsIdentity &&
-            !cmsPipelineInsertStage(NewLUT, StageLoc.AtBegin, cmsStageAllocMatrix(self.ContextID, 3, 3, Matrix, null)))
+            !NewLUT.InsertStageAtStart(new MatrixStage(self.ContextID, 3, 3, Matrix, null)))
         {
             goto Error;
         }
@@ -2129,10 +2114,8 @@ public static partial class Lcms2
             //ReturnArray(self.ContextID, Temp);
             Temp = null;
 
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    cmsStageAllocCLut16bit(self.ContextID, CLUTpoints, InputChannels, OutputChannels, T)))
+            if (!NewLUT.InsertStageAtEnd(
+                    new CLutStage<ushort>(self.ContextID, CLUTpoints, InputChannels, OutputChannels, T)))
             {
                 //ReturnArray(self.ContextID, T);
                 goto Error;
@@ -2148,9 +2131,6 @@ public static partial class Lcms2
         return NewLUT;
 
     Error:
-        if (NewLUT is not null)
-            cmsPipelineFree(NewLUT);
-
         return null;
     }
 
@@ -2160,9 +2140,9 @@ public static partial class Lcms2
             return false;
 
         ReadOnlySpan<double> ident = stackalloc double[9] { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
-        StageToneCurvesData? PreMPE = null, PostMPE = null;
-        StageMatrixData? MatMPE = null;
-        StageCLutData<ushort>? clut = null;
+        ToneCurvesStage? PreMPE = null, PostMPE = null;
+        MatrixStage? MatMPE = null;
+        CLutStage<ushort>? clut = null;
 
         // Disassemble the LUT into components.
         var mpe = NewLut.Elements;
@@ -2176,25 +2156,25 @@ public static partial class Lcms2
         {
             if (mpe.InputChannels is not 3 || mpe.OutputChannels is not 3)
                 return false;
-            MatMPE = mpe.Data as StageMatrixData;
+            MatMPE = mpe as MatrixStage;
             mpe = mpe.Next;
         }
 
         if (mpe?.Type == Signatures.Stage.CurveSetElem)
         {
-            PreMPE = mpe.Data as StageToneCurvesData;
+            PreMPE = mpe as ToneCurvesStage;
             mpe = mpe.Next;
         }
 
         if (mpe?.Type == Signatures.Stage.CLutElem)
         {
-            clut = mpe.Data as StageCLutData<ushort>;
+            clut = mpe as CLutStage<ushort>;
             mpe = mpe.Next;
         }
 
         if (mpe?.Type == Signatures.Stage.CurveSetElem)
         {
-            PostMPE = mpe.Data as StageToneCurvesData;
+            PostMPE = mpe as ToneCurvesStage;
             mpe = mpe.Next;
         }
 
@@ -2210,7 +2190,7 @@ public static partial class Lcms2
         {
             // Lut8 only allows same CLUT points in all dimensions
             clutPoints = clut.Params.nSamples[0];
-            for (var i = 1; i < cmsPipelineInputChannels(NewLut); i++)
+            for (var i = 1; i < NewLut.InputChannels; i++)
             {
                 if (clut.Params.nSamples[i] != clutPoints)
                 {
@@ -2223,16 +2203,16 @@ public static partial class Lcms2
             }
         }
 
-        if (!io.Write((byte)cmsPipelineInputChannels(NewLut)))
+        if (!io.Write((byte)NewLut.InputChannels))
             return false;
-        if (!io.Write((byte)cmsPipelineOutputChannels(NewLut)))
+        if (!io.Write((byte)NewLut.OutputChannels))
             return false;
         if (!io.Write((byte)clutPoints))
             return false;
         if (!io.Write((byte)0))
             return false; // Padding
 
-        var mat = MatMPE is not null ? MatMPE.Double : ident;
+        var mat = MatMPE is not null ? MatMPE.Values : ident;
         for (var i = 0; i < 9; i++)
             if (!io.Write(mat[i]))
                 return false;
@@ -2263,10 +2243,10 @@ public static partial class Lcms2
     }
 
     private static Pipeline? Type_LUT8_Dup(TagTypeHandler _1, object? Ptr, uint _2) =>
-        cmsPipelineDup(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Clone();
 
     private static void Type_LUT8_Free(TagTypeHandler _1, object? Ptr) =>
-        cmsPipelineFree(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Dispose();
 
     #endregion LUT8
 
@@ -2290,7 +2270,7 @@ public static partial class Lcms2
 
         for (var i = 0; i < nChannels; i++)
         {
-            Tables[i] = cmsBuildTabulatedToneCurve16(ContextID, nEntries, null)!;
+            Tables[i] = ToneCurve.BuildTabulated(ContextID, nEntries, ReadOnlySpan<ushort>.Empty);
             if (Tables[i] is null)
                 goto Error;
 
@@ -2299,35 +2279,26 @@ public static partial class Lcms2
         }
 
         // Add the table (which may certainly be an identity, but this is up to the optimizer, not the reading code)
-        if (!cmsPipelineInsertStage(lut, StageLoc.AtEnd, cmsStageAllocToneCurves(ContextID, nChannels, Tables)))
+        if (!lut.InsertStageAtEnd(new ToneCurvesStage(ContextID, Tables[..(int)nChannels])))
             goto Error;
 
-        for (var i = 0; i < nChannels; i++)
-            cmsFreeToneCurve(Tables[i]);
-
-        //ReturnArray(pool, Tables);
         return true;
 
     Error:
-        for (var i = 0; i < nChannels; i++)
-            if (Tables[i] is not null)
-                cmsFreeToneCurve(Tables[i]);
-
-        //ReturnArray(pool, Tables);
         return false;
     }
 
-    private static bool Write16bitTables(Context? _1, IOHandler io, StageToneCurvesData Tables)
+    private static bool Write16bitTables(Context? _1, IOHandler io, ToneCurvesStage Tables)
     {
         _cmsAssert(Tables);
 
         for (var i = 0; i < Tables.nCurves; i++)
         {
-            var nEntries = Tables.TheCurves[i].nEntries;
+            var nEntries = Tables.Curves[i].nEntries;
 
             // Usual case of identity curves
             for (var j = 0; j < nEntries; j++)
-                if (!io.Write(Tables.TheCurves[i].Table16[j]))
+                if (!io.Write(Tables.Curves[i].Table16[j]))
                     return false;
         }
 
@@ -2359,7 +2330,7 @@ public static partial class Lcms2
             goto Error;
 
         // Allocates an empty LUT
-        NewLUT = cmsPipelineAlloc(self.ContextID, InputChannels, OutputChannels);
+        NewLUT = new Pipeline(self.ContextID, InputChannels, OutputChannels);
         if (NewLUT is null)
             goto Error;
 
@@ -2371,7 +2342,7 @@ public static partial class Lcms2
         // Only operates on 3 channels
         if ((InputChannels is 3) &&
             !new MAT3(Matrix).IsIdentity &&
-            !cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, cmsStageAllocMatrix(self.ContextID, 3, 3, Matrix, null)))
+            !NewLUT.InsertStageAtEnd(new MatrixStage(self.ContextID, 3, 3, Matrix, null)))
         {
             goto Error;
         }
@@ -2396,26 +2367,18 @@ public static partial class Lcms2
             goto Error;
         if (nTabSize > 0)
         {
-            //var T = _cmsCalloc<ushort>(self.ContextID, nTabSize);
-            //if (T is null) goto Error;
-            //var T = Context.GetPool<ushort>(self.ContextID).Rent((int)nTabSize);
             var T = new ushort[nTabSize];
 
             if (!io.ReadUshortArray(nTabSize, T))
             {
-                //ReturnArray(self.ContextID, T);
                 goto Error;
             }
 
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    cmsStageAllocCLut16bit(self.ContextID, CLUTpoints, InputChannels, OutputChannels, T)))
+            if (!NewLUT.InsertStageAtEnd(
+                    new CLutStage<ushort>(self.ContextID, CLUTpoints, InputChannels, OutputChannels, T)))
             {
-                //ReturnArray(self.ContextID, T);
                 goto Error;
             }
-            //ReturnArray(self.ContextID, T);
         }
 
         // Get output tables
@@ -2426,9 +2389,6 @@ public static partial class Lcms2
         return NewLUT;
 
     Error:
-        if (NewLUT is not null)
-            cmsPipelineFree(NewLUT);
-
         return null;
     }
 
@@ -2438,9 +2398,9 @@ public static partial class Lcms2
             return false;
 
         ReadOnlySpan<double> ident = stackalloc double[9] { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
-        StageToneCurvesData? PreMPE = null, PostMPE = null;
-        StageMatrixData? MatMPE = null;
-        StageCLutData<ushort>? clut = null;
+        ToneCurvesStage? PreMPE = null, PostMPE = null;
+        MatrixStage? MatMPE = null;
+        CLutStage<ushort>? clut = null;
 
         // Disassemble the LUT into components.
         var mpe = NewLut.Elements;
@@ -2448,25 +2408,25 @@ public static partial class Lcms2
         {
             if (mpe.InputChannels is not 3 || mpe.OutputChannels is not 3)
                 return false;
-            MatMPE = mpe.Data as StageMatrixData;
+            MatMPE = mpe as MatrixStage;
             mpe = mpe.Next;
         }
 
         if (mpe?.Type == Signatures.Stage.CurveSetElem)
         {
-            PreMPE = mpe.Data as StageToneCurvesData;
+            PreMPE = mpe as ToneCurvesStage;
             mpe = mpe.Next;
         }
 
         if (mpe?.Type == Signatures.Stage.CLutElem)
         {
-            clut = mpe.Data as StageCLutData<ushort>;
+            clut = mpe as CLutStage<ushort>;
             mpe = mpe.Next;
         }
 
         if (mpe?.Type == Signatures.Stage.CurveSetElem)
         {
-            PostMPE = mpe.Data as StageToneCurvesData;
+            PostMPE = mpe as ToneCurvesStage;
             mpe = mpe.Next;
         }
 
@@ -2477,15 +2437,15 @@ public static partial class Lcms2
             return false;
         }
 
-        var InputChannels = cmsPipelineInputChannels(NewLut);
-        var OutputChannels = cmsPipelineOutputChannels(NewLut);
+        var InputChannels = NewLut.InputChannels;
+        var OutputChannels = NewLut.OutputChannels;
 
         var clutPoints = 0u;
         if (clut is not null)
         {
             // Lut16 only allows same CLUT points in all dimensions
             clutPoints = clut.Params.nSamples[0];
-            for (var i = 1; i < cmsPipelineInputChannels(NewLut); i++)
+            for (var i = 1; i < NewLut.InputChannels; i++)
             {
                 if (clut.Params.nSamples[i] != clutPoints)
                 {
@@ -2507,14 +2467,14 @@ public static partial class Lcms2
         if (!io.Write((byte)0))
             return false; // Padding
 
-        var mat = MatMPE is not null ? MatMPE.Double : ident;
+        var mat = MatMPE is not null ? MatMPE.Values : ident;
         for (var i = 0; i < 9; i++)
             if (!io.Write(mat[i]))
                 return false;
 
-        if (!io.Write((ushort)(PreMPE is not null ? PreMPE.TheCurves[0].nEntries : 2)))
+        if (!io.Write((ushort)(PreMPE is not null ? PreMPE.Curves[0].nEntries : 2)))
             return false;
-        if (!io.Write((ushort)(PostMPE is not null ? PostMPE.TheCurves[0].nEntries : 2)))
+        if (!io.Write((ushort)(PostMPE is not null ? PostMPE.Curves[0].nEntries : 2)))
             return false;
 
         // The prelinearization table
@@ -2565,10 +2525,10 @@ public static partial class Lcms2
     }
 
     private static Pipeline? Type_LUT16_Dup(TagTypeHandler _1, object? Ptr, uint _2) =>
-        cmsPipelineDup(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Clone();
 
     private static void Type_LUT16_Free(TagTypeHandler _1, object? Ptr) =>
-        cmsPipelineFree(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Dispose();
 
     #endregion LUT16
 
@@ -2611,7 +2571,7 @@ public static partial class Lcms2
             if (!io.ReadFixed15_16(out dOff[i]))
                 return null;
 
-        return cmsStageAllocMatrix(self.ContextID, 3, 3, dMat, dOff);
+        return new MatrixStage(self.ContextID, 3, 3, dMat, dOff);
     }
 
     private static Stage? ReadCLUT(TagTypeHandler self,
@@ -2645,8 +2605,8 @@ public static partial class Lcms2
         if (!io.ReadByte(out _))
             return null;
 
-        var CLUT = cmsStageAllocCLut16bitGranular(self.ContextID, GridPoints, InputChannels, OutputChannels, null);
-        if (CLUT is null || CLUT.Data is not StageCLutData<ushort> Data)
+        var CLUT = new CLutStage<ushort>(self.ContextID, GridPoints, InputChannels, OutputChannels, null);
+        if (CLUT is null)
             return null;
 
         // Predcision can be 1 or 2 bytes
@@ -2655,30 +2615,27 @@ public static partial class Lcms2
             case 1:
                 Span<byte> v = stackalloc byte[1];
 
-                for (var i = 0; i < Data.nEntries; i++)
+                for (var i = 0; i < CLUT.Tab.Length; i++)
                 {
                     if (io.ReadFunc(io, v, sizeof(byte), 1) is not 1)
                     {
-                        cmsStageFree(CLUT);
                         return null;
                     }
 
-                    Data.TUshort[i] = FROM_8_TO_16(v[0]);
+                    CLUT.TUshort[i] = FROM_8_TO_16(v[0]);
                 }
 
                 break;
 
             case 2:
-                if (!io.ReadUshortArray(Data.nEntries, Data.TUshort))
+                if (!io.ReadUshortArray((uint)CLUT.Tab.Length, CLUT.TUshort))
                 {
-                    cmsStageFree(CLUT);
                     return null;
                 }
 
                 break;
 
             default:
-                cmsStageFree(CLUT);
                 Context.LogError(self.ContextID, ErrorCodes.UnknownExtension, $"Unknown precision of '{Precision}'");
                 return null;
         }
@@ -2729,13 +2686,9 @@ public static partial class Lcms2
                 goto Error;
         }
 
-        Lin = cmsStageAllocToneCurves(self.ContextID, nCurves, Curves);
+        Lin = new ToneCurvesStage(self.ContextID, Curves[..(int)nCurves]);
 
     Error:
-        for (var i = 0; i < nCurves; i++)
-            cmsFreeToneCurve(Curves[i]);
-
-        //ReturnArray(pool, Curves);
         return Lin;
     }
 
@@ -2773,49 +2726,37 @@ public static partial class Lcms2
             goto Error;
 
         // Allocates an empty LUT
-        NewLUT = cmsPipelineAlloc(self.ContextID, inputChan, outputChan);
+        NewLUT = new Pipeline(self.ContextID, inputChan, outputChan);
         if (NewLUT is null)
             goto Error;
 
         if (offsetA is not 0)
         {
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    ReadSetOfCurves(self, io, BaseOffset + offsetA, inputChan)))
+            if (!NewLUT.InsertStageAtEnd(ReadSetOfCurves(self, io, BaseOffset + offsetA, inputChan)))
                 goto Error;
         }
 
         if (offsetC is not 0)
         {
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    ReadCLUT(self, io, BaseOffset + offsetC, inputChan, outputChan)))
+            if (!NewLUT.InsertStageAtEnd(ReadCLUT(self, io, BaseOffset + offsetC, inputChan, outputChan)))
                 goto Error;
         }
 
         if (offsetM is not 0)
         {
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    ReadSetOfCurves(self, io, BaseOffset + offsetM, outputChan)))
+            if (!NewLUT.InsertStageAtEnd(ReadSetOfCurves(self, io, BaseOffset + offsetM, outputChan)))
                 goto Error;
         }
 
         if (offsetMat is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadMatrix(self, io, BaseOffset + offsetMat)))
+            if (!NewLUT.InsertStageAtEnd(ReadMatrix(self, io, BaseOffset + offsetMat)))
                 goto Error;
         }
 
         if (offsetB is not 0)
         {
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    ReadSetOfCurves(self, io, BaseOffset + offsetB, outputChan)))
+            if (!NewLUT.InsertStageAtEnd(ReadSetOfCurves(self, io, BaseOffset + offsetB, outputChan)))
                 goto Error;
         }
 
@@ -2823,16 +2764,13 @@ public static partial class Lcms2
         return NewLUT;
 
     Error:
-        if (NewLUT is not null)
-            cmsPipelineFree(NewLUT);
-
         return null;
     }
 
     private static bool WriteMatrix(TagTypeHandler _1, IOHandler io, Stage mpe)
     {
         Span<double> zeros = stackalloc double[(int)mpe.OutputChannels];
-        if (mpe.Data is not StageMatrixData m)
+        if (mpe is not MatrixStage m)
             return false;
 
         //memset(zeros, 0, (int)mpe.OutputChannels * sizeof(double));
@@ -2842,7 +2780,7 @@ public static partial class Lcms2
 
         // Write the Matrix
         for (var i = 0; i < n; i++)
-            if (!io.Write(m.Double[i]))
+            if (!io.Write(m.Values[i]))
                 return false;
 
         var offsets = m.Offset is not null ? m.Offset : zeros;
@@ -2855,7 +2793,7 @@ public static partial class Lcms2
 
     private static bool WriteSetOfCurves(TagTypeHandler self, IOHandler io, Signature Type, Stage mpe)
     {
-        var n = cmsStageOutputChannels(mpe);
+        var n = mpe.OutputChannels;
         var Curves = _cmsStageGetPtrToCurveSet(mpe);
 
         for (var i = 0; i < n; i++)
@@ -2900,7 +2838,7 @@ public static partial class Lcms2
     {
         Span<byte> gridPoints = stackalloc byte[Context.MaxChannels]; // Number of grid points in each dimension.
 
-        if (mpe.Data is StageCLutData<float>)
+        if (mpe is CLutStage<float>)
         {
             Context.LogError(
                 self.ContextID,
@@ -2909,7 +2847,7 @@ public static partial class Lcms2
             return false;
         }
 
-        if (mpe.Data is not StageCLutData<ushort> CLUT)
+        if (mpe is not CLutStage<ushort> CLUT)
             return false;
 
         //memset(gridPoints, 0, sizeof(byte) * cmsMAXCHANNELS);
@@ -2932,13 +2870,13 @@ public static partial class Lcms2
         switch (Precision)
         {
             case 1:
-                for (var i = 0; i < CLUT.nEntries; i++)
+                for (var i = 0; i < CLUT.Tab.Length; i++)
                     if (!io.Write(FROM_16_TO_8(CLUT.TUshort[i])))
                         return false;
                 break;
 
             case 2:
-                if (!io.Write(CLUT.nEntries, CLUT.TUshort))
+                if (!io.Write((uint)CLUT.Tab.Length, CLUT.TUshort))
                     return false;
                 break;
 
@@ -2962,25 +2900,22 @@ public static partial class Lcms2
         var BassOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         if (Lut.Elements is not null &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signatures.Stage.CurveSetElem, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(
-                Lut,
+            !Lut.CheckAndRetrieveStages(Signatures.Stage.CurveSetElem, out B) &&
+            !Lut.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out M,
                 Signatures.Stage.MatrixElem,
                 out Matrix,
                 Signatures.Stage.CurveSetElem,
                 out B) &&
-            !cmsPipelineCheckAndRetrieveStages(
-                Lut,
+            !Lut.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out A,
                 Signatures.Stage.CLutElem,
                 out CLUT,
                 Signatures.Stage.CurveSetElem,
                 out B) &&
-            !cmsPipelineCheckAndRetrieveStages(
-                Lut,
+            !Lut.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out A,
                 Signatures.Stage.CLutElem,
@@ -2997,8 +2932,8 @@ public static partial class Lcms2
         }
 
         // Get input/output channels
-        var inputChan = cmsPipelineInputChannels(Lut);
-        var outputChan = cmsPipelineOutputChannels(Lut);
+        var inputChan = Lut.InputChannels;
+        var outputChan = Lut.OutputChannels;
 
         // Write channel count
         if (!io.Write((byte)inputChan))
@@ -3078,10 +3013,10 @@ public static partial class Lcms2
     }
 
     private static Pipeline? Type_LUTA2B_Dup(TagTypeHandler _1, object? Ptr, uint _2) =>
-        cmsPipelineDup(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Clone();
 
     private static void Type_LUTA2B_Free(TagTypeHandler _1, object? Ptr) =>
-        cmsPipelineFree(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Dispose();
 
     #endregion LUTA2B
 
@@ -3121,49 +3056,37 @@ public static partial class Lcms2
             goto Error;
 
         // Allocates an empty LUT
-        NewLUT = cmsPipelineAlloc(self.ContextID, inputChan, outputChan);
+        NewLUT = new Pipeline(self.ContextID, inputChan, outputChan);
         if (NewLUT is null)
             goto Error;
 
         if (offsetB is not 0)
         {
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    ReadSetOfCurves(self, io, BaseOffset + offsetB, inputChan)))
+            if (!NewLUT.InsertStageAtEnd(ReadSetOfCurves(self, io, BaseOffset + offsetB, inputChan)))
                 goto Error;
         }
 
         if (offsetMat is not 0)
         {
-            if (!cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, ReadMatrix(self, io, BaseOffset + offsetMat)))
+            if (!NewLUT.InsertStageAtEnd(ReadMatrix(self, io, BaseOffset + offsetMat)))
                 goto Error;
         }
 
         if (offsetM is not 0)
         {
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    ReadSetOfCurves(self, io, BaseOffset + offsetM, inputChan)))
+            if (!NewLUT.InsertStageAtEnd(ReadSetOfCurves(self, io, BaseOffset + offsetM, inputChan)))
                 goto Error;
         }
 
         if (offsetC is not 0)
         {
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    ReadCLUT(self, io, BaseOffset + offsetC, inputChan, outputChan)))
+            if (!NewLUT.InsertStageAtEnd(ReadCLUT(self, io, BaseOffset + offsetC, inputChan, outputChan)))
                 goto Error;
         }
 
         if (offsetA is not 0)
         {
-            if (!cmsPipelineInsertStage(
-                    NewLUT,
-                    StageLoc.AtEnd,
-                    ReadSetOfCurves(self, io, BaseOffset + offsetA, outputChan)))
+            if (!NewLUT.InsertStageAtEnd(ReadSetOfCurves(self, io, BaseOffset + offsetA, outputChan)))
                 goto Error;
         }
 
@@ -3171,9 +3094,6 @@ public static partial class Lcms2
         return NewLUT;
 
     Error:
-        if (NewLUT is not null)
-            cmsPipelineFree(NewLUT);
-
         return null;
     }
 
@@ -3189,25 +3109,22 @@ public static partial class Lcms2
         var BassOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
         if (Lut.Elements is not null &&
-            !cmsPipelineCheckAndRetrieveStages(Lut, Signatures.Stage.CurveSetElem, out B) &&
-            !cmsPipelineCheckAndRetrieveStages(
-                Lut,
+            !Lut.CheckAndRetrieveStages(Signatures.Stage.CurveSetElem, out B) &&
+            !Lut.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out B,
                 Signatures.Stage.MatrixElem,
                 out Matrix,
                 Signatures.Stage.CurveSetElem,
                 out M) &&
-            !cmsPipelineCheckAndRetrieveStages(
-                Lut,
+            !Lut.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out B,
                 Signatures.Stage.CLutElem,
                 out CLUT,
                 Signatures.Stage.CurveSetElem,
                 out A) &&
-            !cmsPipelineCheckAndRetrieveStages(
-                Lut,
+            !Lut.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out B,
                 Signatures.Stage.MatrixElem,
@@ -3224,8 +3141,8 @@ public static partial class Lcms2
         }
 
         // Get input/output channels
-        var inputChan = cmsPipelineInputChannels(Lut);
-        var outputChan = cmsPipelineOutputChannels(Lut);
+        var inputChan = Lut.InputChannels;
+        var outputChan = Lut.OutputChannels;
 
         // Write channel count
         if (!io.Write((byte)inputChan))
@@ -3305,10 +3222,10 @@ public static partial class Lcms2
     }
 
     private static Pipeline? Type_LUTB2A_Dup(TagTypeHandler _1, object? Ptr, uint _2) =>
-        cmsPipelineDup(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Clone();
 
     private static void Type_LUTB2A_Free(TagTypeHandler _1, object? Ptr) =>
-        cmsPipelineFree(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Dispose();
 
     #endregion LUTB2A
 
@@ -3754,7 +3671,7 @@ public static partial class Lcms2
             return null;
         SignedSizeOfTag -= sizeof(uint);
 
-        n.Ucr = cmsBuildTabulatedToneCurve16(self.ContextID, CountUcr, null)!;
+        n.Ucr = ToneCurve.BuildTabulated(self.ContextID, CountUcr, ReadOnlySpan<ushort>.Empty);
         if (n.Ucr is null)
             goto Error;
 
@@ -3773,7 +3690,7 @@ public static partial class Lcms2
             goto Error;
         SignedSizeOfTag -= sizeof(uint);
 
-        n.Bg = cmsBuildTabulatedToneCurve16(self.ContextID, CountBg, null)!;
+        n.Bg = ToneCurve.BuildTabulated(self.ContextID, CountBg, ReadOnlySpan<ushort>.Empty);
         if (n.Bg is null)
             goto Error;
 
@@ -3811,13 +3728,6 @@ public static partial class Lcms2
         return new(n);
 
     Error:
-        if (n.Ucr is not null)
-            cmsFreeToneCurve(n.Ucr);
-        if (n.Bg is not null)
-            cmsFreeToneCurve(n.Bg);
-        if (n.Desc is not null)
-            cmsMLUfree(n.Desc);
-        //_cmsFree(self.ContextID, n);
         return null;
     }
 
@@ -3863,9 +3773,7 @@ public static partial class Lcms2
         {
             //if (NewUcrBg is null) return null;
 
-            Bg = cmsDupToneCurve(Src.Value.Bg)!,
-            Ucr = cmsDupToneCurve(Src.Value.Ucr)!,
-            Desc = cmsMLUdup(Src.Value.Desc)!
+            Bg = Src.Value.Bg.Clone(), Ucr = Src.Value.Ucr.Clone(), Desc = cmsMLUdup(Src.Value.Desc)!
         };
 
         if (NewUcrBg.Bg is null ||
@@ -3882,20 +3790,7 @@ public static partial class Lcms2
         return null;
     }
 
-    private static void Type_UcrBg_Free(TagTypeHandler self, object? Ptr)
-    {
-        if (Ptr is not Box<UcrBg> Src)
-            return;
-
-        if (Src.Value.Bg is not null)
-            cmsFreeToneCurve(Src.Value.Bg);
-        if (Src.Value.Ucr is not null)
-            cmsFreeToneCurve(Src.Value.Ucr);
-        if (Src.Value.Desc is not null)
-            cmsMLUfree(Src.Value.Desc);
-
-        //_cmsFree(self.ContextID, Src);
-    }
+    private static void Type_UcrBg_Free(TagTypeHandler self, object? Ptr) { }
 
     #endregion UcrBg
 
@@ -3920,24 +3815,14 @@ public static partial class Lcms2
         if (SizeOfTag < Count + sizeof(uint))
             return false;
 
-        //var Text = _cmsMalloc<byte>(self.ContextID, Count + 1);
-        //var Text = GetArray<byte>(self.ContextID, Count);
         var Text = new byte[Count];
-        if (Text is null)
-            return false;
 
-        //var tmp = stackalloc byte[(int)Count];
         if (io.ReadFunc(io, Text, sizeof(byte), Count) != Count)
         {
-            //ReturnArray(self.ContextID, Text);
             return false;
         }
-        //new Span<byte>(tmp, (int)Count).CopyTo(Text.AsSpan()[..(int)Count]);
-
-        //Text[Count] = 0;
 
         cmsMLUsetASCII(mlu, ps, Section, Text.AsSpan(..(int)Count));
-        //ReturnArray(self.ContextID, Text);
 
         SizeOfTag -= Count + sizeof(uint);
         return true;
@@ -3948,11 +3833,7 @@ public static partial class Lcms2
         var ps = "PS"u8;
 
         var TextSize = cmsMLUgetASCII(mlu, ps, Section, null);
-        //var Text = _cmsMalloc<byte>(self.ContextID, TextSize);
-        //var Text = GetArray<byte>(self.ContextID, TextSize);
         var Text = new byte[TextSize];
-        if (Text is null)
-            return false;
 
         if (!io.Write(TextSize))
             goto Error;
@@ -4164,12 +4045,6 @@ public static partial class Lcms2
             ? new(sc)
             : null;
 
-    //private static void Type_ViewingConditions_Free(TagTypeHandler self, object? Ptr)
-    //{
-    //    //if (Ptr is BoxPtr<IccViewingConditions> sc)
-    //    //    _cmsFree(self.ContextID, sc);
-    //}
-
     #endregion ViewingConditions
 
     #region MPE
@@ -4204,7 +4079,7 @@ public static partial class Lcms2
         {
             // This is a real element which should be read and processed
             var stage = (Stage?)TypeHandler.ReadPtr(self, io, out _, SizeOfTag);
-            if (stage is null || !cmsPipelineInsertStage(NewLUT, StageLoc.AtEnd, stage))
+            if (stage is null || !NewLUT.InsertStageAtEnd(stage))
                 return false;
         }
 
@@ -4230,7 +4105,7 @@ public static partial class Lcms2
             return null;
 
         // Allocates an empty LUT
-        var NewLUT = cmsPipelineAlloc(self.ContextID, InputChans, OutputChans);
+        var NewLUT = new Pipeline(self.ContextID, InputChans, OutputChans);
         if (NewLUT is null)
             return null;
 
@@ -4250,9 +4125,6 @@ public static partial class Lcms2
 
         // Error
     Error:
-        if (NewLUT is not null)
-            cmsPipelineFree(NewLUT);
-
         return null;
     }
 
@@ -4266,20 +4138,12 @@ public static partial class Lcms2
 
         var BaseOffset = io.TellFunc(io) - (sizeof(uint) * 2);
 
-        var inputChan = cmsPipelineInputChannels(Lut);
-        var outputChan = cmsPipelineOutputChannels(Lut);
-        var ElemCount = cmsPipelineStageCount(Lut);
+        var inputChan = Lut.InputChannels;
+        var outputChan = Lut.OutputChannels;
+        var ElemCount = Lut.StageCount;
 
-        //var pool = Context.GetPool<uint>(self.ContextID);
-
-        //ElementOffsets = _cmsCalloc<uint>(self.ContextID, ElemCount);
-        //if (ElementOffsets is null) goto Error;
-        //var ElementOffsets = pool.Rent((int)ElemCount);
         var ElementOffsets = new uint[ElemCount];
 
-        //ElementSizes = _cmsCalloc<uint>(self.ContextID, ElemCount);
-        //if (ElementSizes is null) goto Error;
-        //var ElementSizes = pool.Rent((int)ElemCount);
         var ElementSizes = new uint[ElemCount];
 
         // Write the head
@@ -4351,21 +4215,17 @@ public static partial class Lcms2
         if (!io.SeekFunc(io, CurrentPos))
             goto Error;
 
-        //if (ElementOffsets is not null) ReturnArray(self.ContextID, ElementOffsets);
-        //if (ElementSizes is not null) ReturnArray(self.ContextID, ElementSizes);
         return true;
 
     Error:
-        //if (ElementOffsets is not null) ReturnArray(self.ContextID, ElementOffsets);
-        //if (ElementSizes is not null) ReturnArray(self.ContextID, ElementSizes);
         return false;
     }
 
     private static Pipeline? Type_MPE_Dup(TagTypeHandler _1, object? Ptr, uint _2) =>
-        cmsPipelineDup(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Clone();
 
     private static void Type_MPE_Free(TagTypeHandler _1, object? Ptr) =>
-        cmsPipelineFree(Ptr as Pipeline);
+        (Ptr as Pipeline)?.Dispose();
 
     #endregion MPE
 
@@ -4425,7 +4285,7 @@ public static partial class Lcms2
                 // Populate tone curves
                 for (var n = 0; n < 3; n++)
                 {
-                    Curves[n] = cmsBuildTabulatedToneCurve16(self.ContextID, nElems, null);
+                    Curves[n] = ToneCurve.BuildTabulated(self.ContextID, (uint)nElems, ReadOnlySpan<ushort>.Empty);
                     if (Curves[n] is null)
                         goto Error;
 
@@ -4496,7 +4356,7 @@ public static partial class Lcms2
                     Params[5] = Colorant[n].Min;
                     // Params[2,3,4,6] are 0 and will stay 0
 
-                    Curves[n] = cmsBuildParametricToneCurve(self.ContextID, 5, Params);
+                    Curves[n] = ToneCurve.BuildParametric(self.ContextID, 5, Params);
                     if (Curves[n] is null)
                         goto Error;
                 }
@@ -4515,10 +4375,7 @@ public static partial class Lcms2
         nItems = 1;
         return Curves;
 
-        // Regret, free all resources
     Error:
-        cmsFreeToneCurveTriple(Curves);
-        //ReturnArray(self.ContextID, Curves);
         return null;
     }
 
@@ -4527,9 +4384,9 @@ public static partial class Lcms2
         if (Ptr is not ToneCurve[] Curves)
             return false;
 
-        if (cmsGetToneCurveParametricType(Curves[0]) is 5 &&
-            cmsGetToneCurveParametricType(Curves[1]) is 5 &&
-            cmsGetToneCurveParametricType(Curves[2]) is 5)
+        if (Curves[0].ParametricType is 5 &&
+            Curves[1].ParametricType is 5 &&
+            Curves[2].ParametricType is 5)
         {
             if (!io.Write(cmsVideoCardGammaFormulaType))
                 return false;
@@ -4567,7 +4424,7 @@ public static partial class Lcms2
             {
                 for (var j = 0; j < 256; j++)
                 {
-                    var v = cmsEvalToneCurveFloat(Curves[i], (float)(j / 255.0));
+                    var v = Curves[i].Evaluate((float)(j / 255.0));
                     var n = QuickSaturateWord(v * 65535.0);
 
                     if (!io.Write(n))
@@ -4584,27 +4441,16 @@ public static partial class Lcms2
         if (Ptr is not ToneCurve[] OldCurves)
             return null;
 
-        //var NewCurves = _cmsCalloc2<ToneCurve>(self.ContextID, 3);
-        //if (NewCurves is null) return null;
-
-        //var NewCurves = Context.GetPool<ToneCurve>(self.ContextID).Rent(3);
         var NewCurves = new ToneCurve[3];
 
-        NewCurves[0] = cmsDupToneCurve(OldCurves[0]);
-        NewCurves[1] = cmsDupToneCurve(OldCurves[1]);
-        NewCurves[2] = cmsDupToneCurve(OldCurves[2]);
+        NewCurves[0] = OldCurves[0].Clone();
+        NewCurves[1] = OldCurves[1].Clone();
+        NewCurves[2] = OldCurves[2].Clone();
 
         return NewCurves;
     }
 
-    private static void Type_vcgt_Free(TagTypeHandler self, object? Ptr)
-    {
-        if (Ptr is ToneCurve[] curves)
-        {
-            cmsFreeToneCurveTriple(curves);
-            //ReturnArray(self.ContextID, curves);
-        }
-    }
+    private static void Type_vcgt_Free(TagTypeHandler self, object? Ptr) { }
 
     #endregion vcgt
 
@@ -5378,10 +5224,10 @@ public static partial class Lcms2
     #region ToneCurve types
 
     private static ToneCurve? ToneCurve_Dup(TagTypeHandler _1, object? Ptr, uint _2) =>
-        cmsDupToneCurve(Ptr as ToneCurve);
+        (Ptr as ToneCurve)?.Clone();
 
     private static void ToneCurve_Free(TagTypeHandler _1, object? Ptr) =>
-        cmsFreeToneCurve(Ptr as ToneCurve);
+        (Ptr as ToneCurve)?.Dispose();
 
     #endregion ToneCurve types
 
@@ -5414,15 +5260,10 @@ public static partial class Lcms2
     #region Generic
 
     private static Stage? GenericMPEdup(TagTypeHandler _1, object? Ptr, uint _2) =>
-        Ptr is Stage stage
-            ? cmsStageDup(stage)
-            : null;
+        (Ptr as Stage)?.Clone();
 
-    private static void GenericMPEfree(TagTypeHandler _1, object? Ptr)
-    {
-        if (Ptr is Stage stage)
-            cmsStageFree(stage);
-    }
+    private static void GenericMPEfree(TagTypeHandler _1, object? Ptr) =>
+        (Ptr as Stage)?.Dispose();
 
     #endregion Generic
 
@@ -5431,7 +5272,7 @@ public static partial class Lcms2
     private static ToneCurve? ReadSegmentedCurve(TagTypeHandler self, IOHandler io)
     {
         Span<uint> ParamsByType = stackalloc uint[] { 4, 5, 5 };
-        float PrevBreak = MINUS_INF;
+        float PrevBreak = Context.NegativeInfinity;
 
         // Take signature and channels for each element.
         if (!_cmsReadSignature(io, out var ElementSig))
@@ -5465,7 +5306,7 @@ public static partial class Lcms2
         }
 
         Segments[nSegments - 1].x0 = PrevBreak;
-        Segments[nSegments - 1].x1 = PLUS_INF;
+        Segments[nSegments - 1].x1 = Context.PositiveInfinity;
 
         // Read segments
         for (var i = 0; i < nSegments; i++)
@@ -5524,7 +5365,7 @@ public static partial class Lcms2
             }
         }
 
-        var Curve = cmsBuildSegmentedToneCurve(self.ContextID, nSegments, Segments);
+        var Curve = ToneCurve.BuildSegmented(self.ContextID, nSegments, Segments);
 
         //for (var i = 0; i < nSegments; i++)
         //    if (Segments[i].SampledPoints is not null) ReturnArray(self.ContextID, Segments[i].SampledPoints);
@@ -5535,15 +5376,12 @@ public static partial class Lcms2
         {
             // If sampled curve, fix it
             if (Curve.Segments[i].Type is 0)
-                Curve.Segments[i].SampledPoints[0] = cmsEvalToneCurveFloat(Curve, Curve.Segments[i].x0);
+                Curve.Segments[i].SampledPoints[0] = Curve.Evaluate(Curve.Segments[i].x0);
         }
 
         return Curve;
 
     Error:
-        //for (var i = 0; i < nSegments; i++)
-        //    if (Segments[i].SampledPoints is not null) ReturnArray(self.ContextID, Segments[i].SampledPoints);
-        //ReturnArray(self.ContextID, Segments);
         return null;
     }
 
@@ -5578,14 +5416,9 @@ public static partial class Lcms2
         var GammaTables = new ToneCurve[InputChans];
 
         var mpe = ReadPositionTable(self, io, InputChans, BaseOffset, GammaTables, ReadMPECurve)
-                      ? cmsStageAllocToneCurves(self.ContextID, InputChans, GammaTables)
+                      ? new ToneCurvesStage(self.ContextID, GammaTables[..(int)InputChans])
                       : null;
 
-        for (var i = 0; i < InputChans; i++)
-            if (GammaTables[i] is not null)
-                cmsFreeToneCurve(GammaTables[i]);
-
-        //ReturnArray(self.ContextID, GammaTables);
         nItems = mpe is not null ? 1u : 0;
         return mpe;
     }
@@ -5661,12 +5494,12 @@ public static partial class Lcms2
     }
 
     private static bool WriteMPECurve(TagTypeHandler _1, IOHandler io, object? Cargo, uint n, uint _2) =>
-        Cargo is StageToneCurvesData Curves && WriteSegmentedCurve(io, Curves.TheCurves[n]);
+        Cargo is ToneCurvesStage Curves && WriteSegmentedCurve(io, Curves.Curves[n]);
 
     private static bool Type_MPEcurve_Write(TagTypeHandler self, IOHandler io, object? Ptr, uint _)
     {
         if (Ptr is not Stage mpe ||
-            mpe.Data is not StageToneCurvesData Curves)
+            mpe is not ToneCurvesStage Curves)
         {
             return false;
         }
@@ -5705,15 +5538,6 @@ public static partial class Lcms2
 
         var nElems = (uint)InputChans * OutputChans;
 
-        //var Matrix = _cmsCalloc<double>(self.ContextID, nElems);
-        //if (Matrix is null) return null;
-
-        //var Offsets = _cmsCalloc<double>(self.ContextID, OutputChans);
-        //if (Offsets is null)
-        //{
-        //    _cmsFree(self.ContextID, Matrix);
-        //    return null;
-        //}
         Span<double> Matrix = stackalloc double[(int)nElems];
         Span<double> Offsets = stackalloc double[OutputChans];
 
@@ -5721,8 +5545,6 @@ public static partial class Lcms2
         {
             if (!io.ReadFloat(out var v))
             {
-                //_cmsFree(self.ContextID, Matrix);
-                //_cmsFree(self.ContextID, Offsets);
                 return null;
             }
 
@@ -5733,25 +5555,21 @@ public static partial class Lcms2
         {
             if (!io.ReadFloat(out var v))
             {
-                //_cmsFree(self.ContextID, Matrix);
-                //_cmsFree(self.ContextID, Offsets);
                 return null;
             }
 
             Offsets[i] = v;
         }
 
-        var mpe = cmsStageAllocMatrix(self.ContextID, OutputChans, InputChans, Matrix, Offsets);
-        //_cmsFree(self.ContextID, Matrix);
-        //_cmsFree(self.ContextID, Offsets);
-        nItems = mpe is not null ? 1u : 0;
+        var mpe = new MatrixStage(self.ContextID, OutputChans, InputChans, Matrix, Offsets);
+        nItems = 1u;
         return mpe;
     }
 
     private static bool Type_MPEmatrix_Write(TagTypeHandler _1, IOHandler io, object? Ptr, uint _2)
     {
         if (Ptr is not Stage mpe ||
-            mpe.Data is not StageMatrixData Matrix)
+            mpe is not MatrixStage Matrix)
         {
             return false;
         }
@@ -5764,7 +5582,7 @@ public static partial class Lcms2
         var nElems = mpe.InputChannels * mpe.OutputChannels;
 
         for (var i = 0; i < nElems; i++)
-            if (!io.Write((float)Matrix.Double[i]))
+            if (!io.Write((float)Matrix.Values[i]))
                 return false;
 
         for (var i = 0; i < mpe.OutputChannels; i++)
@@ -5815,15 +5633,13 @@ public static partial class Lcms2
         }
 
         // Allocate the true CLUT
-        mpe = cmsStageAllocCLutFloatGranular(self.ContextID, GridPoints, InputChans, OutputChans, null);
-        if (mpe is null)
-            goto Error;
+        mpe = new CLutStage<float>(self.ContextID, GridPoints, InputChans, OutputChans, null);
 
         // Read and sanitize the data
-        if (mpe.Data is not StageCLutData<float> clut)
+        if (mpe is not CLutStage<float> clut)
             goto Error;
 
-        for (var i = 0; i < clut.nEntries; i++)
+        for (var i = 0; i < clut.Tab.Length; i++)
             if (!io.ReadFloat(out clut.TFloat[i]))
                 goto Error;
 
@@ -5831,8 +5647,6 @@ public static partial class Lcms2
         return mpe;
 
     Error:
-        if (mpe is not null)
-            cmsStageFree(mpe);
         return null;
     }
 
@@ -5840,7 +5654,7 @@ public static partial class Lcms2
     {
         Span<byte> Dimensions8 = stackalloc byte[16];
 
-        if (Ptr is not Stage mpe || mpe.Data is not StageCLutData<float> clut)
+        if (Ptr is not Stage mpe || mpe is not CLutStage<float> clut)
             return false;
 
         // Check for maximum number of channels supported by lcms
@@ -5866,7 +5680,7 @@ public static partial class Lcms2
         if (!io.WriteFunc(io, 16, Dimensions8))
             return false;
 
-        for (var i = 0; i < clut.nEntries; i++)
+        for (var i = 0; i < clut.Tab.Length; i++)
             if (!io.Write(clut.TFloat[i]))
                 return false;
 

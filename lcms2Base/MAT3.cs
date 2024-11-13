@@ -96,23 +96,28 @@ public struct MAT3(VEC3 x, VEC3 y, VEC3 z)
     public readonly void Deconstruct(out VEC3 x, out VEC3 y, out VEC3 z) =>
         (x, y, z) = (X, Y, Z);
 
-    public readonly double[] AsArray( /*ArrayPool<double>? pool = null*/)
+    public readonly Span<double> IntoArray(Span<double> array)
     {
-        var result = /*(pool is null)
-            ?*/ new double[9]
-            /*: pool.Rent(9)*/;
+        array[0] = X.X;
+        array[1] = X.Y;
+        array[2] = X.Z;
+        array[3] = Y.X;
+        array[4] = Y.Y;
+        array[5] = Y.Z;
+        array[6] = Z.X;
+        array[7] = Z.Y;
+        array[8] = Z.Z;
 
-        result[0] = X.X;
-        result[1] = X.Y;
-        result[2] = X.Z;
-        result[3] = Y.X;
-        result[4] = Y.Y;
-        result[5] = Y.Z;
-        result[6] = Z.X;
-        result[7] = Z.Y;
-        result[8] = Z.Z;
+        return array;
+    }
 
-        return result;
+    public readonly double[] AsArray()
+    {
+        var array = new double[9];
+
+        IntoArray(array);
+
+        return array;
     }
 
     public static MAT3 NaN =>

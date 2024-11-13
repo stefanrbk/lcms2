@@ -26,6 +26,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 
+using lcms2.stages;
 using lcms2.types;
 
 namespace lcms2;
@@ -160,16 +161,12 @@ public static partial class Lcms2
     {
         ToneCurve[]? LabCurves = null;
         var ContextID = cmsGetProfileContextID(Profile);
-        //var pool = Context.GetPool<ToneCurve>(ContextID);
 
         if (cmsReadTag(Profile, Signatures.Tag.GrayTRC) is not ToneCurve GrayTRC)
             return null;
 
-        var Lut = cmsPipelineAlloc(ContextID, 1, 3);
-        if (Lut is null)
-            goto Error;
+        var Lut = new Pipeline(ContextID, 1, 3);
 
-        //LabCurves = pool.Rent(3);
         LabCurves = new ToneCurve[3];
         LabCurves[0] = GrayTRC;
 
@@ -178,45 +175,31 @@ public static partial class Lcms2
             // In this case we implement the profile as an identity matrix plus 3 tone curves
             Span<ushort> Zero = stackalloc ushort[] { 0x8080, 0x8080 };
 
-            var EmptyTab = cmsBuildTabulatedToneCurve16(ContextID, 2, Zero);
+            var EmptyTab = ToneCurve.BuildTabulated(ContextID, 2, Zero);
 
             if (EmptyTab is null)
                 goto Error;
 
             LabCurves[1] = EmptyTab;
             LabCurves[2] = EmptyTab;
-            if (!cmsPipelineInsertStage(
-                    Lut,
-                    StageLoc.AtEnd,
-                    cmsStageAllocMatrix(ContextID, 3, 1, OneToThreeInputMatrix, null)) ||
-                !cmsPipelineInsertStage(Lut, StageLoc.AtEnd, cmsStageAllocToneCurves(ContextID, 3, LabCurves)))
+            if (!Lut.InsertStageAtEnd(new MatrixStage(ContextID, 3, 1, OneToThreeInputMatrix, null)) ||
+                !Lut.InsertStageAtEnd(new ToneCurvesStage(ContextID, LabCurves)))
             {
-                cmsFreeToneCurve(EmptyTab);
                 goto Error;
             }
-
-            cmsFreeToneCurve(EmptyTab);
         }
         else
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, cmsStageAllocToneCurves(ContextID, 1, LabCurves)) ||
-                !cmsPipelineInsertStage(
-                    Lut,
-                    StageLoc.AtEnd,
-                    cmsStageAllocMatrix(ContextID, 3, 1, GrayInputMatrix, null)))
+            if (!Lut.InsertStageAtEnd(new ToneCurvesStage(ContextID, LabCurves.AsSpan(..1))) ||
+                !Lut.InsertStageAtEnd(new MatrixStage(ContextID, 3, 1, GrayInputMatrix, null)))
             {
                 goto Error;
             }
         }
 
-        //ReturnArray(pool, LabCurves);
         return Lut;
 
     Error:
-        //if (LabCurves is not null)
-        //    ReturnArray(pool, LabCurves);
-
-        cmsPipelineFree(Lut);
         return null;
     }
 
@@ -247,20 +230,18 @@ public static partial class Lcms2
         Mat.Value.Y *= InpAdj;
         Mat.Value.Z *= InpAdj;
 
-        Shapes[0] = (cmsReadTag(Profile, Signatures.Tag.RedTRC) as ToneCurve)!;
-        Shapes[1] = (cmsReadTag(Profile, Signatures.Tag.GreenTRC) as ToneCurve)!;
-        Shapes[2] = (cmsReadTag(Profile, Signatures.Tag.BlueTRC) as ToneCurve)!;
+        Shapes[0] = (cmsReadTag(Profile, Signatures.Tag.RedTRC) as ToneCurve);
+        Shapes[1] = (cmsReadTag(Profile, Signatures.Tag.GreenTRC) as ToneCurve);
+        Shapes[2] = (cmsReadTag(Profile, Signatures.Tag.BlueTRC) as ToneCurve);
 
         if (Shapes[0] is null || Shapes[1] is null || Shapes[2] is null)
             goto Error;
 
-        Lut = cmsPipelineAlloc(ContextID, 3, 3);
-        if (Lut is null)
-            goto Error;
+        Lut = new Pipeline(ContextID, 3, 3);
 
-        MatArray = Mat.Value.AsArray( /*dPool*/);
-        if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, cmsStageAllocToneCurves(ContextID, 3, Shapes)) ||
-            !cmsPipelineInsertStage(Lut, StageLoc.AtEnd, cmsStageAllocMatrix(ContextID, 3, 3, MatArray, null)))
+        MatArray = Mat.Value.AsArray();
+        if (!Lut.InsertStageAtEnd(new ToneCurvesStage(ContextID, Shapes)) ||
+            !Lut.InsertStageAtEnd(new MatrixStage(ContextID, 3, 3, MatArray, null)))
         {
             goto Error;
         }
@@ -269,28 +250,21 @@ public static partial class Lcms2
         // tag for output working in lab and a matrix-shaper for the fallback cases.
         // This is not allowed by the spec, but this code is tolerant to those cases
         if (cmsGetPCS(Profile) == Signatures.Colorspace.Lab &&
-            !cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageAllocXYZ2Lab(ContextID)))
+            !Lut.InsertStageAtEnd(_cmsStageAllocXYZ2Lab(ContextID)))
         {
             goto Error;
         }
 
-        //ReturnArray(tcPool, Shapes);
-        //ReturnArray(dPool, MatArray);
         return Lut;
 
     Error:
-        //if (Shapes is not null)
-        //    ReturnArray(tcPool, Shapes);
-        //if (MatArray is not null)
-        //    ReturnArray(dPool, MatArray);
-        cmsPipelineFree(Lut);
         return null;
     }
 
     internal static Pipeline? _cmsReadFloatInputTag(Profile Profile, Signature tagFloat)
     {
         var ContextID = cmsGetProfileContextID(Profile);
-        var Lut = cmsPipelineDup(cmsReadTag(Profile, tagFloat) as Pipeline);
+        var Lut = (cmsReadTag(Profile, tagFloat) as Pipeline).Clone();
         var spc = cmsGetColorSpace(Profile);
         var PCS = cmsGetPCS(Profile);
 
@@ -301,30 +275,29 @@ public static partial class Lcms2
         // these need to be normalized into the appropriate ranges (Lab = 100,0,0, XYZ=1.0,1.0,1.0)
         if (spc == Signatures.Colorspace.Lab)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageNormalizeToLabFloat(ContextID)))
+            if (!Lut.InsertStageAtStart(_cmsStageNormalizeToLabFloat(ContextID)))
                 goto Error;
         }
         else if (spc == Signatures.Colorspace.XYZ)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageNormalizeToXYZFloat(ContextID)))
+            if (!Lut.InsertStageAtStart(_cmsStageNormalizeToXYZFloat(ContextID)))
                 goto Error;
         }
 
         if (PCS == Signatures.Colorspace.Lab)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageNormalizeFromLabFloat(ContextID)))
+            if (!Lut.InsertStageAtEnd(_cmsStageNormalizeFromLabFloat(ContextID)))
                 goto Error;
         }
         else if (PCS == Signatures.Colorspace.XYZ)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageNormalizeFromXyzFloat(ContextID)))
+            if (!Lut.InsertStageAtEnd(_cmsStageNormalizeFromXyzFloat(ContextID)))
                 goto Error;
         }
 
         return Lut;
 
     Error:
-        cmsPipelineFree(Lut);
         return null;
     }
 
@@ -338,19 +311,14 @@ public static partial class Lcms2
             if (cmsReadTag(Profile, Signatures.Tag.NamedColor2) is not NamedColorList nc)
                 return null;
 
-            var Lut = cmsPipelineAlloc(ContextID, 0, 0);
-            if (Lut is null)
-            {
-                return null;
-            }
+            var Lut = new Pipeline(ContextID, 0, 0);
 
-            if (cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageAllocNamedColor(nc, true)) &&
-                cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageAllocLabV2ToV4(ContextID)))
+            if (Lut.InsertStageAtStart(new NamedColorListPcsStage(nc)) &&
+                Lut.InsertStageAtEnd(_cmsStageAllocLabV2ToV4(ContextID)))
             {
                 return Lut;
             }
 
-            cmsPipelineFree(Lut);
             return null;
         }
 
@@ -384,7 +352,7 @@ public static partial class Lcms2
                 var OriginalType = _cmsGetTagTrueType(Profile, tag16);
 
                 // The profile owns the Lut, so we need to copy it
-                Lut = cmsPipelineDup(Lut);
+                Lut = Lut.Clone();
 
                 // We need to adjust data only for Lab16 on output
                 if (OriginalType != Signatures.TagType.Lut16 || cmsGetPCS(Profile) != Signatures.Colorspace.Lab)
@@ -392,17 +360,16 @@ public static partial class Lcms2
 
                 // If the input is Lab, add also a conversion at the begin
                 if (cmsGetColorSpace(Profile) == Signatures.Colorspace.Lab &&
-                    !cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageAllocLabV4ToV2(ContextID)))
+                    !Lut.InsertStageAtStart(_cmsStageAllocLabV4ToV2(ContextID)))
                     goto Error;
 
                 // Add a matrix for conversion V2 to V4 Lab PCS
-                if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageAllocLabV2ToV4(ContextID)))
+                if (!Lut.InsertStageAtEnd(_cmsStageAllocLabV2ToV4(ContextID)))
                     goto Error;
 
                 return Lut;
 
             Error:
-                cmsPipelineFree(Lut);
                 return null;
             }
         }
@@ -426,45 +393,31 @@ public static partial class Lcms2
         if (cmsReadTag(Profile, Signatures.Tag.GrayTRC) is not ToneCurve GrayTRC)
             return null;
 
-        var RevGrayTRC = cmsReverseToneCurve(GrayTRC);
+        var RevGrayTRC = GrayTRC.Reverse();
         if (RevGrayTRC is null)
             return null;
 
-        var Lut = cmsPipelineAlloc(ContextID, 3, 1);
-        if (Lut is null)
-            goto Error1;
-
-        //var pool = Context.GetPool<ToneCurve>(ContextID);
-        //var rev = pool.Rent(1);
+        var Lut = new Pipeline(ContextID, 3, 1);
         var rev = new ToneCurve[1];
 
         if (cmsGetPCS(Profile) == Signatures.Colorspace.Lab)
         {
-            if (!cmsPipelineInsertStage(
-                    Lut,
-                    StageLoc.AtEnd,
-                    cmsStageAllocMatrix(ContextID, 1, 3, PickLstarMatrix, null)))
+            if (!Lut.InsertStageAtEnd(new MatrixStage(ContextID, 1, 3, PickLstarMatrix, null)))
                 goto Error2;
         }
         else
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, cmsStageAllocMatrix(ContextID, 1, 3, PickYMatrix, null)))
+            if (!Lut.InsertStageAtEnd(new MatrixStage(ContextID, 1, 3, PickYMatrix, null)))
                 goto Error2;
         }
 
         rev[0] = RevGrayTRC;
-        if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, cmsStageAllocToneCurves(ContextID, 1, rev)))
+        if (!Lut.InsertStageAtEnd(new ToneCurvesStage(ContextID, rev)))
             goto Error2;
 
-        //ReturnArray(pool, rev);
-        cmsFreeToneCurve(RevGrayTRC);
         return Lut;
 
     Error2:
-        //ReturnArray(pool, rev);
-        cmsPipelineFree(Lut);
-    Error1:
-        cmsFreeToneCurve(RevGrayTRC);
         return null;
     }
 
@@ -472,7 +425,6 @@ public static partial class Lcms2
     {
         var Shapes = new ToneCurve?[3];
         var InvShapes = new ToneCurve?[3];
-        //VEC3* Invv = &Inv.X;
 
         var ContextID = cmsGetProfileContextID(Profile);
 
@@ -501,18 +453,16 @@ public static partial class Lcms2
         if (Shapes[0] is null || Shapes[1] is null || Shapes[2] is null)
             return null;
 
-        InvShapes[0] = cmsReverseToneCurve(Shapes[0]!);
-        InvShapes[1] = cmsReverseToneCurve(Shapes[1]!);
-        InvShapes[2] = cmsReverseToneCurve(Shapes[2]!);
+        InvShapes[0] = Shapes[0].Reverse();
+        InvShapes[1] = Shapes[1].Reverse();
+        InvShapes[2] = Shapes[2].Reverse();
 
         if (InvShapes[0] is null || InvShapes[1] is null || InvShapes[2] is null)
             return null;
 
-        ToneCurve[] InvShapesTriple = new ToneCurve[3] { InvShapes[0]!, InvShapes[1]!, InvShapes[2]!, };
+        ToneCurve[] InvShapesTriple = new ToneCurve[3] { InvShapes[0], InvShapes[1], InvShapes[2], };
 
-        var Lut = cmsPipelineAlloc(ContextID, 3, 3);
-        if (Lut is null)
-            goto Error1;
+        var Lut = new Pipeline(ContextID, 3, 3);
 
         // Note that it is certainly possible a single profile would have a LUT based
         // tag for output working in lab and a matrix-shaper for the fallback cases.
@@ -520,49 +470,42 @@ public static partial class Lcms2
 
         if (cmsGetPCS(Profile) == Signatures.Colorspace.Lab)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageAllocLab2XYZ(ContextID)))
+            if (!Lut.InsertStageAtEnd(_cmsStageAllocLab2XYZ(ContextID)))
                 goto Error2;
         }
 
-        //var pool = _cmsGetContext(Lut.ContextID).GetBufferPool<double>();
-        var InvArray = Inv.AsArray( /*pool*/);
-        if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, cmsStageAllocMatrix(ContextID, 3, 3, InvArray, null)) ||
-            !cmsPipelineInsertStage(Lut, StageLoc.AtEnd, cmsStageAllocToneCurves(ContextID, 3, InvShapesTriple)))
+        var InvArray = Inv.AsArray();
+        if (!Lut.InsertStageAtEnd(new MatrixStage(ContextID, 3, 3, InvArray, null)) ||
+            !Lut.InsertStageAtEnd(new ToneCurvesStage(ContextID, InvShapesTriple)))
         {
-            //ReturnArray(pool, InvArray);
             goto Error2;
         }
-        //ReturnArray(pool, InvArray);
 
-        cmsFreeToneCurveTriple(InvShapesTriple);
         return Lut;
 
     Error2:
-        cmsPipelineFree(Lut);
-    Error1:
-        cmsFreeToneCurveTriple(InvShapesTriple);
         return null;
     }
 
     private static void ChangeInterpolationToTrilinear(Pipeline? Lut)
     {
-        for (var Stage = cmsPipelineGetPtrToFirstStage(Lut);
+        for (var Stage = Lut.FirstStage;
              Stage is not null;
-             Stage = cmsStageNext(Stage))
+             Stage = Stage.Next)
         {
-            if (cmsStageType(Stage) != Signatures.Stage.CLutElem)
+            if (Stage.Type != Signatures.Stage.CLutElem)
             {
                 continue;
             }
 
-            if (Stage.Data is StageCLutData<float> CLUTf)
+            if (Stage is CLutStage<float> CLUTf)
             {
                 CLUTf.Params.dwFlags |= (uint)LerpFlag.Trilinear;
                 CLUTf.Params.SetInterpolationRoutine(Lut?.ContextID);
             }
             else
             {
-                var CLUT = Stage.Data as StageCLutData<ushort>;
+                var CLUT = Stage as CLutStage<ushort>;
 
                 CLUT!.Params.dwFlags |= (uint)LerpFlag.Trilinear;
                 CLUT.Params.SetInterpolationRoutine(Lut?.ContextID);
@@ -573,7 +516,7 @@ public static partial class Lcms2
     internal static Pipeline? _cmsReadFloatOutputTag(Profile Profile, Signature tagFloat)
     {
         var ContextID = cmsGetProfileContextID(Profile);
-        var Lut = cmsPipelineDup(cmsReadTag(Profile, tagFloat) as Pipeline);
+        var Lut = (cmsReadTag(Profile, tagFloat) as Pipeline).Clone();
         var PCS = cmsGetPCS(Profile);
         var dataSpace = cmsGetColorSpace(Profile);
 
@@ -584,14 +527,14 @@ public static partial class Lcms2
         // and since the formatter has already accommodated to 0..1.0, we should undo this change
         if (PCS == Signatures.Colorspace.Lab)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageNormalizeToLabFloat(ContextID)))
+            if (!Lut.InsertStageAtStart(_cmsStageNormalizeToLabFloat(ContextID)))
                 goto Error;
         }
         else
         {
             if (PCS == Signatures.Colorspace.XYZ)
             {
-                if (!cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageNormalizeToXYZFloat(ContextID)))
+                if (!Lut.InsertStageAtStart(_cmsStageNormalizeToXYZFloat(ContextID)))
                     goto Error;
             }
         }
@@ -599,19 +542,18 @@ public static partial class Lcms2
         // The output can be Lab or XYZ, in which case normalization is needed on the end of the pipeline
         if (dataSpace == Signatures.Colorspace.Lab)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageNormalizeFromLabFloat(ContextID)))
+            if (!Lut.InsertStageAtEnd(_cmsStageNormalizeFromLabFloat(ContextID)))
                 goto Error;
         }
         else if (dataSpace == Signatures.Colorspace.XYZ)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageNormalizeFromXyzFloat(ContextID)))
+            if (!Lut.InsertStageAtEnd(_cmsStageNormalizeFromXyzFloat(ContextID)))
                 goto Error;
         }
 
         return Lut;
 
     Error:
-        cmsPipelineFree(Lut);
         return null;
     }
 
@@ -644,9 +586,7 @@ public static partial class Lcms2
                 var OriginalType = _cmsGetTagTrueType(Profile, tag16);
 
                 // The profile owns the Lut, so we need to copy it
-                Lut = cmsPipelineDup(Lut);
-                if (Lut is null)
-                    return null;
+                Lut = Lut.Clone();
 
                 // Now it is time for controversial stuff. I found that for 3D LUTS using
                 // Lab used as indexer space, trilinear interpolation should be used
@@ -658,19 +598,18 @@ public static partial class Lcms2
                     return Lut;
 
                 // Add a matrix for conversion V4 to V3 Lab PCS
-                if (!cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageAllocLabV4ToV2(ContextID)))
+                if (!Lut.InsertStageAtStart(_cmsStageAllocLabV4ToV2(ContextID)))
                     goto Error;
 
                 // If the output is Lab, add also a conversion at the end
                 if (cmsGetColorSpace(Profile) == Signatures.Colorspace.Lab &&
-                    !cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageAllocLabV2ToV4(ContextID)))
+                    !Lut.InsertStageAtEnd(_cmsStageAllocLabV2ToV4(ContextID)))
                 {
                     goto Error;
                 }
 
                 return Lut;
             Error:
-                cmsPipelineFree(Lut);
                 return null;
             }
         }
@@ -690,7 +629,7 @@ public static partial class Lcms2
     internal static Pipeline? _cmsReadFloatDevicelinkTag(Profile Profile, Signature tagFloat)
     {
         var ContextID = cmsGetProfileContextID(Profile);
-        var Lut = cmsPipelineDup(cmsReadTag(Profile, tagFloat) as Pipeline);
+        var Lut = (cmsReadTag(Profile, tagFloat) as Pipeline).Clone();
         var PCS = cmsGetPCS(Profile);
         var spc = cmsGetColorSpace(Profile);
 
@@ -699,18 +638,18 @@ public static partial class Lcms2
 
         if (spc == Signatures.Colorspace.Lab)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageNormalizeToLabFloat(ContextID)))
+            if (!Lut.InsertStageAtStart(_cmsStageNormalizeToLabFloat(ContextID)))
                 goto Error;
         }
         else if (spc == Signatures.Colorspace.XYZ)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageNormalizeToXYZFloat(ContextID)))
+            if (!Lut.InsertStageAtStart(_cmsStageNormalizeToXYZFloat(ContextID)))
                 goto Error;
         }
 
         if (PCS == Signatures.Colorspace.Lab)
         {
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageNormalizeFromLabFloat(ContextID)))
+            if (!Lut.InsertStageAtEnd(_cmsStageNormalizeFromLabFloat(ContextID)))
                 goto Error;
         }
         else
@@ -720,14 +659,13 @@ public static partial class Lcms2
                 return Lut;
             }
 
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageNormalizeFromXyzFloat(ContextID)))
+            if (!Lut.InsertStageAtEnd(_cmsStageNormalizeFromXyzFloat(ContextID)))
                 goto Error;
         }
 
         return Lut;
 
     Error:
-        cmsPipelineFree(Lut);
         return null;
     }
 
@@ -748,12 +686,12 @@ public static partial class Lcms2
             if (cmsReadTag(Profile, Signatures.Tag.NamedColor2) is not NamedColorList nc)
                 return null;
 
-            Lut = cmsPipelineAlloc(ContextID, 0, 0);
+            Lut = new Pipeline(ContextID, 0, 0);
             //if (Lut is null) goto Error;
 
-            if (!cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageAllocNamedColor(nc, false)) ||
+            if (!Lut.InsertStageAtStart(new NamedColorListStage(nc)) ||
                 (cmsGetColorSpace(Profile) == Signatures.Colorspace.Lab &&
-                 !cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageAllocLabV2ToV4(ContextID))))
+                 !Lut.InsertStageAtEnd(_cmsStageAllocLabV2ToV4(ContextID))))
             {
                 goto Error;
             }
@@ -761,7 +699,6 @@ public static partial class Lcms2
             return Lut;
 
         Error:
-            cmsPipelineFree(Lut);
             return null;
         }
 
@@ -773,7 +710,7 @@ public static partial class Lcms2
 
         tagFloat = Device2PCSFloat[0];
         if (cmsIsTag(Profile, tagFloat))
-            return cmsPipelineDup(cmsReadTag(Profile, tagFloat) as Pipeline);
+            return (cmsReadTag(Profile, tagFloat) as Pipeline).Clone();
 
         if (!cmsIsTag(Profile, tag16))      // Is there any LUT-Based table?
         {
@@ -790,9 +727,7 @@ public static partial class Lcms2
             return null;
 
         // The profile owns the Lut, so we need to copy it
-        Lut = cmsPipelineDup(Lut);
-        if (Lut is null)
-            return null;
+        Lut = Lut.Clone();
 
         // Now it is time for controversial stuff. I found that for 3D LUTS using
         // Lab used as indexer space, trilinear interpolation should be used
@@ -807,16 +742,15 @@ public static partial class Lcms2
             return Lut;
         // Here it is possible to get Lab on both sides
         if ((cmsGetColorSpace(Profile) == Signatures.Colorspace.Lab &&
-             !cmsPipelineInsertStage(Lut, StageLoc.AtBegin, _cmsStageAllocLabV4ToV2(ContextID))) ||
+             !Lut.InsertStageAtStart(_cmsStageAllocLabV4ToV2(ContextID))) ||
             (cmsGetPCS(Profile) == Signatures.Colorspace.Lab &&
-             !cmsPipelineInsertStage(Lut, StageLoc.AtEnd, _cmsStageAllocLabV2ToV4(ContextID))))
+             !Lut.InsertStageAtEnd(_cmsStageAllocLabV2ToV4(ContextID))))
         {
             goto Error2;
         }
 
         return Lut;
     Error2:
-        cmsPipelineFree(Lut);
         return null;
     }
 

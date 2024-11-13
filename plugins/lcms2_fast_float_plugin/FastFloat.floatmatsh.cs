@@ -21,7 +21,7 @@
 
 using System.Runtime.InteropServices;
 
-using lcms2.types;
+using lcms2.stages;
 
 namespace lcms2.FastFloatPlugin;
 
@@ -164,8 +164,7 @@ public unsafe static partial class FastFloat
         MAT3 res = default;
 
         // Check for shaper-matrix-matrix-shaper structure, that is what this optimizer stands for
-        if (!cmsPipelineCheckAndRetrieveStages(
-                Src,
+        if (!Src.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out var Curve1,
                 Signatures.Stage.MatrixElem,
@@ -178,23 +177,23 @@ public unsafe static partial class FastFloat
             return false;
         }
 
-        var ContextID = cmsGetPipelineContextID(Src);
+        var ContextID = Src.ContextID;
         var nChans = (uint)T_CHANNELS(InputFormat);
 
         // Get both matrices, which are 3x3
-        if (cmsStageData(Matrix1) is not StageMatrixData Data1 || cmsStageData(Matrix2) is not StageMatrixData Data2)
+        if (Matrix1 is not MatrixStage Data1 || Matrix2 is not MatrixStage Data2)
             return false;
 
         // Input offset should be zero
         if (Data1.Offset is not null)
             return false;
 
-        if (cmsStageInputChannels(Matrix1) is 1 && cmsStageInputChannels(Matrix2) is 1)
+        if (Matrix1.InputChannels is 1 && Matrix2.InputChannels is 1)
         {
             // This is a gray to gray. Just multiply
-            factor[0] = (Data1.Double[0] * Data2.Double[0]) +
-                        (Data1.Double[1] * Data2.Double[1]) +
-                        (Data1.Double[2] * Data2.Double[2]);
+            factor[0] = (Data1.Values[0] * Data2.Values[0]) +
+                        (Data1.Values[1] * Data2.Values[1]) +
+                        (Data1.Values[2] * Data2.Values[2]);
 
             if (Math.Abs(1 - factor[0]) < (1.0 / 65535.0))
                 IdentityMat = true;
@@ -202,36 +201,31 @@ public unsafe static partial class FastFloat
         else
         {
             // Multiply both matrices to get the result
-            res = new MAT3(Data2.Double) * new MAT3(Data1.Double);
+            res = new MAT3(Data2.Values) * new MAT3(Data1.Values);
 
             // Now the result is in res + Data2.Offset. Maybe is a plain identity?
             IdentityMat = res.IsIdentity && Data2.Offset is null;   // We can get rid of full matrix
         }
 
         // Allocate an empty LUT
-        var Dest = cmsPipelineAlloc(ContextID, nChans, nChans);
-        if (Dest is null)
-            return false;
+        var Dest = new Pipeline(ContextID, nChans, nChans);
 
         // Assemble the new LUT
-        cmsPipelineInsertStage(Dest, StageLoc.AtBegin, cmsStageDup(Curve1));
+        Dest.InsertStageAtStart(Curve1.Clone());
 
         if (!IdentityMat)
         {
             if (nChans is 1)
             {
-                cmsPipelineInsertStage(
-                    Dest,
-                    StageLoc.AtEnd,
-                    cmsStageAllocMatrix(ContextID, 1, 1, factor, Data2.Offset));
+                Dest.InsertStageAtEnd(new MatrixStage(ContextID, 1, 1, factor, Data2.Offset));
             }
             else
             {
-                cmsPipelineInsertStage(Dest, StageLoc.AtEnd, cmsStageAllocMatrix(ContextID, 3, 3, res, Data2.Offset));
+                Dest.InsertStageAtEnd(new MatrixStage(ContextID, 3, 3, res, Data2.Offset));
             }
         }
 
-        cmsPipelineInsertStage(Dest, StageLoc.AtEnd, cmsStageDup(Curve2));
+        Dest.InsertStageAtEnd(Curve2.Clone());
 
         {
             // If identity on matrix, we can further optimize the curves, so call the join curves routine
@@ -248,8 +242,8 @@ public unsafe static partial class FastFloat
             }
             else
             {
-                if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 ||
-                    cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
+                if (Curve1 is not ToneCurvesStage mpeC1 ||
+                    Curve2 is not ToneCurvesStage mpeC2)
                     return false;
 
                 // In this particular optimization, cache does not help as it takes more time to deal with
@@ -259,17 +253,16 @@ public unsafe static partial class FastFloat
                 // Setup the optimization routines
                 UserData = (nuint)VXMatShaperFloatData.SetShaper(
                     ContextID,
-                    mpeC1.TheCurves,
+                    mpeC1.Curves,
                     res,
                     Data2.Offset is null ? null : new VEC3(Data2.Offset),
-                    mpeC2.TheCurves);
+                    mpeC2.Curves);
                 FreeUserData = FreeDisposable;
 
                 TransformFn = MatShaperFloat;
             }
         }
 
-        cmsPipelineFree(Src);
         dwFlags &= ~cmsFLAGS_CAN_CHANGE_FORMATTER;
         Lut = Dest;
         return true;
@@ -356,7 +349,7 @@ file unsafe struct VXMatShaperFloatData
         for (var i = 0; i < MAX_NODES_IN_CURVE; i++)
         {
             var R = (float)i / (MAX_NODES_IN_CURVE - 1);
-            Table[i] = cmsEvalToneCurveFloat(Curve, R);
+            Table[i] = Curve.Evaluate(R);
         }
     }
 }

@@ -121,13 +121,6 @@ public static partial class Lcms2
     {
         _cmsAssert(p);
 
-        //ReturnArray(p.ContextID, p.Cache.CacheIn);
-        //ReturnArray(p.ContextID, p.Cache.CacheOut);
-
-        cmsPipelineFree(p.GamutCheck);
-
-        cmsPipelineFree(p.Lut);
-
         cmsFreeNamedColorList(p.InputColorant);
 
         cmsFreeNamedColorList(p.OutputColorant);
@@ -136,8 +129,6 @@ public static partial class Lcms2
 
         if (p.UserData is not null)
             p.FreeUserData?.Invoke(p.ContextID, p.UserData);
-
-        //_cmsFree(p.ContextID, p);
     }
 
     // PixelSize already defined in Lcms2.cmspack.cs
@@ -652,7 +643,7 @@ public static partial class Lcms2
                 if (p.GamutCheck is not null)
                 {
                     // Evaluate gamut marker.
-                    cmsPipelineEvalFloat(fIn, OutOfGamut, p.GamutCheck);
+                    p.GamutCheck.Evaluate(fIn, OutOfGamut);
 
                     // Is current color out of gamut?
                     if (OutOfGamut[0] > 0.0)
@@ -664,13 +655,13 @@ public static partial class Lcms2
                     else
                     {
                         // No, proceed normally
-                        cmsPipelineEvalFloat(fIn, fOut, p.Lut);
+                        p.Lut.Evaluate(fIn, fOut);
                     }
                 }
                 else
                 {
                     // No gamut check at all
-                    cmsPipelineEvalFloat(fIn, fOut, p.Lut);
+                    p.Lut.Evaluate(fIn, fOut);
                 }
 
                 output = p.ToOutputFloat(p, fOut, output, Stride.BytesPerPlaneOut);
@@ -679,9 +670,6 @@ public static partial class Lcms2
             strideIn += Stride.BytesPerLineIn;
             strideOut += Stride.BytesPerLineOut;
         }
-
-        //ReturnArray(pool, fIn);
-        //ReturnArray(pool, fOut);
     }
 
     private static void NullFloatXFORM(Transform p,
@@ -1391,10 +1379,9 @@ public static partial class Lcms2
         }
 
         // Check channel count
-        if (((uint)cmsChannelsOfColorSpace(EntryColorSpace) != cmsPipelineInputChannels(Lut)) ||
-            ((uint)cmsChannelsOfColorSpace(ExitColorSpace) != cmsPipelineOutputChannels(Lut)))
+        if (((uint)cmsChannelsOfColorSpace(EntryColorSpace) != Lut.InputChannels) ||
+            ((uint)cmsChannelsOfColorSpace(ExitColorSpace) != Lut.OutputChannels))
         {
-            cmsPipelineFree(Lut);
             Context.LogError(ContextID, cmsERROR_NOT_SUITABLE, "Channel count douesn't match. Profile is corrupted");
             return null;
         }
@@ -1477,7 +1464,6 @@ public static partial class Lcms2
         return xform;
 
     Error:
-        cmsPipelineFree(Lut);
         return null;
     }
 

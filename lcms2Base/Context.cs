@@ -55,6 +55,8 @@ public class Context : ICloneable
     internal ParallelizationPluginChunkType ParallelizationPlugin = new(0, 0, null);
 
     public const byte MaxChannels = 16;
+    internal const float NegativeInfinity = -1e22f;
+    internal const float PositiveInfinity = 1e22f;
 
     public ref object? UserData =>
         ref userData;

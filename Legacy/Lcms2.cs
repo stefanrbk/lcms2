@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 using lcms2.io;
 using lcms2.pdk;
+using lcms2.stages;
 using lcms2.types;
 
 using Microsoft.Extensions.Logging;
@@ -677,6 +679,276 @@ public class Lcms2
         t.EstimatedTable;
 
     #endregion Tone curves
+
+    #region Implements pipelines of multi-processing elements
+
+    public static Pipeline? cmsPipelineAlloc(Context? ContextID, uint InputChannels, uint OutputChannels) =>
+        new(ContextID, InputChannels, OutputChannels);
+
+    public static void cmsPipelineFree(Pipeline? lut) =>
+        lut?.Dispose();
+
+    public static Pipeline? cmsPipelineDup(Pipeline? Orig) =>
+        Orig?.Clone();
+
+    public static Context? cmsGetPipelineContextID(Pipeline? lut) =>
+        lut?.ContextID;
+
+    public static uint cmsPipelineInputChannels(Pipeline? lut) =>
+        lut?.InputChannels ?? 0;
+
+    public static uint cmsPipelineOutputChannels(Pipeline? lut) =>
+        lut?.OutputChannels ?? 0;
+
+    public static uint cmsPipelineStageCount(Pipeline? lut) =>
+        lut?.StageCount ?? 0;
+
+    public static Stage? cmsPipelineGetPtrToFirstStage(Pipeline? lut) =>
+        lut?.FirstStage;
+
+    public static Stage? cmsPipelineGetPtrToLastStage(Pipeline? lut) =>
+        lut?.LastStage;
+
+    public static void cmsPipelineEval16(ReadOnlySpan<ushort> In, Span<ushort> Out, Pipeline? lut) =>
+        lut?.Evaluate(In, Out);
+
+    public static void cmsPipelineEvalFloat(ReadOnlySpan<float> In, Span<float> Out, Pipeline? lut) =>
+        lut?.Evaluate(In, Out);
+
+    public static bool cmsPipelineEvalReverseFloat(ReadOnlySpan<float> Target,
+                                                   Span<float> Result,
+                                                   ReadOnlySpan<float> Hint,
+                                                   Pipeline? lut) =>
+        lut?.EvaluateReverse(Target, Result, Hint) ?? false;
+
+    public static bool cmsPipelineCat(Pipeline? l1, Pipeline? l2) =>
+        l2 is not null ? l1?.Concat(l2) ?? false : false;
+
+    public static bool cmsPipelineSetSaveAs8bitsFlag(Pipeline? lut, bool On)
+    {
+        if (lut is null)
+            return false;
+
+        var Anterior = lut.SaveAs8Bits;
+
+        lut.SaveAs8Bits = On;
+        return Anterior;
+    }
+
+    public static bool cmsPipelineInsertStage(Pipeline? lut, StageLoc loc, Stage? mpe)
+    {
+        if (lut is null || mpe is null)
+            return false;
+
+        return loc switch
+               {
+                   StageLoc.AtBegin => lut.InsertStageAtStart(mpe),
+                   StageLoc.AtEnd   => lut.InsertStageAtEnd(mpe),
+                   _                => false
+               };
+    }
+
+    public static void cmsPipelineUnlinkStage(Pipeline? lut, StageLoc loc, out Stage? mpe)
+    {
+        mpe = null;
+        if (lut is null)
+            return;
+
+        switch (loc)
+        {
+            case StageLoc.AtBegin:
+                lut.UnlinkStageAtStart(out mpe);
+                break;
+            case StageLoc.AtEnd:
+                lut.UnlinkStageAtEnd(out mpe);
+                break;
+        }
+    }
+
+    // This function is quite useful to analyze the structure of a Pipeline and retrieve the Stage elements
+    // that conform the Pipeline. It should be called with the Pipeline, the number of expected elements and
+    // then a list of expected types followed with a list of double pointers to Stage elements. If
+    // the function founds a match with current pipeline, it fills the pointers and returns TRUE
+    // if not, returns FALSE without touching anything.
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1) =>
+        cmsPipelineCheckAndRetrieveStages(
+            Lut,
+            sig1,
+            out out1,
+            default,
+            out var _,
+            default,
+            out var _,
+            default,
+            out var _,
+            default,
+            out var _);
+
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1,
+                                                         Signature sig2,
+                                                         [NotNullWhen(true)] out Stage? out2) =>
+        cmsPipelineCheckAndRetrieveStages(
+            Lut,
+            sig1,
+            out out1,
+            sig2,
+            out out2,
+            default,
+            out var _,
+            default,
+            out var _,
+            default,
+            out var _);
+
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1,
+                                                         Signature sig2,
+                                                         [NotNullWhen(true)] out Stage? out2,
+                                                         Signature sig3,
+                                                         [NotNullWhen(true)] out Stage? out3) =>
+        cmsPipelineCheckAndRetrieveStages(
+            Lut,
+            sig1,
+            out out1,
+            sig2,
+            out out2,
+            sig3,
+            out out3,
+            default,
+            out var _,
+            default,
+            out var _);
+
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1,
+                                                         Signature sig2,
+                                                         [NotNullWhen(true)] out Stage? out2,
+                                                         Signature sig3,
+                                                         [NotNullWhen(true)] out Stage? out3,
+                                                         Signature sig4,
+                                                         [NotNullWhen(true)] out Stage? out4) =>
+        cmsPipelineCheckAndRetrieveStages(
+            Lut,
+            sig1,
+            out out1,
+            sig2,
+            out out2,
+            sig3,
+            out out3,
+            sig4,
+            out out4,
+            default,
+            out var _);
+
+    public static bool cmsPipelineCheckAndRetrieveStages(Pipeline Lut,
+                                                         Signature sig1,
+                                                         [NotNullWhen(true)] out Stage? out1,
+                                                         Signature sig2,
+                                                         [NotNullWhen(true)] out Stage? out2,
+                                                         Signature sig3,
+                                                         [NotNullWhen(true)] out Stage? out3,
+                                                         Signature sig4,
+                                                         [NotNullWhen(true)] out Stage? out4,
+                                                         Signature sig5,
+                                                         [NotNullWhen(true)] out Stage? out5) =>
+        Lut.CheckAndRetrieveStages(sig1, out out1, sig2, out out2, sig3, out out3, sig4, out out4, sig5, out out5);
+
+    // Matrix has double precision and CLUT has only float precision. That is because an ICC profile can encode
+    // matrices with far more precision that CLUTS
+    public static Stage cmsStageAllocIdentity(Context? ContextID, uint nChannels) =>
+        new IdentityStage(ContextID, nChannels);
+
+    public static Stage cmsStageAllocToneCurves(Context? ContextID, uint nChannels, ReadOnlySpan<ToneCurve> Curves) =>
+        Curves.IsEmpty
+            ? new ToneCurvesStage(ContextID, nChannels)
+            : new ToneCurvesStage(ContextID, Curves);
+
+    public static Stage cmsStageAllocMatrix(Context? ContextID,
+                                            uint Rows,
+                                            uint Cols,
+                                            ReadOnlySpan<double> Matrix,
+                                            ReadOnlySpan<double> Offset) =>
+        new MatrixStage(ContextID, Rows, Cols, Matrix, Offset);
+
+    public static Stage? cmsStageAllocCLut16bit(Context? ContextID,
+                                                uint nGridPoints,
+                                                uint inputChan,
+                                                uint outputChan,
+                                                ReadOnlySpan<ushort> Table) =>
+        new CLutStage<ushort>(ContextID, nGridPoints, inputChan, outputChan, Table);
+
+    public static Stage? cmsStageAllocCLutFloat(Context? ContextID,
+                                                uint nGridPoints,
+                                                uint inputChan,
+                                                uint outputChan,
+                                                ReadOnlySpan<float> Table) =>
+        new CLutStage<float>(ContextID, nGridPoints, inputChan, outputChan, Table);
+
+    public static Stage? cmsStageAllocCLut16bitGranular(Context? ContextID,
+                                                        ReadOnlySpan<uint> clutPoints,
+                                                        uint inputChan,
+                                                        uint outputChan,
+                                                        ReadOnlySpan<ushort> Table) =>
+        new CLutStage<ushort>(ContextID, clutPoints, inputChan, outputChan, Table);
+
+    public static Stage? cmsStageAllocCLutFloatGranular(Context? ContextID,
+                                                        ReadOnlySpan<uint> clutPoints,
+                                                        uint inputChan,
+                                                        uint outputChan,
+                                                        ReadOnlySpan<float> Table) =>
+        new CLutStage<float>(ContextID, clutPoints, inputChan, outputChan, Table);
+
+    public static Stage? cmsStageDup(Stage? mpe) =>
+        mpe?.Clone();
+
+    public static void cmsStageFree(Stage? mpe) =>
+        mpe?.Dispose();
+
+    public static Stage? cmsStageNext(Stage? mpe) =>
+        mpe?.Next;
+
+    public static uint cmsStageInputChannels(Stage? mpe) =>
+        mpe?.InputChannels ?? 0;
+
+    public static uint cmsStageOutputChannels(Stage? mpe) =>
+        mpe?.OutputChannels ?? 0;
+
+    public static Signature cmsStageType(Stage? mpe) =>
+        mpe?.Type ?? default;
+
+    public static Context? cmsGetStageContextID(Stage? mpe) =>
+        mpe?.Context;
+
+    // Use this flag to prevent changes being written to destination
+    public const uint SAMPLER_INSPECT = (uint)SamplerFlag.Inspect;
+
+    // For CLUT only
+    public static bool cmsStageSampleCLut16bit(Stage? mpe, Sampler<ushort> Sampler, object? Cargo, uint dwFlags) =>
+        (mpe as CLutStage<ushort>)?.Sample(Sampler, Cargo, (SamplerFlag)dwFlags) ?? false;
+
+    public static bool cmsStageSampleCLutFloat(Stage? mpe, Sampler<float> Sampler, object? Cargo, uint dwFlags) =>
+        (mpe as CLutStage<float>)?.Sample(Sampler, Cargo, (SamplerFlag)dwFlags) ?? false;
+
+    // Slicers
+    public static bool cmsSliceSpace16(uint nInputs,
+                                       ReadOnlySpan<uint> clutPoints,
+                                       Sampler<ushort> Sampler,
+                                       object? Cargo) =>
+        CLutStage<ushort>.SliceSpace(nInputs, clutPoints, Sampler, Cargo);
+
+    public static bool cmsSliceSpaceFloat(uint nInputs,
+                                          ReadOnlySpan<uint> clutPoints,
+                                          Sampler<float> Sampler,
+                                          object? Cargo) =>
+        CLutStage<float>.SliceSpace(nInputs, clutPoints, Sampler, Cargo);
+
+    #endregion Implements pipelines of multi-processing elements
 
     #endregion cms* Functions
 }

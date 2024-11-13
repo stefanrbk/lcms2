@@ -353,9 +353,9 @@ public static partial class FastFloat
             return false;
 
         // Only curves in this LUT?
-        for (var mpe = cmsPipelineGetPtrToFirstStage(Src); mpe is not null; mpe = cmsStageNext(mpe))
+        for (var mpe = Src.FirstStage; mpe is not null; mpe = mpe.Next)
         {
-            if (cmsStageType(mpe) != Signatures.Stage.CurveSetElem)
+            if (mpe.Type != Signatures.Stage.CurveSetElem)
                 return false;
         }
 
@@ -439,7 +439,7 @@ file class Curves8Data : IDisposable
         Span<float> InFloat = stackalloc float[3];
         Span<float> OutFloat = stackalloc float[3];
 
-        var Data = new Curves8Data(cmsGetPipelineContextID(Src));
+        var Data = new Curves8Data(Src.ContextID);
 
         // Create target curves
         for (var i = 0; i < 256; i++)
@@ -447,7 +447,7 @@ file class Curves8Data : IDisposable
             for (var j = 0; j < nChan; j++)
                 InFloat[j] = (float)(i / 255.0);
 
-            cmsPipelineEvalFloat(InFloat, OutFloat, Src);
+            Src.Evaluate(InFloat, OutFloat);
 
             for (var j = 0; j < nChan; j++)
                 Data.Curves(j, i) = FROM_16_TO_8(_cmsSaturateWord(OutFloat[j] * 65535.0));

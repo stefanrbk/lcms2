@@ -26,48 +26,39 @@
 
 namespace lcms2;
 
-public delegate void StageEvalFn(ReadOnlySpan<float> In, Span<float> Out, Stage mpe);
-public delegate object? StageDupElemFn(Stage mpe);
-public delegate void StageFreeElemFn(Stage mpe);
-
-public class Stage
+public abstract class Stage : IDisposable, ICloneable
 {
-    public Context? ContextID;
-    public Signature Type;
-    public Signature Implements;
-    public uint InputChannels;
-    public uint OutputChannels;
-
-    public StageEvalFn EvalPtr;
-    public StageDupElemFn? DupElemPtr;
-    public StageFreeElemFn? FreePtr;
-
-    public object? Data;
+    public Context? Context { get; }
+    public Signature Type { get; }
+    internal Signature Implements;
+    public uint InputChannels { get; }
+    public uint OutputChannels { get; }
 
     public Stage? Next;
 
     internal const byte MaxChannels = 128;
     internal const byte MaxInputDimensions = 15;
 
-    public Stage(Context? ContextID,
-                 Signature Type,
-                 uint InputChannels,
-                 uint OutputChannels,
-                 StageEvalFn EvalPtr,
-                 StageDupElemFn? DupElemPtr,
-                 StageFreeElemFn? FreePtr,
-                 object? Data)  // _cmsStageAllocPlaceholder
+    protected Stage(Context? context,
+                    Signature Type,
+                    uint InputChannels,
+                    uint OutputChannels)
     {
-        this.ContextID = ContextID;
+        this.Context = context;
 
         this.Type = Type;
         Implements = Type;  // By default, no clue on what is implementing
 
         this.InputChannels = InputChannels;
         this.OutputChannels = OutputChannels;
-        this.EvalPtr = EvalPtr;
-        this.DupElemPtr = DupElemPtr;
-        this.FreePtr = FreePtr;
-        this.Data = Data;
     }
+
+    internal abstract void Evaluate(ReadOnlySpan<float> In, Span<float> Out);
+
+    object ICloneable.Clone() =>
+        Clone();
+
+    public abstract Stage Clone();
+
+    public abstract void Dispose();
 }

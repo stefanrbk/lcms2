@@ -180,4 +180,16 @@ public static class Conversions
         var x = (i * 65535.0) / (MaxSamples - 1);
         return QuickSaturateWord(x);
     }
+
+    internal static void FromFloatTo16(ReadOnlySpan<float> In, Span<ushort> Out, uint n)
+    {
+        for (var i = 0; i < n; i++)
+            Out[i] = QuickSaturateWord(In[i] * 65535.0);
+    }
+
+    internal static void From16ToFloat(ReadOnlySpan<ushort> In, Span<float> Out, uint n)
+    {
+        for (var i = 0; i < n; i++)
+            Out[i] = In[i] / 65535.0f;
+    }
 }

@@ -24,6 +24,7 @@
 //
 //---------------------------------------------------------------------------------
 
+using lcms2.stages;
 using lcms2.types;
 
 namespace lcms2;
@@ -301,15 +302,10 @@ public static partial class Lcms2
         var nChannels = (uint)cmsChannelsOfColorSpace(ColorSpace);
 
         // Creates a Pipeline with prelinearization step only
-        var Pipeline = cmsPipelineAlloc(ContextID, nChannels, nChannels);
-        if (Pipeline is null)
-            goto Error;
+        var Pipeline = new Pipeline(ContextID, nChannels, nChannels);
 
         // Copy tables to Pipeline
-        if (!cmsPipelineInsertStage(
-                Pipeline,
-                StageLoc.AtBegin,
-                cmsStageAllocToneCurves(ContextID, nChannels, TransferFunctions)))
+        if (!Pipeline.InsertStageAtStart(new ToneCurvesStage(ContextID, TransferFunctions[..(int)nChannels])))
             goto Error;
 
         // Create tags
@@ -320,14 +316,10 @@ public static partial class Lcms2
         if (!SetSeqDescTag(hICC, "Linearization built-in"u8))
             goto Error;
 
-        // Pipeline is already on virtual profile
-        cmsPipelineFree(Pipeline);
-
         // Ok, done
         return hICC;
 
     Error:
-        cmsPipelineFree(Pipeline);
         if (hICC is not null)
             cmsCloseProfile(hICC);
         return null;
@@ -402,22 +394,18 @@ public static partial class Lcms2
         cmsSetHeaderRenderingIntent(hICC, INTENT_PERCEPTUAL);
 
         // Creates a Pipeline with 3D grid only
-        var LUT = cmsPipelineAlloc(ContextID, 4, 4);
-        if (LUT is null)
-            goto Error;
+        var LUT = new Pipeline(ContextID, 4, 4);
 
         var nChannels = (uint)cmsChannelsOfColorSpace(ColorSpace);
 
-        var CLUT = cmsStageAllocCLut16bit(ContextID, 17, nChannels, nChannels, null);
-        if (CLUT is null)
+        var CLUT = new CLutStage<ushort>(ContextID, 17, nChannels, nChannels, null);
+
+        if (!CLUT.Sample(InkLimitingSampler, new Box<double>(Limit)))
             goto Error;
 
-        if (!cmsStageSampleCLut16bit(CLUT, InkLimitingSampler, new Box<double>(Limit), 0))
-            goto Error;
-
-        if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCurves(ContextID, nChannels)) ||
-            !cmsPipelineInsertStage(LUT, StageLoc.AtEnd, CLUT) ||
-            !cmsPipelineInsertStage(LUT, StageLoc.AtEnd, _cmsStageAllocIdentityCurves(ContextID, nChannels)))
+        if (!LUT.InsertStageAtStart(_cmsStageAllocIdentityCurves(ContextID, nChannels)) ||
+            !LUT.InsertStageAtEnd(CLUT) ||
+            !LUT.InsertStageAtEnd(_cmsStageAllocIdentityCurves(ContextID, nChannels)))
             goto Error;
 
         // Create tags
@@ -428,16 +416,10 @@ public static partial class Lcms2
         if (!SetSeqDescTag(hICC, "ink-limiting built-in"u8))
             goto Error;
 
-        // Pipeline is already on virtual profile
-        cmsPipelineFree(LUT);
-
         // Ok, done
         return hICC;
 
     Error:
-        if (LUT is not null)
-            cmsPipelineFree(LUT);
-
         if (hICC is not null)
             cmsCloseProfile(hICC);
 
@@ -465,22 +447,17 @@ public static partial class Lcms2
             goto Error;
 
         // An identity LUT is all we need
-        LUT = cmsPipelineAlloc(ContextID, 3, 3);
-        if (LUT is null)
-            goto Error;
+        LUT = new Pipeline(ContextID, 3, 3);
 
-        if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCLut(ContextID, 3)))
+        if (!LUT.InsertStageAtStart(_cmsStageAllocIdentityCLut(ContextID, 3)))
             goto Error;
 
         if (!cmsWriteTag(Profile, Signatures.Tag.AToB0, LUT))
             goto Error;
-        cmsPipelineFree(LUT);
 
         return Profile;
 
     Error:
-        if (LUT is not null)
-            cmsPipelineFree(LUT);
         if (Profile is not null)
             cmsCloseProfile(Profile);
 
@@ -508,22 +485,17 @@ public static partial class Lcms2
             goto Error;
 
         // An empty LUT is all we need
-        LUT = cmsPipelineAlloc(ContextID, 3, 3);
-        if (LUT is null)
-            goto Error;
+        LUT = new Pipeline(ContextID, 3, 3);
 
-        if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCurves(ContextID, 3)))
+        if (!LUT.InsertStageAtStart(_cmsStageAllocIdentityCurves(ContextID, 3)))
             goto Error;
 
         if (!cmsWriteTag(Profile, Signatures.Tag.AToB0, LUT))
             goto Error;
-        cmsPipelineFree(LUT);
 
         return Profile;
 
     Error:
-        if (LUT is not null)
-            cmsPipelineFree(LUT);
         if (Profile is not null)
             cmsCloseProfile(Profile);
 
@@ -551,22 +523,17 @@ public static partial class Lcms2
             goto Error;
 
         // An identity LUT is all we need
-        LUT = cmsPipelineAlloc(ContextID, 3, 3);
-        if (LUT is null)
-            goto Error;
+        LUT = new Pipeline(ContextID, 3, 3);
 
-        if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCurves(ContextID, 3)))
+        if (!LUT.InsertStageAtStart(_cmsStageAllocIdentityCurves(ContextID, 3)))
             goto Error;
 
         if (!cmsWriteTag(Profile, Signatures.Tag.AToB0, LUT))
             goto Error;
-        cmsPipelineFree(LUT);
 
         return Profile;
 
     Error:
-        if (LUT is not null)
-            cmsPipelineFree(LUT);
         if (Profile is not null)
             cmsCloseProfile(Profile);
 
@@ -580,7 +547,7 @@ public static partial class Lcms2
     {
         Span<double> Parameters = stackalloc double[5] { 2.4, 1 / 1.055, 0.055 / 1.055, 1 / 12.92, 0.04045 };
 
-        return cmsBuildParametricToneCurve(ContextID, 4, Parameters);
+        return ToneCurve.BuildParametric(ContextID, 4, Parameters);
     }
 
     public static Profile? cmsCreate_sRGBProfileTHR(Context? ContextID)
@@ -602,7 +569,6 @@ public static partial class Lcms2
             goto Error;
 
         var hsRGB = cmsCreateRGBProfileTHR(ContextID, D65, Rec709Primaries, Gamma22);
-        cmsFreeToneCurve(Gamma22[0]);
         if (hsRGB is null)
             goto Error;
 
@@ -615,7 +581,6 @@ public static partial class Lcms2
         return hsRGB;
 
     Error:
-        //ReturnArray(pool, Gamma22);
         return null;
     }
 
@@ -645,8 +610,8 @@ public static partial class Lcms2
             1.330713916450354,
         ];
 
-        var D65toD50 = cmsStageAllocMatrix(ctx, 3, 3, M_D65_D50, null);
-        var D50toD65 = cmsStageAllocMatrix(ctx, 3, 3, M_D50_D65, null);
+        var D65toD50 = new MatrixStage(ctx, 3, 3, M_D65_D50, null);
+        var D50toD65 = new MatrixStage(ctx, 3, 3, M_D50_D65, null);
 
         double[] M_D65_LMS =
         [
@@ -674,21 +639,21 @@ public static partial class Lcms2
             1.586163220440795,
         ];
 
-        var D65toLMS = cmsStageAllocMatrix(ctx, 3, 3, M_D65_LMS, null);
-        var LMStoD65 = cmsStageAllocMatrix(ctx, 3, 3, M_LMS_D65, null);
+        var D65toLMS = new MatrixStage(ctx, 3, 3, M_D65_LMS, null);
+        var LMStoD65 = new MatrixStage(ctx, 3, 3, M_LMS_D65, null);
 
-        var CubeRoot = cmsBuildGamma(ctx, 1.0 / 3.0);
+        var CubeRoot = ToneCurve.BuildGamma(ctx, 1.0 / 3.0);
         if (CubeRoot is null)
             return null;
-        var Cube = cmsBuildGamma(ctx, 3.0);
+        var Cube = ToneCurve.BuildGamma(ctx, 3.0);
         if (Cube is null)
             return null;
 
         ToneCurve[] Roots = [ CubeRoot, CubeRoot, CubeRoot ];
         ToneCurve[] Cubes = [ Cube, Cube, Cube ];
 
-        var NonLinearityFw = cmsStageAllocToneCurves(ctx, 3, Roots);
-        var NonLinearityRv = cmsStageAllocToneCurves(ctx, 3, Cubes);
+        var NonLinearityFw = new ToneCurvesStage(ctx, Roots[..3]);
+        var NonLinearityRv = new ToneCurvesStage(ctx, Cubes[..3]);
 
         double[] M_LMSprime_OkLab =
         [
@@ -716,11 +681,11 @@ public static partial class Lcms2
             -1.291485537864092,
         ];
 
-        var LMSprime_OkLab = cmsStageAllocMatrix(ctx, 3, 3, M_LMSprime_OkLab, null);
-        var OkLab_LMSprime = cmsStageAllocMatrix(ctx, 3, 3, M_OkLab_LMSprime, null);
+        var LMSprime_OkLab = new MatrixStage(ctx, 3, 3, M_LMSprime_OkLab, null);
+        var OkLab_LMSprime = new MatrixStage(ctx, 3, 3, M_OkLab_LMSprime, null);
 
-        var AToB = cmsPipelineAlloc(ctx, 3, 3);
-        var BToA = cmsPipelineAlloc(ctx, 3, 3);
+        var AToB = new Pipeline(ctx, 3, 3);
+        var BToA = new Pipeline(ctx, 3, 3);
 
         var hProfile = cmsCreateProfilePlaceholder(ctx);
         if (hProfile is null)            // can't allocate
@@ -734,51 +699,38 @@ public static partial class Lcms2
 
         cmsSetHeaderRenderingIntent(hProfile, INTENT_RELATIVE_COLORIMETRIC);
 
-        /**
-        * Conversion PCS (XYZ/D50) to OkLab
-        */
-        if (!cmsPipelineInsertStage(BToA, StageLoc.AtEnd, PCSXYZ))
+        // Conversion PCS (XYZ/D50) to OkLab
+        if (!BToA.InsertStageAtEnd(PCSXYZ))
             goto error;
-        if (!cmsPipelineInsertStage(BToA, StageLoc.AtEnd, D50toD65))
+        if (!BToA.InsertStageAtEnd(D50toD65))
             goto error;
-        if (!cmsPipelineInsertStage(BToA, StageLoc.AtEnd, D65toLMS))
+        if (!BToA.InsertStageAtEnd(D65toLMS))
             goto error;
-        if (!cmsPipelineInsertStage(BToA, StageLoc.AtEnd, NonLinearityFw))
+        if (!BToA.InsertStageAtEnd(NonLinearityFw))
             goto error;
-        if (!cmsPipelineInsertStage(BToA, StageLoc.AtEnd, LMSprime_OkLab))
+        if (!BToA.InsertStageAtEnd(LMSprime_OkLab))
             goto error;
 
         if (!cmsWriteTag(hProfile, Signatures.Tag.BToA0, BToA))
             goto error;
 
-        if (!cmsPipelineInsertStage(AToB, StageLoc.AtEnd, OkLab_LMSprime))
+        if (!AToB.InsertStageAtEnd(OkLab_LMSprime))
             goto error;
-        if (!cmsPipelineInsertStage(AToB, StageLoc.AtEnd, NonLinearityRv))
+        if (!AToB.InsertStageAtEnd(NonLinearityRv))
             goto error;
-        if (!cmsPipelineInsertStage(AToB, StageLoc.AtEnd, LMStoD65))
+        if (!AToB.InsertStageAtEnd(LMStoD65))
             goto error;
-        if (!cmsPipelineInsertStage(AToB, StageLoc.AtEnd, D65toD50))
+        if (!AToB.InsertStageAtEnd(D65toD50))
             goto error;
-        if (!cmsPipelineInsertStage(AToB, StageLoc.AtEnd, XYZPCS))
+        if (!AToB.InsertStageAtEnd(XYZPCS))
             goto error;
 
         if (!cmsWriteTag(hProfile, Signatures.Tag.AToB0, AToB))
             goto error;
 
-        cmsPipelineFree(BToA);
-        cmsPipelineFree(AToB);
-
-        cmsFreeToneCurve(CubeRoot);
-        cmsFreeToneCurve(Cube);
-
         return hProfile;
 
     error:
-        cmsPipelineFree(BToA);
-        cmsPipelineFree(AToB);
-
-        cmsFreeToneCurve(CubeRoot);
-        cmsFreeToneCurve(Cube);
         cmsCloseProfile(hProfile);
 
         return null;
@@ -861,23 +813,16 @@ public static partial class Lcms2
         cmsSetHeaderRenderingIntent(hICC, INTENT_PERCEPTUAL);
 
         // Creates a Pipeline with 3D grid only
-        Pipeline = cmsPipelineAlloc(ContextID, 3, 3);
-        if (Pipeline is null)
-        {
-            cmsCloseProfile(hICC);
-            return null;
-        }
+        Pipeline = new Pipeline(ContextID, 3, 3);
 
         for (var i = 0; i < Context.MaxInputDimensions; i++)
             Dimensions[i] = nLUTPoints;
-        var CLUT = cmsStageAllocCLut16bitGranular(ContextID, Dimensions, 3, 3, null);
-        if (CLUT is null)
+        var CLUT = new CLutStage<ushort>(ContextID, Dimensions, 3, 3, null);
+
+        if (!CLUT.Sample(bchswSampler, new Box<BCHSWADJUSTS>(bchsw)))
             goto Error;
 
-        if (!cmsStageSampleCLut16bit(CLUT, bchswSampler, new Box<BCHSWADJUSTS>(bchsw), SamplerFlag.None))
-            goto Error;
-
-        if (!cmsPipelineInsertStage(Pipeline, StageLoc.AtEnd, CLUT))
+        if (!Pipeline.InsertStageAtEnd(CLUT))
             goto Error;
 
         // Create tags
@@ -889,14 +834,10 @@ public static partial class Lcms2
         if (!cmsWriteTag(hICC, Signatures.Tag.AToB0, Pipeline))
             goto Error;
 
-        // Pipeline is already on virtual profile
-        cmsPipelineFree(Pipeline);
-
         // Ok, done
         return hICC;
 
     Error:
-        cmsPipelineFree(Pipeline);
         cmsCloseProfile(hICC);
 
         return null;
@@ -934,24 +875,20 @@ public static partial class Lcms2
         cmsSetPCS(Profile, Signatures.Colorspace.Lab);
 
         // Create a valid ICC 4 structure
-        LUT = cmsPipelineAlloc(ContextID, 3, 1);
-        if (LUT is null)
-            goto Error;
+        LUT = new Pipeline(ContextID, 3, 1);
 
-        //EmptyTab = pool.Rent(3);
         EmptyTab = new ToneCurve[3];
-        EmptyTab[0] = EmptyTab[1] = EmptyTab[2] = cmsBuildTabulatedToneCurve16(ContextID, 2, Zero)!;
-        var PostLin = cmsStageAllocToneCurves(ContextID, 3, EmptyTab);
-        var OutLin = cmsStageAllocToneCurves(ContextID, 1, EmptyTab);
-        cmsFreeToneCurve(EmptyTab[0]);
+        EmptyTab[0] = EmptyTab[1] = EmptyTab[2] = ToneCurve.BuildTabulated(ContextID, 2, Zero);
+        var PostLin = new ToneCurvesStage(ContextID, EmptyTab[..3]);
+        var OutLin = new ToneCurvesStage(ContextID, EmptyTab[..1]);
 
-        if (!cmsPipelineInsertStage(LUT, StageLoc.AtEnd, PostLin))
+        if (!LUT.InsertStageAtEnd(PostLin))
             goto Error;
 
-        if (!cmsPipelineInsertStage(LUT, StageLoc.AtEnd, cmsStageAllocMatrix(ContextID, 1, 3, PickLstarMatrix, null)))
+        if (!LUT.InsertStageAtEnd(new MatrixStage(ContextID, 1, 3, PickLstarMatrix, null)))
             goto Error;
 
-        if (!cmsPipelineInsertStage(LUT, StageLoc.AtEnd, OutLin))
+        if (!LUT.InsertStageAtEnd(OutLin))
             goto Error;
 
         if (!cmsWriteTag(Profile, Signatures.Tag.BToA0, LUT))
@@ -959,15 +896,9 @@ public static partial class Lcms2
         if (!cmsWriteTag(Profile, Signatures.Tag.MediaWhitePoint, new Box<CIEXYZ>(CIEXYZ.D50)))
             goto Error;
 
-        //ReturnArray(pool, EmptyTab);
-        cmsPipelineFree(LUT);
         return Profile;
 
     Error:
-        //if (EmptyTab is not null)
-        //    ReturnArray(pool, EmptyTab);
-        if (LUT is not null)
-            cmsPipelineFree(LUT);
         if (Profile is not null)
             cmsCloseProfile(Profile);
 
@@ -1027,7 +958,7 @@ public static partial class Lcms2
             goto Error;
 
         // Colorant count now depends on the output space
-        nc2.ColorantCount = cmsPipelineOutputChannels(v.Lut);
+        nc2.ColorantCount = v.Lut.OutputChannels;
 
         // Make sure we have proper formatters
         cmsChangeBuffersFormat(
@@ -1150,7 +1081,7 @@ public static partial class Lcms2
         {
             if (n >= Tab.nTypes)
                 return false;
-            if (cmsStageType(mpe) != Tab.MpeTypes[n])
+            if (mpe.Type != Tab.MpeTypes[n])
                 return false;
         }
 
@@ -1188,24 +1119,22 @@ public static partial class Lcms2
             return null;
 
         // Get the first mpe to check for named color
-        var mpe = cmsPipelineGetPtrToFirstStage(xform.Lut);
+        var mpe = xform.Lut.FirstStage;
 
         // Check if it is a named color transform
         if (mpe is not null)
         {
-            if (cmsStageType(mpe) == Signatures.Stage.NamedColorElem)
+            if (mpe.Type == Signatures.Stage.NamedColorElem)
                 return CreateNamedColorDevicelink(hTransform);
         }
 
         // First thing to do is to get a copy of the transformation
-        LUT = cmsPipelineDup(xform.Lut);
-        if (LUT is null)
-            return null;
+        LUT = xform.Lut.Clone();
 
         // Time to fix the Lab2/Lab4 issue.
         if (xform.EntryColorSpace == Signatures.Colorspace.Lab && Version < 4.0)
         {
-            if (!cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocLabV2ToV4curves(ContextID)))
+            if (!LUT.InsertStageAtStart(_cmsStageAllocLabV2ToV4curves(ContextID)))
                 goto Error;
         }
 
@@ -1213,7 +1142,7 @@ public static partial class Lcms2
         if (xform.ExitColorSpace == Signatures.Colorspace.Lab && Version < 4.0)
         {
             dwFlags |= cmsFLAGS_NOWHITEONWHITEFIXUP;
-            if (!cmsPipelineInsertStage(LUT, StageLoc.AtEnd, _cmsStageAllocLabV4ToV2(ContextID)))
+            if (!LUT.InsertStageAtEnd(_cmsStageAllocLabV4ToV2(ContextID)))
                 goto Error;
         }
 
@@ -1260,16 +1189,16 @@ public static partial class Lcms2
             _cmsOptimizePipeline(ContextID, ref LUT, xform.RenderingIntent, ref FrmIn, ref FrmOut, ref dwFlags);
 
             // Put identity curves if needed
-            var FirstStage = cmsPipelineGetPtrToFirstStage(LUT);
+            var FirstStage = LUT.FirstStage;
             if (FirstStage is not null &&
                 FirstStage.Type != Signatures.Stage.CurveSetElem &&
-                !cmsPipelineInsertStage(LUT, StageLoc.AtBegin, _cmsStageAllocIdentityCurves(ContextID, ChansIn)))
+                !LUT.InsertStageAtStart(_cmsStageAllocIdentityCurves(ContextID, ChansIn)))
                 goto Error;
 
-            var LastStage = cmsPipelineGetPtrToLastStage(LUT);
+            var LastStage = LUT.LastStage;
             if (LastStage is not null &&
                 LastStage.Type != Signatures.Stage.CurveSetElem &&
-                !cmsPipelineInsertStage(LUT, StageLoc.AtEnd, _cmsStageAllocIdentityCurves(ContextID, ChansOut)))
+                !LUT.InsertStageAtEnd(_cmsStageAllocIdentityCurves(ContextID, ChansOut)))
                 goto Error;
 
             AllowedLUT = FindCombination(LUT, Version >= 4.0, DestinationTag);
@@ -1280,7 +1209,7 @@ public static partial class Lcms2
             goto Error;
 
         if ((dwFlags & cmsFLAGS_8BITS_DEVICELINK) is not 0)
-            cmsPipelineSetSaveAs8bitsFlag(LUT, true);
+            LUT.SaveAs8Bits = true;
 
         // Tag profile with information
         if (!SetTextTags(Profile, "devicelink"))
@@ -1313,12 +1242,9 @@ public static partial class Lcms2
         // Per 7.2.14 in spec 4.3
         cmsSetHeaderRenderingIntent(Profile, xform.RenderingIntent);
 
-        cmsPipelineFree(LUT);
         return Profile;
 
     Error:
-        if (LUT is not null)
-            cmsPipelineFree(LUT);
         cmsCloseProfile(Profile);
         return null;
     }

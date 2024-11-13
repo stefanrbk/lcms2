@@ -26,7 +26,7 @@
 
 namespace lcms2;
 
-public class NamedColorList : IDisposable
+public class NamedColorList : IDisposable, ICloneable
 {
     public uint nColors;
     public uint Allocated;
@@ -79,4 +79,10 @@ public class NamedColorList : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
+    object ICloneable.Clone() =>
+        Clone();
+
+    public NamedColorList Clone() =>
+        throw new NotImplementedException();
 }

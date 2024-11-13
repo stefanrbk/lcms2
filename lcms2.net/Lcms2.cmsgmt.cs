@@ -24,6 +24,8 @@
 //
 //---------------------------------------------------------------------------------
 
+using lcms2.stages;
+
 namespace lcms2;
 
 public static partial class Lcms2
@@ -129,7 +131,7 @@ public static partial class Lcms2
             SampledPoints[i] = (float)(1.0 - (Lab[0].L / 100.0));  // Negate K for easier operation
         }
 
-        @out = cmsBuildTabulatedToneCurveFloat(ContextID, nPoints, SampledPoints);
+        @out = ToneCurve.BuildTabulated(ContextID, nPoints, SampledPoints);
 
         //Error:
         cmsDeleteTransform(xform);
@@ -174,26 +176,20 @@ public static partial class Lcms2
 
         if (@out is null)
         {
-            cmsFreeToneCurve(@in);
             return null;
         }
 
         // Build the relationship. This effectively limits the maximum accuracy to 16 bits, but
         // since this is used on black-preserving LUTs, we are not losing accuracy in any case
-        var KTone = cmsJoinToneCurve(ContextID, @in, @out, nPoints);
-
-        // Get rid of compontents
-        cmsFreeToneCurve(@in);
-        cmsFreeToneCurve(@out);
+        var KTone = @in.Join(ContextID, @out, nPoints);
 
         // Something went wrong...
         if (KTone is null)
             return null;
 
         // Make sure it is monotonic
-        if (!cmsIsToneCurveMonotonic(KTone))
+        if (!KTone.IsMonotonic)
         {
-            cmsFreeToneCurve(KTone);
             return null;
         }
 
@@ -371,29 +367,18 @@ public static partial class Lcms2
             // Go on, try to compute gamut LUT from PCS. This consist on a single channel containing
             // dE when doing a transform back and forth on the colorimetric intent.
 
-            Gamut = cmsPipelineAlloc(ContextID, 3, 1);
-            if (Gamut is not null)
+            Gamut = new Pipeline(ContextID, 3, 1);
+            var CLUT = new CLutStage<ushort>(ContextID, nGridpoints, nChannels, 1, null);
+            if (!Gamut.InsertStageAtStart(CLUT))
             {
-                var CLUT = cmsStageAllocCLut16bit(ContextID, nGridpoints, nChannels, 1, null);
-                if (!cmsPipelineInsertStage(Gamut, StageLoc.AtBegin, CLUT))
-                {
-                    cmsPipelineFree(Gamut);
-                    Gamut = null;
-                }
-                else
-                    cmsStageSampleCLut16bit(CLUT, GamutSampler, new Box<GamutChain>(Chain), 0);
+                Gamut = null;
             }
+            else
+                CLUT.Sample(GamutSampler, new Box<GamutChain>(Chain), 0);
         }
         else
             Gamut = null; // Didn't work...
 
-        // Free all needed stuff.
-        if (Chain.hInput is not null)
-            cmsDeleteTransform(Chain.hInput);
-        if (Chain.hForward is not null)
-            cmsDeleteTransform(Chain.hForward);
-        if (Chain.hReverse is not null)
-            cmsDeleteTransform(Chain.hReverse);
         if (hLab is not null)
             cmsCloseProfile(hLab);
 
@@ -489,7 +474,7 @@ public static partial class Lcms2
         GridPoints[1] = 74;
         GridPoints[2] = 74;
 
-        if (!cmsSliceSpace16(3, GridPoints, EstimateTAC, bp))
+        if (!CLutStage<ushort>.SliceSpace(3, GridPoints, EstimateTAC, bp))
             bp.Value.MaxTAC = 0;
 
         cmsDeleteTransform(bp.Value.hRoundTrip);
@@ -618,19 +603,15 @@ public static partial class Lcms2
         cmsDeleteTransform(xform);
         cmsCloseProfile(hXYZ);
 
-        //var Y_normalized = pool.Rent(256);
         var Y_normalized = new float[256];
         for (var i = 0; i < 256; i++)
             Y_normalized[i] = (float)XYZ[i].Y;
 
-        var Y_curve = cmsBuildTabulatedToneCurveFloat(ContextID, 256, Y_normalized);
-        //ReturnArray(pool, Y_normalized);
+        var Y_curve = ToneCurve.BuildTabulated(ContextID, 256, Y_normalized);
         if (Y_curve is null)
             return -1;
 
-        var gamma = cmsEstimateGamma(Y_curve, threshold);
-
-        cmsFreeToneCurve(Y_curve);
+        var gamma = Y_curve.EstimateGamma(threshold);
 
         return gamma;
     }

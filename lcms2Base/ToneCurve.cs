@@ -40,8 +40,6 @@ public class ToneCurve : IDisposable, ICloneable
     internal uint nEntries;
     internal ushort[]? Table16;
 
-    private const float NegativeInfinity = -1e22f;
-    private const float PositiveInfinity = 1e22f;
     private const ushort maxNodesInCurve = 4097;
 
     private ToneCurve() { }
@@ -169,8 +167,8 @@ public class ToneCurve : IDisposable, ICloneable
 
         Seg0.Params = new double[10];
         Array.Clear(Seg0.Params);
-        Seg0.x0 = NegativeInfinity;
-        Seg0.x1 = PositiveInfinity;
+        Seg0.x0 = Context.NegativeInfinity;
+        Seg0.x1 = Context.PositiveInfinity;
         Seg0.Type = Type;
 
         var size = c.Functions[Pos].paramCount;
@@ -198,7 +196,7 @@ public class ToneCurve : IDisposable, ICloneable
 
         // A segmented tone curve should have function segments in the first and last positions
         // Initialize segmented curve part up to 0 to constant value = samples[0]
-        Seg[0].x0 = NegativeInfinity;
+        Seg[0].x0 = Context.NegativeInfinity;
         Seg[0].x1 = 0f;
         Seg[0].Type = 6;
 
@@ -219,7 +217,7 @@ public class ToneCurve : IDisposable, ICloneable
 
         // Final segment is constant = lastsample
         Seg[2].x0 = 1f;
-        Seg[2].x1 = PositiveInfinity;
+        Seg[2].x1 = Context.PositiveInfinity;
         Seg[2].Type = 6;
 
         Seg[2].Params = new double[10];
@@ -711,7 +709,7 @@ public class ToneCurve : IDisposable, ICloneable
                                 ? R
                                 : 0
                           : Double.Abs(Params[0]) < MAT3.DetTolerance
-                              ? PositiveInfinity
+                              ? Context.PositiveInfinity
                               : Double.Pow(R, 1 / Params[0]);
 
                 break;
@@ -1074,15 +1072,15 @@ public class ToneCurve : IDisposable, ICloneable
                 }
 
                 if (Double.IsPositiveInfinity(Out))
-                    return PositiveInfinity;
+                    return Context.PositiveInfinity;
                 else if (Double.IsNegativeInfinity(Out))
-                    return NegativeInfinity;
+                    return Context.NegativeInfinity;
 
                 return Out;
             }
         }
 
-        return NegativeInfinity;
+        return Context.NegativeInfinity;
     }
 
     private static readonly ParametricCurvesCollection defaultCurves = new(

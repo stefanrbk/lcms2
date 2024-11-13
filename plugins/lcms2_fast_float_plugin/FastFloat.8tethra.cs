@@ -21,7 +21,7 @@
 
 using System.Diagnostics;
 
-using lcms2.types;
+using lcms2.stages;
 
 namespace lcms2.FastFloatPlugin;
 
@@ -35,7 +35,7 @@ public static partial class FastFloat
             return false;
 
         // Evaluate in 16 bits
-        cmsPipelineEval16(In, Out, c);
+        c.Evaluate(In, Out);
 
         return true;
     }
@@ -201,8 +201,8 @@ public static partial class FastFloat
     {
         var Zeros = 0;
         var Poles = 0;
-        var nEntries = cmsGetToneCurveEstimatedTableEntries(g);
-        var Table16 = cmsGetToneCurveEstimatedTable(g);
+        var nEntries = g.EstimatedTableEntries;
+        var Table16 = g.EstimatedTable;
 
         for (var i = 0; i < nEntries; i++)
         {
@@ -289,7 +289,7 @@ public static partial class FastFloat
 
         var OriginalLut = Lut;
 
-        var ContextID = cmsGetPipelineContextID(OriginalLut);
+        var ContextID = OriginalLut.ContextID;
         var nGridPoints = _cmsReasonableGridpointsByColorspace(Signatures.Colorspace.Rgb, dwFlags);
 
         //var tcPool = Context.GetPool<ToneCurve>(ContextID);
@@ -334,7 +334,7 @@ public static partial class FastFloat
                 In[j] = v;
 
             // Evaluate the gray value
-            cmsPipelineEvalFloat(In, Out, OriginalLut);
+            OriginalLut.Evaluate(In, Out);
 
             // Store result in curve
             for (var j = 0; j < 3; j++)
@@ -345,9 +345,11 @@ public static partial class FastFloat
         {
             SlopeLimiting(MyTable[t], PRELINEARIZATION_POINTS);
 
-            Trans[t] = cmsBuildTabulatedToneCurve16(ContextID, PRELINEARIZATION_POINTS, MyTable[t])!;
-            if (Trans[t] is null)
+            var curve = ToneCurve.BuildTabulated(ContextID, PRELINEARIZATION_POINTS, MyTable[t]);
+            if (curve is null)
                 goto Error;
+
+            Trans[t] = curve;
 
             //usPool.Return(MyTable[t]);
             MyTable[t] = null!;
@@ -358,7 +360,7 @@ public static partial class FastFloat
         for (var t = 0; isSuitable && (t < 3); t++)
         {
             // Exclude if non-monotonic
-            if (!cmsIsToneCurveMonotonic(Trans[t]))
+            if (!Trans[t].IsMonotonic)
                 isSuitable = false;
 
             if (IsDegenerated(Trans[t]))
@@ -370,57 +372,48 @@ public static partial class FastFloat
             goto Error;
 
         // Invert curves if possible
-        var inputChannels = cmsPipelineInputChannels(OriginalLut);
+        var inputChannels = OriginalLut.InputChannels;
         for (var t = 0; t < inputChannels; t++)
         {
-            TransReverse[t] = cmsReverseToneCurveEx(PRELINEARIZATION_POINTS, Trans[t])!;
-            if (TransReverse[t] is null)
+            var reverse = Trans[t].Reverse(PRELINEARIZATION_POINTS);
+            if (reverse is null)
                 goto Error;
+
+            TransReverse[t] = reverse;
         }
 
         // Now insert the reversed curves at the beginning of the transform
-        LutPlusCurves = cmsPipelineDup(OriginalLut);
-        if (LutPlusCurves is null)
-            goto Error;
+        LutPlusCurves = OriginalLut.Clone();
 
-        cmsPipelineInsertStage(LutPlusCurves, StageLoc.AtBegin, cmsStageAllocToneCurves(ContextID, 3, TransReverse));
+        LutPlusCurves.InsertStageAtStart(new ToneCurvesStage(ContextID, TransReverse[..3]));
 
         // Create the result LUT
-        OptimizedLUT = cmsPipelineAlloc(ContextID, 3, cmsPipelineOutputChannels(OriginalLut));
-        if (OptimizedLUT is null)
-            goto Error;
+        OptimizedLUT = new Pipeline(ContextID, 3, OriginalLut.OutputChannels);
 
-        var OptimizedPrelinMpe = cmsStageAllocToneCurves(ContextID, 3, Trans);
+        var OptimizedPrelinMpe = new ToneCurvesStage(ContextID, Trans[..3]);
 
         // Create and insert the curves at the beginning
-        cmsPipelineInsertStage(OptimizedLUT, StageLoc.AtBegin, OptimizedPrelinMpe);
+        OptimizedLUT.InsertStageAtStart(OptimizedPrelinMpe);
 
         // Allocate the CLUT for result
-        var OptimizedCLUTmpe = cmsStageAllocCLut16bit(
+        var OptimizedCLUTmpe = new CLutStage<ushort>(
             ContextID,
             nGridPoints,
             3,
-            cmsPipelineOutputChannels(OriginalLut),
+            OriginalLut.OutputChannels,
             null);
 
         // Add the CLUT to the destination LUT
-        cmsPipelineInsertStage(OptimizedLUT, StageLoc.AtEnd, OptimizedCLUTmpe);
+        OptimizedLUT.InsertStageAtEnd(OptimizedCLUTmpe);
 
         // Resample the LUT
-        if (!cmsStageSampleCLut16bit(OptimizedCLUTmpe, XFormSampler16, LutPlusCurves, SamplerFlag.None))
+        if (!OptimizedCLUTmpe.Sample(XFormSampler16, LutPlusCurves))
             goto Error;
 
         // Set the evaluator
-        var data = (StageCLutData<ushort>)cmsStageData(OptimizedCLUTmpe!)!;
+        var data = OptimizedCLUTmpe;
 
         var p8 = Performance8Data.Alloc(ContextID, data.Params, Trans);
-        if (p8 is null)
-            goto Error;
-
-        // Free resources
-        freeResources();
-
-        cmsPipelineFree(OriginalLut);
 
         dwFlags &= ~cmsFLAGS_CAN_CHANGE_FORMATTER;
         Lut = OptimizedLUT;
@@ -431,36 +424,7 @@ public static partial class FastFloat
         return true;
 
     Error:
-        freeResources();
-
-        if (OptimizedLUT is not null)
-            cmsPipelineFree(OptimizedLUT);
-
         return false;
-
-        void freeResources()
-        {
-            for (var t = 0; t < 3; t++)
-            {
-                if (TransArray[t] is not null)
-                    cmsFreeToneCurve(TransArray[t]);
-                if (TransReverseArray[t] is not null)
-                    cmsFreeToneCurve(TransReverseArray[t]);
-
-                if (MyTableArray[t] is not null)
-                {
-                    //usPool.Return(MyTableArray[t]);
-                    MyTableArray[t] = null!;
-                }
-            }
-
-            if (LutPlusCurves is not null)
-                cmsPipelineFree(LutPlusCurves);
-
-            //uaPool.Return(MyTableArray);
-            //tcPool.Return(TransArray);
-            //tcPool.Return(TransReverseArray);
-        }
     }
 }
 
@@ -562,9 +526,9 @@ file class Performance8Data : IDisposable
             if (!G.IsEmpty)
             {
                 // Get 16-bit representation
-                Input[0] = cmsEvalToneCurve16(G[0], FROM_8_TO_16((byte)i));
-                Input[1] = cmsEvalToneCurve16(G[1], FROM_8_TO_16((byte)i));
-                Input[2] = cmsEvalToneCurve16(G[2], FROM_8_TO_16((byte)i));
+                Input[0] = G[0].Evaluate(FROM_8_TO_16((byte)i));
+                Input[1] = G[1].Evaluate(FROM_8_TO_16((byte)i));
+                Input[2] = G[2].Evaluate(FROM_8_TO_16((byte)i));
             }
             else
             {

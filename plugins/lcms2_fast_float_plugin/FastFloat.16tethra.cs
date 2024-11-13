@@ -22,6 +22,8 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
+using lcms2.stages;
+
 namespace lcms2.FastFloatPlugin;
 
 public static partial class FastFloat
@@ -342,8 +344,7 @@ public static partial class FastFloat
 
         // If this is a matrix-shaper, the default already does a good job
 
-        if (cmsPipelineCheckAndRetrieveStages(
-                Lut,
+        if (Lut.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out _,
                 Signatures.Stage.MatrixElem,
@@ -356,8 +357,7 @@ public static partial class FastFloat
             return false;
         }
 
-        if (cmsPipelineCheckAndRetrieveStages(
-                Lut,
+        if (Lut.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out _,
                 Signatures.Stage.CurveSetElem,
@@ -368,7 +368,7 @@ public static partial class FastFloat
 
         // Seems suitable, proceed
 
-        var ContextID = cmsGetPipelineContextID(Lut);
+        var ContextID = Lut.ContextID;
         var newFlags = dwFlags | cmsFLAGS_FORCE_CLUT;
 
         if (!_cmsOptimizePipeline(
@@ -380,14 +380,12 @@ public static partial class FastFloat
                 ref newFlags))
             return false;
 
-        var OptimizedCLUTmpe = cmsPipelineGetPtrToFirstStage(Lut);
+        var OptimizedCLUTmpe = Lut.FirstStage;
 
         // Set the evaluator
-        var data = (StageCLutData<ushort>)cmsStageData(OptimizedCLUTmpe!)!;
+        var data = (CLutStage<ushort>)OptimizedCLUTmpe;
 
         var p16 = Performance16Data.Alloc(ContextID, data.Params);
-        if (p16 is null)
-            return false;
 
         TransformFn = PerformanceEval16;
         UserData = p16;

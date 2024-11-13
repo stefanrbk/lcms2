@@ -24,35 +24,10 @@
 //
 //---------------------------------------------------------------------------------
 
-namespace lcms2;
+namespace lcms2.legacy;
 
-public class StageCLutData<T>
+public enum StageLoc
 {
-    //[StructLayout(LayoutKind.Explicit)]
-    //public struct CmsTab
-    //{
-    //    [FieldOffset(0)]
-    //    public ushort* T;
-
-    //    [FieldOffset(0)]
-    //    public float* TFloat;
-    //}
-
-    //public CmsTab Tab;
-    public T[]? Tab;
-    public InterpParams<T> Params;
-    public uint nEntries;
-
-    public bool HasFloatValues =>
-        typeof(T) == typeof(float);
-
-    public Span<ushort> TUshort =>
-        Tab is ushort[] wordTab
-            ? wordTab.AsSpan(..(int)nEntries)
-            : Span<ushort>.Empty;
-
-    public Span<float> TFloat =>
-        Tab is float[] floatTab
-            ? floatTab.AsSpan(..(int)nEntries)
-            : Span<float>.Empty;
+    AtBegin,
+    AtEnd,
 }

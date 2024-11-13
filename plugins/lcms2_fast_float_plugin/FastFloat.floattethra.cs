@@ -19,7 +19,7 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.types;
+using lcms2.stages;
 
 namespace lcms2.FastFloatPlugin;
 
@@ -30,7 +30,7 @@ public static partial class FastFloat
         if (Cargo is not Pipeline c)
             return false;
 
-        cmsPipelineEvalFloat(In, Out, c);
+        c.Evaluate(In, Out);
 
         return true;
     }
@@ -239,39 +239,33 @@ public static partial class FastFloat
 
         var OriginalLut = Lut;
 
-        var ContextID = cmsGetPipelineContextID(OriginalLut);
+        var ContextID = OriginalLut.ContextID;
         var nGridPoints = _cmsReasonableGridpointsByColorspace(Signatures.Colorspace.Rgb, dwFlags);
 
         // Create the result LUT
-        OptimizedLUT = cmsPipelineAlloc(ContextID, 3, cmsPipelineOutputChannels(OriginalLut));
-        if (OptimizedLUT is null)
-            goto Error;
+        OptimizedLUT = new Pipeline(ContextID, 3, OriginalLut.OutputChannels);
 
         // Allocate the CLUT for result
-        var OptimizedCLUTmpe = cmsStageAllocCLutFloat(
+        var OptimizedCLUTmpe = new CLutStage<float>(
             ContextID,
             nGridPoints,
             3,
-            cmsPipelineOutputChannels(OriginalLut),
+            OriginalLut.OutputChannels,
             null);
 
         // Add the CLUT to the destination LUT
-        cmsPipelineInsertStage(OptimizedLUT, StageLoc.AtBegin, OptimizedCLUTmpe);
+        OptimizedLUT.InsertStageAtStart(OptimizedCLUTmpe);
 
         // Resample the LUT
-        if (!cmsStageSampleCLutFloat(OptimizedCLUTmpe, XFormSamplerFloat, OriginalLut, SamplerFlag.None))
+        if (!OptimizedCLUTmpe.Sample(XFormSamplerFloat, OriginalLut))
             goto Error;
 
         // Set the evaluator
-        var data = (StageCLutData<float>)cmsStageData(OptimizedCLUTmpe!)!;
+        var data = OptimizedCLUTmpe;
 
         var pfloat = FloatCLUTData.Alloc(ContextID, data.Params);
-        if (pfloat is null)
-            goto Error;
 
         // And return the obtained LUT
-        cmsPipelineFree(OriginalLut);
-
         Lut = OptimizedLUT;
         TransformFn = FloatCLUTEval;
         UserData = pfloat;
@@ -281,9 +275,6 @@ public static partial class FastFloat
         return true;
 
     Error:
-        if (OptimizedLUT is not null)
-            cmsPipelineFree(OptimizedLUT);
-
         return false;
     }
 }

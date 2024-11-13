@@ -19,7 +19,7 @@
 //
 //---------------------------------------------------------------------------------
 
-using lcms2.types;
+using lcms2.stages;
 
 using S1Fixed15Number = System.Int32;
 
@@ -158,8 +158,7 @@ public static partial class FastFloat
         var Src = Lut;
 
         // Check for shaper-matrix-matrix-shaper structure, that is what this optimizer stands for
-        if (!cmsPipelineCheckAndRetrieveStages(
-                Src,
+        if (!Src.CheckAndRetrieveStages(
                 Signatures.Stage.CurveSetElem,
                 out var Curve1,
                 Signatures.Stage.MatrixElem,
@@ -172,11 +171,11 @@ public static partial class FastFloat
             return false;
         }
 
-        var ContextID = cmsGetPipelineContextID(Src);
+        var ContextID = Src.ContextID;
         var nChans = (uint)T_CHANNELS(InputFormat);
 
         // Get both matrices, which are 3x3
-        if (cmsStageData(Matrix1) is not StageMatrixData Data1 || cmsStageData(Matrix2) is not StageMatrixData Data2)
+        if (Matrix1 is not MatrixStage Data1 || Matrix2 is not MatrixStage Data2)
             return false;
 
         // Input offset should be zero
@@ -184,29 +183,27 @@ public static partial class FastFloat
             return false;
 
         // Multiply both matrices to get the result
-        var res = new MAT3(Data2.Double) * new MAT3(Data1.Double);
+        var res = new MAT3(Data2.Values) * new MAT3(Data1.Values);
 
         // Now the result is in res + Data2.Offset. Maybe is a plain identity?
         var IdentityMat = res.IsIdentity && Data2.Offset is null;   // We can get rid of full matrix
 
         // Allocate an empty LUT
-        var Dest = cmsPipelineAlloc(ContextID, nChans, nChans);
-        if (Dest is null)
-            return false;
+        var Dest = new Pipeline(ContextID, nChans, nChans);
 
         // Assemble the new LUT
-        cmsPipelineInsertStage(Dest, StageLoc.AtEnd, cmsStageDup(Curve1));
+        Dest.InsertStageAtEnd(Curve1.Clone());
 
         if (!IdentityMat)
         {
-            cmsPipelineInsertStage(Dest, StageLoc.AtEnd, cmsStageAllocMatrix(ContextID, 3, 3, res, Data2.Offset));
+            Dest.InsertStageAtEnd(new MatrixStage(ContextID, 3, 3, res, Data2.Offset));
         }
 
-        cmsPipelineInsertStage(Dest, StageLoc.AtEnd, cmsStageDup(Curve2));
+        Dest.InsertStageAtEnd(Curve2.Clone());
 
         {
-            if (cmsStageData(Curve1) is not StageToneCurvesData mpeC1 ||
-                cmsStageData(Curve2) is not StageToneCurvesData mpeC2)
+            if (Curve1 is not ToneCurvesStage mpeC1 ||
+                Curve2 is not ToneCurvesStage mpeC2)
                 return false;
 
             // In this particular optimization, cache does not help as it takes more time to deal with
@@ -216,17 +213,16 @@ public static partial class FastFloat
             // Setup the optimization routines
             UserData = XMatShaperData.SetShaper(
                 ContextID,
-                mpeC1.TheCurves,
+                mpeC1.Curves,
                 res,
                 Data2.Offset is null ? default : new VEC3(Data2.Offset),
-                mpeC2.TheCurves,
+                mpeC2.Curves,
                 IdentityMat);
             FreeUserData = FreeDisposable;
 
             TransformFn = MatShaperXform;
         }
 
-        cmsPipelineFree(Src);
         dwFlags &= ~cmsFLAGS_CAN_CHANGE_FORMATTER;
         Lut = Dest;
         return true;
@@ -304,7 +300,7 @@ public class XMatShaperData(Context? context) : IDisposable
         for (var i = 0; i < MAX_NODES_IN_CURVE; i++)
         {
             var R = (float)i / (MAX_NODES_IN_CURVE - 1);
-            var y = cmsEvalToneCurveFloat(Curve, R);
+            var y = Curve.Evaluate(R);
 
             Table[i] = (ushort)DOUBLE_TO_1FIXED15(y);
         }

@@ -22,7 +22,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-using lcms2.types;
+using lcms2.stages;
 
 namespace lcms2.FastFloatPlugin;
 
@@ -72,7 +72,7 @@ public static partial class FastFloat
         linearized[1] = LinLerp1D(In[1], container.data.sigmoidOut);
         linearized[2] = LinLerp1D(In[2], container.data.sigmoidOut);
 
-        cmsPipelineEvalFloat(linearized, Out, container.original);
+        container.original.Evaluate(linearized, Out);
 
         return true;
     }
@@ -315,41 +315,35 @@ public static partial class FastFloat
 
         var OriginalLut = Lut;
 
-        var ContextID = cmsGetPipelineContextID(OriginalLut);
+        var ContextID = OriginalLut.ContextID;
         var nGridPoints = (uint)GetGridPoints(dwFlags);
 
         // Create the result LUT
-        OptimizedLUT = cmsPipelineAlloc(ContextID, 3, cmsPipelineOutputChannels(OriginalLut));
-        if (OptimizedLUT is null)
-            goto Error;
+        OptimizedLUT = new Pipeline(ContextID, 3, OriginalLut.OutputChannels);
 
         // Allocate the CLUT for result
-        var OptimizedCLUTmpe = cmsStageAllocCLutFloat(
+        var OptimizedCLUTmpe = new CLutStage<float>(
             ContextID,
             nGridPoints,
             3,
-            cmsPipelineOutputChannels(OriginalLut),
+            OriginalLut.OutputChannels,
             null);
 
         // Add the CLUT to the destination LUT
-        cmsPipelineInsertStage(OptimizedLUT, StageLoc.AtBegin, OptimizedCLUTmpe);
+        OptimizedLUT.InsertStageAtStart(OptimizedCLUTmpe);
 
         // Set the evaluator
-        var data = (StageCLutData<float>)cmsStageData(OptimizedCLUTmpe!)!;
+        var data = OptimizedCLUTmpe;
 
         var pfloat = LabCLUTData.Alloc(ContextID, data.Params);
-        if (pfloat is null)
-            goto Error;
 
         var container = new ResamplingContainer(pfloat, OriginalLut);
 
         // Resample the LUT
-        if (!cmsStageSampleCLutFloat(OptimizedCLUTmpe, XFormSamplerLab, container, SamplerFlag.None))
+        if (!OptimizedCLUTmpe.Sample(XFormSamplerLab, container))
             goto Error;
 
         // And return the obtained LUT
-        cmsPipelineFree(OriginalLut);
-
         Lut = OptimizedLUT;
         TransformFn = LabCLUTEval;
         UserData = pfloat;
@@ -359,9 +353,6 @@ public static partial class FastFloat
         return true;
 
     Error:
-        if (OptimizedLUT is not null)
-            cmsPipelineFree(OptimizedLUT);
-
         return false;
     }
 }
@@ -434,17 +425,15 @@ file class LabCLUTData : IDisposable
         table = table[..tablePoints];
         table.Clear();
 
-        var original = cmsBuildParametricToneCurve(ContextID, type, sigmoidal_slope);
+        var original = ToneCurve.BuildParametric(ContextID, type, sigmoidal_slope);
         if (original is not null)
         {
             for (var i = 0; i < tablePoints; i++)
             {
                 var v = (float)i / (tablePoints - 1);
 
-                table[i] = fclamp(cmsEvalToneCurveFloat(original, v));
+                table[i] = fclamp(original.Evaluate(v));
             }
-
-            cmsFreeToneCurve(original);
         }
     }
 }

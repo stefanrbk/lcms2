@@ -26,6 +26,7 @@
 
 using System.Text;
 
+using lcms2.stages;
 using lcms2.types;
 
 namespace lcms2;
@@ -254,7 +255,7 @@ public static partial class Lcms2
 
     private class PsSamplerCargo
     {
-        public StageCLutData<ushort> Pipeline;
+        public CLutStage<ushort> Pipeline;
         public IOHandler m;
 
         public int FirstComponent;
@@ -282,7 +283,7 @@ public static partial class Lcms2
         public Signature ColorSpace;    // ColorSpace of profile
 
         public PsSamplerCargo(IOHandler m,
-                              StageCLutData<ushort> pipeline,
+                              CLutStage<ushort> pipeline,
                               int firstComponent,
                               int secondComponent,
                               ReadOnlySpan<byte> preMaj,
@@ -428,14 +429,14 @@ public static partial class Lcms2
 
         if (Table is null ||
             Table.nEntries <= 0 ||
-            cmsIsToneCurveLinear(Table))
+            Table.IsLinear)
         {
             m.PrintF("{{ 1 }} bind ");
             return;
         }
 
         // Check if is really an exponential. If so, emit "exp"
-        var gamma = cmsEstimateGamma(Table, 0.001);
+        var gamma = Table.EstimateGamma(0.001);
         if (gamma > 0)
         {
             m.PrintF("{{ {0:g} exp }} bind ", gamma);
@@ -588,7 +589,7 @@ public static partial class Lcms2
                                   bool FixWhite,
                                   Signature ColorSpace)
     {
-        if (mpe.Data is not StageCLutData<ushort> clut || clut.Params is null)
+        if (mpe is not CLutStage<ushort> clut || clut.Params is null)
             return;
 
         var sc = new PsSamplerCargo(m, clut, -1, -1, PreMaj, PostMaj, PreMin, PostMin, FixWhite, ColorSpace);
@@ -603,7 +604,7 @@ public static partial class Lcms2
 
         m.PrintF(" [\n");
 
-        cmsStageSampleCLut16bit(mpe, OutputValueSampler, sc, SamplerFlag.Inspect);
+        clut.Sample(OutputValueSampler, sc, SamplerFlag.Inspect);
 
         m.PrintF(PostMin);
         m.PrintF(PostMaj);
@@ -679,7 +680,7 @@ public static partial class Lcms2
 
         var mpe = Pipeline.Elements;
 
-        switch (cmsStageInputChannels(mpe))
+        switch (mpe.InputChannels)
         {
             case 3:
                 m.PrintF("[ /CIEBasedDEF\n");
@@ -702,16 +703,16 @@ public static partial class Lcms2
 
         m.PrintF("<<\n");
 
-        if (cmsStageType(mpe) == Signatures.Stage.CurveSetElem)
+        if (mpe.Type == Signatures.Stage.CurveSetElem)
         {
             m.PrintF("/DecodeDEF [ ");
-            EmitNGamma(m, cmsStageOutputChannels(mpe), _cmsStageGetPtrToCurveSet(mpe));
+            EmitNGamma(m, mpe.OutputChannels, _cmsStageGetPtrToCurveSet(mpe));
             m.PrintF("]\n");
 
             mpe = mpe.Next;
         }
 
-        if (cmsStageType(mpe) == Signatures.Stage.CLutElem)
+        if (mpe.Type == Signatures.Stage.CLutElem)
         {
             m.PrintF("/Table ");
             WriteCLUT(m, mpe, PreMaj, PostMaj, PreMin, PostMin, false, default);
@@ -730,7 +731,7 @@ public static partial class Lcms2
 
     private static ToneCurve? ExtractGray2Y(Context? ContextID, Profile Profile, uint Intent)
     {
-        var Out = cmsBuildTabulatedToneCurve16(ContextID, 256, null);
+        var Out = ToneCurve.BuildTabulated(ContextID, 256, ReadOnlySpan<ushort>.Empty);
         var hXYZ = cmsCreateXYZProfile();
         var xform = cmsCreateTransformTHR(
             ContextID,
@@ -799,7 +800,6 @@ public static partial class Lcms2
             {
                 var Gray2Y = ExtractGray2Y(m.ContextID, Profile, Intent);
                 EmitCIEBasedA(m, Gray2Y, BlackPointAdaptedToD50);
-                cmsFreeToneCurve(Gray2Y);
             }
                 break;
 
@@ -809,18 +809,12 @@ public static partial class Lcms2
                 var OutFrm = TYPE_Lab_16;
                 var v = xform;
 
-                var DeviceLink = cmsPipelineDup(v.Lut);
-                if (DeviceLink is null)
-                {
-                    cmsDeleteTransform(xform);
-                    return false;
-                }
+                var DeviceLink = v.Lut.Clone();
 
                 dwFlags |= cmsFLAGS_FORCE_CLUT;
                 _cmsOptimizePipeline(m.ContextID, ref DeviceLink, Intent, ref InputFormat, ref OutFrm, ref dwFlags);
 
                 var rc = EmitCIEBasedDEF(m, DeviceLink, Intent, BlackPointAdaptedToD50);
-                cmsPipelineFree(DeviceLink);
                 if (!rc)
                 {
                     cmsDeleteTransform(xform);
@@ -845,8 +839,8 @@ public static partial class Lcms2
     }
 
     private static double[]? GetPtrToMatrix(Stage mpe) =>
-        (mpe.Data is StageMatrixData Data)
-            ? Data.Double
+        (mpe is MatrixStage Data)
+            ? Data.Values
             : null;
 
     private static bool WriteInputMatrixShaper(IOHandler m, Profile Profile, Stage Matrix, Stage Shaper)
@@ -968,8 +962,7 @@ public static partial class Lcms2
                 goto Error;
 
             // TOne curves + matrix can be implemented without and LUT
-            if (cmsPipelineCheckAndRetrieveStages(
-                    lut,
+            if (lut.CheckAndRetrieveStages(
                     Signatures.Stage.CurveSetElem,
                     out var Shaper,
                     Signatures.Stage.MatrixElem,
@@ -989,16 +982,10 @@ public static partial class Lcms2
         // Done, keep memory usage
         var dwBytesUsed = mem.UsedSpace;
 
-        // Get rid of LUT
-        if (lut is not null)
-            cmsPipelineFree(lut);
-
         // Finally, return used byte count
         return dwBytesUsed;
 
     Error:
-        if (lut is not null)
-            cmsPipelineFree(lut);
         return 0;
     }
 
@@ -1143,7 +1130,7 @@ public static partial class Lcms2
 
         // Get a copy of the internal devicelink
         var v = xform;
-        var DeviceLink = cmsPipelineDup(v.Lut);
+        var DeviceLink = v.Lut.Clone();
         if (DeviceLink is null)
         {
             cmsDeleteTransform(xform);
@@ -1161,7 +1148,6 @@ public static partial class Lcms2
                 ref OutputFormat,
                 ref dwFlags))
         {
-            cmsPipelineFree(DeviceLink);
             cmsDeleteTransform(xform);
             Context.LogError(m.ContextID, cmsERROR_CORRUPTION_DETECTED, "Cannot create CLUT table for CRD");
             return false;
@@ -1188,7 +1174,7 @@ public static partial class Lcms2
 
         m.PrintF("/RenderTable ");
 
-        var first = cmsPipelineGetPtrToFirstStage(DeviceLink);
+        var first = DeviceLink.FirstStage;
         if (first is not null)
         {
             WriteCLUT(m, first, "<"u8, ">\n"u8, ""u8, ""u8, lFixWhite, ColorSpace);
@@ -1196,7 +1182,7 @@ public static partial class Lcms2
 
         WriteCLUT(
             m,
-            cmsPipelineGetPtrToFirstStage(DeviceLink),
+            DeviceLink.FirstStage,
             "<"u8,
             ">\n"u8,
             ""u8,
@@ -1218,7 +1204,6 @@ public static partial class Lcms2
         if ((dwFlags & cmsFLAGS_NODEFAULTRESOURCEDEF) is 0)
             m.PrintF("/Current exch /ColorRendering defineresource pop\n");
 
-        cmsPipelineFree(DeviceLink);
         cmsDeleteTransform(xform);
 
         return true;

@@ -26,7 +26,7 @@
 
 namespace lcms2;
 
-public class Mlu(Context? ContextID, uint nEntries)
+public class Mlu(Context? ContextID, uint nEntries) : IDisposable
 {
     public Context? ContextID = ContextID;
 
@@ -45,5 +45,10 @@ public class Mlu(Context? ContextID, uint nEntries)
     {
         get => (uint)Entries.Capacity;
         internal set => Entries.Capacity = (int)value;
+    }
+
+    public void Dispose()
+    {
+        // TODO release managed resources here
     }
 }
